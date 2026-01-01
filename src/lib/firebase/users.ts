@@ -10,7 +10,7 @@ import {
   serverTimestamp,
 } from 'firebase/firestore';
 import { db, FK365_COLLECTIONS } from './config';
-import type { User, UserRole } from '@/types';
+import type { User, UserRole, UserPermissions } from '@/types';
 
 const getDb = () => {
   if (!db) throw new Error('Firestore가 초기화되지 않았습니다.');
@@ -84,6 +84,18 @@ export async function updateUser(
   const docRef = doc(getDb(), FK365_COLLECTIONS.USERS, userId);
   await updateDoc(docRef, {
     ...data,
+    updatedAt: serverTimestamp(),
+  });
+}
+
+// 사용자 권한 업데이트
+export async function updateUserPermissions(
+  userId: string,
+  permissions: UserPermissions
+): Promise<void> {
+  const docRef = doc(getDb(), FK365_COLLECTIONS.USERS, userId);
+  await updateDoc(docRef, {
+    permissions,
     updatedAt: serverTimestamp(),
   });
 }

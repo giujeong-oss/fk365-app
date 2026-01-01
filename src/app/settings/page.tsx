@@ -19,6 +19,8 @@ import {
   Info,
   Server,
   RefreshCw,
+  Settings,
+  ChevronRight,
 } from 'lucide-react';
 import Link from 'next/link';
 
@@ -196,6 +198,25 @@ export default function SettingsPage() {
               </div>
             </div>
           </div>
+
+          {/* Quick Links */}
+          <section className="mb-6">
+            <Link
+              href="/settings/permissions"
+              className="flex items-center justify-between p-4 bg-white rounded-xl shadow-sm border border-gray-200 hover:border-green-300 hover:shadow-md transition-all"
+            >
+              <div className="flex items-center gap-4">
+                <div className="w-12 h-12 bg-purple-100 rounded-xl flex items-center justify-center">
+                  <Settings size={24} className="text-purple-600" />
+                </div>
+                <div>
+                  <h3 className="font-semibold text-gray-900">세부 권한 관리</h3>
+                  <p className="text-sm text-gray-500">일반 사용자의 개별 메뉴 접근 권한 설정</p>
+                </div>
+              </div>
+              <ChevronRight size={20} className="text-gray-400" />
+            </Link>
+          </section>
 
           {/* System Info */}
           <section className="bg-white rounded-xl shadow-sm border border-gray-200 overflow-hidden mb-6">

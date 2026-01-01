@@ -193,6 +193,57 @@ export interface MarginHistory {
 }
 
 // ============================================
+// 사용자 권한 (User Permissions)
+// ============================================
+
+export interface UserPermissions {
+  // 주문 관련
+  orders: boolean;        // 주문 목록 조회
+  orderEntry: boolean;    // 주문 입력
+  // 조회 관련
+  customers: boolean;     // 고객 조회
+  products: boolean;      // 제품 조회
+  stock: boolean;         // 재고 조회
+  prices: boolean;        // 가격 조회
+  // 관리자 전용 (기본 false, admin은 항상 true)
+  purchaseOrders: boolean; // 발주서
+  delivery: boolean;      // 배송장
+  margins: boolean;       // 마진 설정
+  vendors: boolean;       // 구매처 관리
+  settings: boolean;      // 설정
+}
+
+// 기본 권한 (일반 사용자)
+export const DEFAULT_USER_PERMISSIONS: UserPermissions = {
+  orders: true,
+  orderEntry: true,
+  customers: false,
+  products: false,
+  stock: false,
+  prices: false,
+  purchaseOrders: false,
+  delivery: false,
+  margins: false,
+  vendors: false,
+  settings: false,
+};
+
+// 관리자 권한 (모든 권한)
+export const ADMIN_PERMISSIONS: UserPermissions = {
+  orders: true,
+  orderEntry: true,
+  customers: true,
+  products: true,
+  stock: true,
+  prices: true,
+  purchaseOrders: true,
+  delivery: true,
+  margins: true,
+  vendors: true,
+  settings: true,
+};
+
+// ============================================
 // 사용자 (Users)
 // ============================================
 
@@ -203,6 +254,7 @@ export interface User {
   name?: string;
   role: UserRole;
   isActive: boolean;
+  permissions?: UserPermissions;
   preferredLanguage: UILanguage;
   lastLoginAt?: Date;
   createdAt: Date;
