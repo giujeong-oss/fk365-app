@@ -3,9 +3,12 @@
 import { useState, useEffect } from 'react';
 import { useAuth } from '@/lib/context';
 import { ProtectedRoute } from '@/components/auth';
+import { MainLayout } from '@/components/layout';
 import { Button, Input, Spinner, Badge, EmptyState } from '@/components/ui';
 import { getProducts, getAllStock, setStock, batchUpdateStock } from '@/lib/firebase';
 import type { Product, Stock } from '@/types';
+import { Home } from 'lucide-react';
+import Link from 'next/link';
 
 interface ProductStock {
   product: Product;
@@ -14,7 +17,7 @@ interface ProductStock {
 }
 
 export default function StockPage() {
-  const { isAdmin } = useAuth();
+  const { user, isAdmin, signOut } = useAuth();
   const [products, setProducts] = useState<Product[]>([]);
   const [productStocks, setProductStocks] = useState<ProductStock[]>([]);
   const [loading, setLoading] = useState(true);
@@ -127,14 +130,28 @@ export default function StockPage() {
   const totalStock = productStocks.reduce((sum, ps) => sum + ps.qty, 0);
 
   return (
-    <ProtectedRoute>
+    <ProtectedRoute adminOnly>
+      <MainLayout
+        isAdmin={isAdmin}
+        userName={user?.email || ''}
+        pageTitle="재고 관리"
+        onLogout={signOut}
+      >
       <div className="p-4 md:p-6 max-w-6xl mx-auto">
         <div className="flex flex-col md:flex-row md:items-center justify-between gap-4 mb-6">
-          <div>
-            <h1 className="text-2xl font-bold">재고 관리</h1>
-            <p className="text-sm text-gray-500 mt-1">
-              총 {products.length}개 제품 / 총 재고 {totalStock}개
-            </p>
+          <div className="flex items-center gap-4">
+            <Link href="/">
+              <Button variant="secondary" size="sm">
+                <Home size={18} className="mr-1" />
+                홈
+              </Button>
+            </Link>
+            <div>
+              <h1 className="text-2xl font-bold">재고 관리</h1>
+              <p className="text-sm text-gray-500 mt-1">
+                총 {products.length}개 제품 / 총 재고 {totalStock}개
+              </p>
+            </div>
           </div>
           <div className="flex items-center gap-2">
             {modifiedCount > 0 && (
@@ -322,6 +339,7 @@ export default function StockPage() {
           </div>
         )}
       </div>
+      </MainLayout>
     </ProtectedRoute>
   );
 }

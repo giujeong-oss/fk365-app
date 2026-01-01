@@ -30,7 +30,6 @@ const ALLOWED_DOMAINS = process.env.NEXT_PUBLIC_ALLOWED_DOMAINS?.split(',') || [
 // 관리자 이메일 목록
 const ADMIN_EMAILS = process.env.NEXT_PUBLIC_ADMIN_EMAILS?.split(',') || [
   'giujeong@freshkitchen365.com',
-  'giujeong@meet365.net',
 ];
 
 interface AuthContextType {

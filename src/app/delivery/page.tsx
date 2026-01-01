@@ -3,6 +3,7 @@
 import { useState, useEffect, useRef } from 'react';
 import { useAuth } from '@/lib/context';
 import { ProtectedRoute } from '@/components/auth';
+import { MainLayout } from '@/components/layout';
 import { Button, Spinner, Badge, EmptyState } from '@/components/ui';
 import {
   getOrdersByDate,
@@ -11,6 +12,8 @@ import {
 } from '@/lib/firebase';
 import { formatCurrency } from '@/lib/utils';
 import type { Order, Customer, Product, Region } from '@/types';
+import { Home } from 'lucide-react';
+import Link from 'next/link';
 
 interface DeliveryNote {
   customer: Customer;
@@ -25,7 +28,7 @@ interface DeliveryNote {
 }
 
 export default function DeliveryPage() {
-  const { user } = useAuth();
+  const { user, isAdmin, signOut } = useAuth();
   const [date, setDate] = useState(() => {
     const today = new Date();
     return today.toISOString().split('T')[0];
@@ -207,9 +210,23 @@ export default function DeliveryPage() {
 
   return (
     <ProtectedRoute>
+      <MainLayout
+        isAdmin={isAdmin}
+        userName={user?.email || ''}
+        pageTitle="배송장"
+        onLogout={signOut}
+      >
       <div className="p-4 md:p-6 max-w-6xl mx-auto">
         <div className="flex flex-col md:flex-row md:items-center justify-between gap-4 mb-6 print:hidden">
-          <h1 className="text-2xl font-bold">배송장</h1>
+          <div className="flex items-center gap-4">
+            <Link href="/">
+              <Button variant="secondary" size="sm">
+                <Home size={18} className="mr-1" />
+                홈
+              </Button>
+            </Link>
+            <h1 className="text-2xl font-bold">배송장</h1>
+          </div>
           <div className="flex items-center gap-2">
             <input
               type="date"
@@ -361,6 +378,7 @@ export default function DeliveryPage() {
           }
         }
       `}</style>
+      </MainLayout>
     </ProtectedRoute>
   );
 }

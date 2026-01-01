@@ -3,6 +3,7 @@
 import { useState, useEffect } from 'react';
 import { useAuth } from '@/lib/context';
 import { ProtectedRoute } from '@/components/auth';
+import { MainLayout } from '@/components/layout';
 import { Button, Spinner, Badge, EmptyState } from '@/components/ui';
 import {
   getProducts,
@@ -17,6 +18,8 @@ import {
   getOrdersByCutoff,
 } from '@/lib/firebase';
 import type { Product, Vendor, PurchaseOrder, Cutoff } from '@/types';
+import { Home } from 'lucide-react';
+import Link from 'next/link';
 
 type POType = 'buy1' | 'buy2' | 'buy3';
 
@@ -32,7 +35,7 @@ interface ProductSummary {
 }
 
 export default function PurchaseOrdersPage() {
-  const { isAdmin } = useAuth();
+  const { user, isAdmin, signOut } = useAuth();
   const [date, setDate] = useState(() => {
     const today = new Date();
     return today.toISOString().split('T')[0];
@@ -224,10 +227,24 @@ export default function PurchaseOrdersPage() {
   const existingPOsForTab = purchaseOrders.filter((po) => po.type === activeTab);
 
   return (
-    <ProtectedRoute>
+    <ProtectedRoute adminOnly>
+      <MainLayout
+        isAdmin={isAdmin}
+        userName={user?.email || ''}
+        pageTitle="발주서"
+        onLogout={signOut}
+      >
       <div className="p-4 md:p-6 max-w-6xl mx-auto">
         <div className="flex flex-col md:flex-row md:items-center justify-between gap-4 mb-6">
-          <h1 className="text-2xl font-bold">발주서</h1>
+          <div className="flex items-center gap-4">
+            <Link href="/">
+              <Button variant="secondary" size="sm">
+                <Home size={18} className="mr-1" />
+                홈
+              </Button>
+            </Link>
+            <h1 className="text-2xl font-bold">발주서</h1>
+          </div>
           <div className="flex items-center gap-2">
             <input
               type="date"
@@ -396,6 +413,7 @@ export default function PurchaseOrdersPage() {
           </div>
         )}
       </div>
+      </MainLayout>
     </ProtectedRoute>
   );
 }

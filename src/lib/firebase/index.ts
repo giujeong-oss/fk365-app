@@ -8,3 +8,4 @@ export * from './purchaseOrders';
 export * from './stock';
 export * from './priceHistory';
 export * from './margins';
+export * from './users';
