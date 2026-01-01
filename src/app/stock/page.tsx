@@ -224,6 +224,7 @@ export default function StockPage() {
                       <td className="px-4 py-3">
                         <div className="font-semibold text-gray-900">{ps.product.name_ko}</div>
                         <div className="text-sm text-gray-700">{ps.product.name_th}</div>
+                        <div className="text-sm text-gray-600">{ps.product.name_mm}</div>
                       </td>
                       <td className="px-4 py-3 text-sm text-gray-700 font-medium">
                         {ps.product.category || '-'}
@@ -283,9 +284,10 @@ export default function StockPage() {
                         <span className="font-semibold text-gray-900">{ps.product.name_ko}</span>
                         {ps.isModified && <Badge variant="warning" size="sm">수정됨</Badge>}
                       </div>
-                      <div className="text-sm text-gray-700 font-medium">{ps.product.code}</div>
+                      <div className="text-sm text-gray-700">{ps.product.name_th}</div>
+                      <div className="text-sm text-gray-600">{ps.product.name_mm}</div>
                       <div className="text-xs text-gray-600 mt-1">
-                        {ps.product.category || '-'} | {ps.product.unit}
+                        {ps.product.code} | {ps.product.category || '-'} | {ps.product.unit}
                       </div>
                     </div>
                     {!ps.isModified && ps.qty === 0 && (

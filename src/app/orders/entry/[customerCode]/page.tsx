@@ -76,9 +76,9 @@ export default function OrderEntryPage() {
       setFreshMarginMap(freshMap);
       setIndustrialMarginMap(industrialMap);
 
-      // 고객이 주문 가능한 제품만 필터
+      // 고객이 주문 가능한 제품만 필터 (products가 없으면 빈 배열 사용)
       const customerProducts = allProducts.filter((p) =>
-        customerData.products.includes(p.code)
+        (customerData.products || []).includes(p.code)
       );
       setProducts(customerProducts);
 

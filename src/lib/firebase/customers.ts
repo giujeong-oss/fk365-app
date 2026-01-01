@@ -134,6 +134,7 @@ export async function createCustomer(
   const customersRef = collection(getDb(), FK365_COLLECTIONS.CUSTOMERS);
   const docRef = await addDoc(customersRef, {
     ...data,
+    products: data.products || [], // 제품 목록 초기화
     prevGrade: data.grade, // 초기 등급 저장
     createdAt: serverTimestamp(),
     updatedAt: serverTimestamp(),

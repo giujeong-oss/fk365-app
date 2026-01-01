@@ -3,7 +3,10 @@
 import { useState, useEffect } from 'react';
 import { useAuth } from '@/lib/context';
 import { ProtectedRoute } from '@/components/auth';
+import { MainLayout } from '@/components/layout';
 import { Button, Input, Spinner, Badge, Modal } from '@/components/ui';
+import { Home } from 'lucide-react';
+import Link from 'next/link';
 import {
   getFreshMargins,
   getIndustrialMargins,
@@ -17,7 +20,7 @@ import { GRADE_ORDER, GRADE_DESCRIPTIONS } from '@/lib/utils';
 import type { FreshMargin, IndustrialMargin, MarginHistory, Grade } from '@/types';
 
 export default function MarginsPage() {
-  const { user, isAdmin } = useAuth();
+  const { user, isAdmin, signOut } = useAuth();
   const [freshMargins, setFreshMargins] = useState<FreshMargin[]>([]);
   const [industrialMargins, setIndustrialMarginsState] = useState<IndustrialMargin[]>([]);
   const [history, setHistory] = useState<MarginHistory[]>([]);
@@ -143,12 +146,28 @@ export default function MarginsPage() {
 
   return (
     <ProtectedRoute adminOnly>
+      <MainLayout
+        isAdmin={isAdmin}
+        userName={user?.email || ''}
+        pageTitle="마진 설정"
+        onLogout={signOut}
+      >
       <div className="p-4 md:p-6 max-w-6xl mx-auto">
-        <div className="mb-6">
-          <h1 className="text-2xl font-bold">마진 설정</h1>
-          <p className="text-sm text-gray-500 mt-1">
-            등급별 마진율을 설정합니다. 변경 시 히스토리가 자동 기록됩니다.
-          </p>
+        <div className="flex flex-col md:flex-row md:items-center justify-between gap-4 mb-6">
+          <div className="flex items-center gap-4">
+            <Link href="/">
+              <Button variant="secondary" size="sm">
+                <Home size={18} className="mr-1" />
+                홈
+              </Button>
+            </Link>
+            <div>
+              <h1 className="text-2xl font-bold">마진 설정</h1>
+              <p className="text-sm text-gray-500 mt-1">
+                등급별 마진율을 설정합니다. 변경 시 히스토리가 자동 기록됩니다.
+              </p>
+            </div>
+          </div>
         </div>
 
         {/* 탭 */}
@@ -437,6 +456,7 @@ export default function MarginsPage() {
           </>
         )}
       </div>
+      </MainLayout>
     </ProtectedRoute>
   );
 }

@@ -18,27 +18,27 @@ import {
   Globe,
 } from 'lucide-react';
 import type { UILanguage } from '@/types';
+import { useI18n, type TranslationKey } from '@/lib/i18n';
 
 interface NavItem {
   href: string;
-  labelKey: string;
-  label: string;
+  labelKey: TranslationKey;
   icon: React.ReactNode;
   adminOnly?: boolean;
 }
 
 const navItems: NavItem[] = [
-  { href: '/', labelKey: 'dashboard', label: '대시보드', icon: <LayoutDashboard size={20} /> },
-  { href: '/orders', labelKey: 'orders', label: '주문', icon: <ShoppingCart size={20} /> },
-  { href: '/purchase-orders', labelKey: 'purchaseOrders', label: '발주서', icon: <ClipboardList size={20} />, adminOnly: true },
-  { href: '/stock', labelKey: 'stock', label: '재고', icon: <Package size={20} />, adminOnly: true },
-  { href: '/delivery', labelKey: 'delivery', label: '배송장', icon: <Truck size={20} /> },
-  { href: '/products', labelKey: 'products', label: '제품', icon: <Apple size={20} />, adminOnly: true },
-  { href: '/customers', labelKey: 'customers', label: '고객', icon: <Users size={20} />, adminOnly: true },
-  { href: '/vendors', labelKey: 'vendors', label: '구매처', icon: <Store size={20} />, adminOnly: true },
-  { href: '/margins', labelKey: 'margins', label: '마진', icon: <Percent size={20} />, adminOnly: true },
-  { href: '/prices', labelKey: 'prices', label: '가격', icon: <DollarSign size={20} />, adminOnly: true },
-  { href: '/settings', labelKey: 'settings', label: '설정', icon: <Settings size={20} />, adminOnly: true },
+  { href: '/', labelKey: 'nav.dashboard', icon: <LayoutDashboard size={20} /> },
+  { href: '/orders', labelKey: 'nav.orders', icon: <ShoppingCart size={20} /> },
+  { href: '/purchase-orders', labelKey: 'nav.purchaseOrders', icon: <ClipboardList size={20} />, adminOnly: true },
+  { href: '/stock', labelKey: 'nav.stock', icon: <Package size={20} />, adminOnly: true },
+  { href: '/delivery', labelKey: 'nav.delivery', icon: <Truck size={20} /> },
+  { href: '/products', labelKey: 'nav.products', icon: <Apple size={20} />, adminOnly: true },
+  { href: '/customers', labelKey: 'nav.customers', icon: <Users size={20} />, adminOnly: true },
+  { href: '/vendors', labelKey: 'nav.vendors', icon: <Store size={20} />, adminOnly: true },
+  { href: '/margins', labelKey: 'nav.margins', icon: <Percent size={20} />, adminOnly: true },
+  { href: '/prices', labelKey: 'nav.prices', icon: <DollarSign size={20} />, adminOnly: true },
+  { href: '/settings', labelKey: 'nav.settings', icon: <Settings size={20} />, adminOnly: true },
 ];
 
 interface SidebarProps {
@@ -57,6 +57,7 @@ export default function Sidebar({
   userName = 'User',
 }: SidebarProps) {
   const pathname = usePathname();
+  const { t } = useI18n();
 
   const filteredNavItems = navItems.filter(item => !item.adminOnly || isAdmin);
 
@@ -89,7 +90,7 @@ export default function Sidebar({
                   }`}
                 >
                   {item.icon}
-                  <span>{item.label}</span>
+                  <span>{t(item.labelKey)}</span>
                 </Link>
               </li>
             );

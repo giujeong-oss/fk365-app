@@ -10,23 +10,25 @@ import {
   Truck,
   Settings,
 } from 'lucide-react';
+import { useI18n, type TranslationKey } from '@/lib/i18n';
 
 interface TabItem {
   href: string;
-  label: string;
+  labelKey: TranslationKey;
   icon: React.ReactNode;
 }
 
 const tabItems: TabItem[] = [
-  { href: '/', label: '홈', icon: <LayoutDashboard size={20} /> },
-  { href: '/orders', label: '주문', icon: <ShoppingCart size={20} /> },
-  { href: '/purchase-orders', label: '발주', icon: <ClipboardList size={20} /> },
-  { href: '/stock', label: '재고', icon: <Package size={20} /> },
-  { href: '/delivery', label: '배송', icon: <Truck size={20} /> },
+  { href: '/', labelKey: 'nav.dashboard', icon: <LayoutDashboard size={20} /> },
+  { href: '/orders', labelKey: 'nav.orders', icon: <ShoppingCart size={20} /> },
+  { href: '/purchase-orders', labelKey: 'nav.purchaseOrders', icon: <ClipboardList size={20} /> },
+  { href: '/stock', labelKey: 'nav.stock', icon: <Package size={20} /> },
+  { href: '/delivery', labelKey: 'nav.delivery', icon: <Truck size={20} /> },
 ];
 
 export default function BottomTabs() {
   const pathname = usePathname();
+  const { t } = useI18n();
 
   return (
     <nav className="lg:hidden fixed bottom-0 left-0 right-0 bg-white border-t border-gray-200 z-50">
@@ -44,7 +46,7 @@ export default function BottomTabs() {
                 }`}
               >
                 {item.icon}
-                <span className="text-xs">{item.label}</span>
+                <span className="text-xs">{t(item.labelKey)}</span>
               </Link>
             </li>
           );
