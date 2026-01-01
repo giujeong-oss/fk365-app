@@ -26,6 +26,9 @@ const ALLOWED_DOMAINS = process.env.NEXT_PUBLIC_ALLOWED_DOMAINS?.split(',') || [
   'freshkitchen365.com',
 ];
 
+// 관리자 이메일 목록
+const ADMIN_EMAILS = process.env.NEXT_PUBLIC_ADMIN_EMAILS?.split(',') || [];
+
 interface AuthContextType {
   user: User | null;
   firebaseUser: FirebaseUser | null;
@@ -59,24 +62,34 @@ export function AuthProvider({ children }: { children: ReactNode }) {
 
     if (userSnap.exists()) {
       const userData = userSnap.data();
+      let role = userData.role as UserRole;
+
+      // 관리자 이메일인데 role이 admin이 아니면 업데이트
+      const shouldBeAdmin = ADMIN_EMAILS.includes(firebaseUser.email);
+      if (shouldBeAdmin && role !== 'admin') {
+        role = 'admin';
+        await setDoc(userRef, { ...userData, role: 'admin', updatedAt: serverTimestamp() }, { merge: true });
+      }
+
       return {
         id: userSnap.id,
         uid: firebaseUser.uid,
         email: firebaseUser.email,
         name: userData.name || firebaseUser.displayName || '',
-        role: userData.role as UserRole,
+        role,
         preferredLanguage: userData.preferredLanguage as UILanguage || 'ko',
         createdAt: userData.createdAt?.toDate() || new Date(),
         updatedAt: userData.updatedAt?.toDate() || new Date(),
       };
     }
 
-    // 새 사용자 생성 (기본 role: user)
+    // 새 사용자 생성 (관리자 이메일이면 admin, 아니면 user)
+    const isAdmin = ADMIN_EMAILS.includes(firebaseUser.email);
     const newUser: Omit<User, 'id'> = {
       uid: firebaseUser.uid,
       email: firebaseUser.email,
       name: firebaseUser.displayName || '',
-      role: 'user',
+      role: isAdmin ? 'admin' : 'user',
       preferredLanguage: 'ko',
       createdAt: new Date(),
       updatedAt: new Date(),
