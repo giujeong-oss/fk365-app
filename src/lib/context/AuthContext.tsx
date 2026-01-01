@@ -24,10 +24,14 @@ const isFirebaseReady = () => !!auth && !!db && !!googleProvider;
 const ALLOWED_DOMAINS = process.env.NEXT_PUBLIC_ALLOWED_DOMAINS?.split(',') || [
   'meet365.com',
   'freshkitchen365.com',
+  'meet365.net',
 ];
 
 // 관리자 이메일 목록
-const ADMIN_EMAILS = process.env.NEXT_PUBLIC_ADMIN_EMAILS?.split(',') || [];
+const ADMIN_EMAILS = process.env.NEXT_PUBLIC_ADMIN_EMAILS?.split(',') || [
+  'giujeong@freshkitchen365.com',
+  'giujeong@meet365.net',
+];
 
 interface AuthContextType {
   user: User | null;
