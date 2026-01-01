@@ -1,10 +1,11 @@
 'use client';
 
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useCallback } from 'react';
 import { MainLayout } from '@/components/layout';
 import { ProtectedRoute } from '@/components/auth';
 import { useAuth } from '@/lib/context';
-import { getOrderCountByCutoff } from '@/lib/firebase';
+import { getOrderCountByCutoff, getCutoffSummary, getCustomers, getProducts } from '@/lib/firebase';
+import { formatCurrency } from '@/lib/constants';
 import {
   ShoppingCart,
   ClipboardList,
@@ -13,6 +14,10 @@ import {
   TrendingUp,
   AlertCircle,
   Ban,
+  Users,
+  Package,
+  RefreshCw,
+  DollarSign,
 } from 'lucide-react';
 import Link from 'next/link';
 
@@ -25,7 +30,12 @@ const CUTOFF_HOUR = 4; // 새벽 4시
 export default function Dashboard() {
   const { user, isAdmin, signOut } = useAuth();
   const [orderCounts, setOrderCounts] = useState({ cut1: 0, cut2: 0, cut3: 0, total: 0 });
+  const [orderSummary, setOrderSummary] = useState({ cut1: 0, cut2: 0, cut3: 0, total: 0 });
+  const [customerCount, setCustomerCount] = useState(0);
+  const [productCount, setProductCount] = useState(0);
   const [loading, setLoading] = useState(true);
+  const [refreshing, setRefreshing] = useState(false);
+  const [lastUpdated, setLastUpdated] = useState<Date | null>(null);
   const [currentTime, setCurrentTime] = useState(new Date());
 
   // 실시간 시계 업데이트 (1초마다)
@@ -36,20 +46,35 @@ export default function Dashboard() {
     return () => clearInterval(timer);
   }, []);
 
-  useEffect(() => {
-    const loadData = async () => {
-      try {
-        const today = new Date();
-        const counts = await getOrderCountByCutoff(today);
-        setOrderCounts(counts);
-      } catch (error) {
-        console.error('Failed to load order counts:', error);
-      } finally {
-        setLoading(false);
-      }
-    };
-    loadData();
+  const loadData = useCallback(async (isRefresh = false) => {
+    if (isRefresh) setRefreshing(true);
+    try {
+      const today = new Date();
+      const [counts, summary, customers, products] = await Promise.all([
+        getOrderCountByCutoff(today),
+        getCutoffSummary(today),
+        getCustomers(true),
+        getProducts(true),
+      ]);
+      setOrderCounts(counts);
+      setOrderSummary(summary);
+      setCustomerCount(customers.length);
+      setProductCount(products.length);
+      setLastUpdated(new Date());
+    } catch (error) {
+      console.error('Failed to load dashboard data:', error);
+    } finally {
+      setLoading(false);
+      setRefreshing(false);
+    }
   }, []);
+
+  useEffect(() => {
+    loadData();
+    // Auto-refresh every 60 seconds
+    const interval = setInterval(() => loadData(true), 60000);
+    return () => clearInterval(interval);
+  }, [loadData]);
 
   // 태국 시간 계산
   const getThailandTime = () => {
@@ -114,10 +139,27 @@ export default function Dashboard() {
           대시보드
         </h1>
 
-        {/* Current Time */}
-        <div className="mb-4 text-right text-sm text-gray-600">
-          <span className="font-mono">{formatTime(thailandTime)}</span>
-          <span className="ml-2 text-gray-400">(태국 시간)</span>
+        {/* Current Time & Refresh */}
+        <div className="mb-4 flex items-center justify-between">
+          <div className="flex items-center gap-2">
+            <button
+              onClick={() => loadData(true)}
+              disabled={refreshing}
+              className="flex items-center gap-1 px-3 py-1.5 text-sm bg-gray-100 hover:bg-gray-200 rounded-lg transition-colors disabled:opacity-50"
+            >
+              <RefreshCw size={14} className={refreshing ? 'animate-spin' : ''} />
+              새로고침
+            </button>
+            {lastUpdated && (
+              <span className="text-xs text-gray-500">
+                마지막 업데이트: {lastUpdated.toLocaleTimeString('ko-KR', { hour: '2-digit', minute: '2-digit' })}
+              </span>
+            )}
+          </div>
+          <div className="text-sm text-gray-600">
+            <span className="font-mono">{formatTime(thailandTime)}</span>
+            <span className="ml-2 text-gray-400">(태국 시간)</span>
+          </div>
         </div>
 
         {/* Order Summary Cards */}
@@ -176,6 +218,72 @@ export default function Dashboard() {
                 {loading ? '-' : orderCounts.cut3}
               </p>
               <p className="text-xs text-gray-600 mt-1">라라무브</p>
+            </div>
+          </div>
+        </section>
+
+        {/* Today's Revenue */}
+        <section className="mb-8">
+          <h2 className="text-lg font-semibold text-gray-800 mb-4 flex items-center gap-2">
+            <DollarSign size={20} className="text-emerald-600" />
+            오늘 매출 현황
+          </h2>
+          <div className="grid grid-cols-2 lg:grid-cols-4 gap-3 lg:gap-6">
+            <div className="bg-gradient-to-br from-emerald-50 to-emerald-100 rounded-xl p-4 lg:p-6 border border-emerald-200">
+              <p className="text-sm text-emerald-700 mb-1">총 매출</p>
+              <p className="text-xl lg:text-2xl font-bold text-emerald-800">
+                {loading ? '-' : formatCurrency(orderSummary.total)}
+              </p>
+            </div>
+            <div className="bg-white rounded-xl shadow-sm border border-gray-100 p-4 lg:p-6">
+              <p className="text-sm text-gray-600 mb-1">1차 매출</p>
+              <p className="text-lg lg:text-xl font-bold text-gray-800">
+                {loading ? '-' : formatCurrency(orderSummary.cut1)}
+              </p>
+            </div>
+            <div className="bg-white rounded-xl shadow-sm border border-gray-100 p-4 lg:p-6">
+              <p className="text-sm text-gray-600 mb-1">2차 매출</p>
+              <p className="text-lg lg:text-xl font-bold text-gray-800">
+                {loading ? '-' : formatCurrency(orderSummary.cut2)}
+              </p>
+            </div>
+            <div className="bg-white rounded-xl shadow-sm border border-gray-100 p-4 lg:p-6">
+              <p className="text-sm text-gray-600 mb-1">3차 매출</p>
+              <p className="text-lg lg:text-xl font-bold text-gray-800">
+                {loading ? '-' : formatCurrency(orderSummary.cut3)}
+              </p>
+            </div>
+          </div>
+        </section>
+
+        {/* Business Stats */}
+        <section className="mb-8">
+          <h2 className="text-lg font-semibold text-gray-800 mb-4 flex items-center gap-2">
+            <TrendingUp size={20} className="text-blue-600" />
+            기본 현황
+          </h2>
+          <div className="grid grid-cols-2 gap-3 lg:gap-6">
+            <div className="bg-white rounded-xl shadow-sm border border-gray-100 p-4 lg:p-6 flex items-center gap-4">
+              <div className="p-3 bg-blue-100 rounded-lg">
+                <Users size={24} className="text-blue-600" />
+              </div>
+              <div>
+                <p className="text-sm text-gray-600">활성 고객</p>
+                <p className="text-2xl font-bold text-gray-900">
+                  {loading ? '-' : customerCount}
+                </p>
+              </div>
+            </div>
+            <div className="bg-white rounded-xl shadow-sm border border-gray-100 p-4 lg:p-6 flex items-center gap-4">
+              <div className="p-3 bg-purple-100 rounded-lg">
+                <Package size={24} className="text-purple-600" />
+              </div>
+              <div>
+                <p className="text-sm text-gray-600">활성 제품</p>
+                <p className="text-2xl font-bold text-gray-900">
+                  {loading ? '-' : productCount}
+                </p>
+              </div>
             </div>
           </div>
         </section>

@@ -4,10 +4,10 @@ import { useState, useEffect } from 'react';
 import { useAuth } from '@/lib/context';
 import { ProtectedRoute } from '@/components/auth';
 import { MainLayout } from '@/components/layout';
-import { Button, Spinner, Badge, EmptyState } from '@/components/ui';
+import { Button, Spinner, Badge, EmptyState, Modal, useToast } from '@/components/ui';
 import { getProducts, getVendors, updateProduct, getAllPriceHistory, setTodayPrice } from '@/lib/firebase';
 import type { Product, Vendor, PriceType, PriceHistory } from '@/types';
-import { Home, Save, Search } from 'lucide-react';
+import { Home, Save, Search, Percent, CheckSquare, Square } from 'lucide-react';
 import Link from 'next/link';
 
 interface ProductPrice {
@@ -28,6 +28,7 @@ interface FreshProductPrice {
 
 export default function PricesPage() {
   const { user, isAdmin, signOut } = useAuth();
+  const { showSuccess, showError, showWarning } = useToast();
   const [products, setProducts] = useState<Product[]>([]);
   const [vendors, setVendors] = useState<Vendor[]>([]);
   const [productPrices, setProductPrices] = useState<ProductPrice[]>([]);
@@ -37,6 +38,13 @@ export default function PricesPage() {
   const [searchTerm, setSearchTerm] = useState('');
   const [selectedVendor, setSelectedVendor] = useState('');
   const [activeTab, setActiveTab] = useState<'industrial' | 'fresh'>('industrial');
+
+  // 일괄 수정 관련 상태
+  const [selectedProducts, setSelectedProducts] = useState<Set<string>>(new Set());
+  const [bulkEditModal, setBulkEditModal] = useState(false);
+  const [bulkEditType, setBulkEditType] = useState<'pur' | 'min' | 'mid' | 'all'>('all');
+  const [bulkEditMode, setBulkEditMode] = useState<'percent' | 'fixed'>('percent');
+  const [bulkEditValue, setBulkEditValue] = useState('');
 
   const today = new Date().toISOString().split('T')[0];
 
@@ -117,13 +125,79 @@ export default function PricesPage() {
     );
   };
 
+  // 제품 선택 토글
+  const toggleProductSelection = (code: string) => {
+    setSelectedProducts(prev => {
+      const newSet = new Set(prev);
+      if (newSet.has(code)) {
+        newSet.delete(code);
+      } else {
+        newSet.add(code);
+      }
+      return newSet;
+    });
+  };
+
+  // 전체 선택/해제
+  const toggleSelectAll = () => {
+    const currentProducts = activeTab === 'industrial' ? filteredIndustrial : filteredFresh;
+    const allCodes = currentProducts.map(p =>
+      activeTab === 'industrial' ? (p as ProductPrice).product.code : (p as FreshProductPrice).product.code
+    );
+
+    if (selectedProducts.size === allCodes.length) {
+      setSelectedProducts(new Set());
+    } else {
+      setSelectedProducts(new Set(allCodes));
+    }
+  };
+
+  // 일괄 수정 적용
+  const applyBulkEdit = () => {
+    const value = parseFloat(bulkEditValue);
+    if (isNaN(value)) {
+      showWarning('올바른 숫자를 입력해주세요.');
+      return;
+    }
+
+    setProductPrices(prev => prev.map(pp => {
+      if (!selectedProducts.has(pp.product.code)) return pp;
+
+      const applyChange = (original: number | undefined): number | undefined => {
+        if (original === undefined) return undefined;
+        if (bulkEditMode === 'percent') {
+          return Math.round(original * (1 + value / 100));
+        } else {
+          return original + value;
+        }
+      };
+
+      const newPp = { ...pp, isModified: true };
+      if (bulkEditType === 'all' || bulkEditType === 'pur') {
+        newPp.pur = applyChange(pp.pur);
+      }
+      if (bulkEditType === 'all' || bulkEditType === 'min') {
+        newPp.min = applyChange(pp.min);
+      }
+      if (bulkEditType === 'all' || bulkEditType === 'mid') {
+        newPp.mid = applyChange(pp.mid);
+      }
+      return newPp;
+    }));
+
+    showSuccess(`${selectedProducts.size}개 제품에 일괄 수정이 적용되었습니다.`);
+    setBulkEditModal(false);
+    setBulkEditValue('');
+    setSelectedProducts(new Set());
+  };
+
   const handleSaveIndustrial = async () => {
     setSaving(true);
     try {
       const modifiedItems = productPrices.filter((pp) => pp.isModified);
 
       if (modifiedItems.length === 0) {
-        alert('변경된 항목이 없습니다.');
+        showWarning('변경된 항목이 없습니다.');
         return;
       }
 
@@ -139,10 +213,10 @@ export default function PricesPage() {
         prev.map((pp) => ({ ...pp, isModified: false }))
       );
 
-      alert(`${modifiedItems.length}개 제품 가격이 저장되었습니다.`);
+      showSuccess(`${modifiedItems.length}개 제품 가격이 저장되었습니다.`);
     } catch (error) {
       console.error('Failed to save prices:', error);
-      alert('저장에 실패했습니다.');
+      showError('저장에 실패했습니다.');
     } finally {
       setSaving(false);
     }
@@ -154,7 +228,7 @@ export default function PricesPage() {
       const modifiedItems = freshPrices.filter((fp) => fp.isModified && fp.todayPrice !== undefined);
 
       if (modifiedItems.length === 0) {
-        alert('변경된 항목이 없습니다.');
+        showWarning('변경된 항목이 없습니다.');
         return;
       }
 
@@ -167,10 +241,10 @@ export default function PricesPage() {
       // 데이터 다시 로드하여 max3day 업데이트
       await loadData();
 
-      alert(`${modifiedItems.length}개 제품 가격이 저장되었습니다.`);
+      showSuccess(`${modifiedItems.length}개 제품 가격이 저장되었습니다.`);
     } catch (error) {
       console.error('Failed to save prices:', error);
-      alert('저장에 실패했습니다.');
+      showError('저장에 실패했습니다.');
     } finally {
       setSaving(false);
     }
@@ -246,6 +320,15 @@ export default function PricesPage() {
               </div>
             </div>
             <div className="flex items-center gap-2">
+              {selectedProducts.size > 0 && activeTab === 'industrial' && (
+                <Button
+                  variant="secondary"
+                  onClick={() => setBulkEditModal(true)}
+                >
+                  <Percent size={16} className="mr-1" />
+                  일괄 수정 ({selectedProducts.size}개)
+                </Button>
+              )}
               {currentModifiedCount > 0 && (
                 <Badge variant="warning">{currentModifiedCount}개 변경됨</Badge>
               )}
@@ -330,6 +413,19 @@ export default function PricesPage() {
                   <table className="w-full">
                     <thead className="bg-gray-50">
                       <tr>
+                        <th className="px-2 py-3 text-center">
+                          <button
+                            onClick={toggleSelectAll}
+                            className="p-1 hover:bg-gray-200 rounded"
+                            title={selectedProducts.size === filteredIndustrial.length ? '전체 해제' : '전체 선택'}
+                          >
+                            {selectedProducts.size === filteredIndustrial.length && filteredIndustrial.length > 0 ? (
+                              <CheckSquare size={18} className="text-green-600" />
+                            ) : (
+                              <Square size={18} className="text-gray-500" />
+                            )}
+                          </button>
+                        </th>
                         <th className="px-4 py-3 text-left text-sm font-medium text-gray-700">코드</th>
                         <th className="px-4 py-3 text-left text-sm font-medium text-gray-700">제품명</th>
                         <th className="px-4 py-3 text-left text-sm font-medium text-gray-700">구매처</th>
@@ -343,8 +439,20 @@ export default function PricesPage() {
                       {filteredIndustrial.map((pp) => (
                         <tr
                           key={pp.product.code}
-                          className={`hover:bg-gray-50 ${pp.isModified ? 'bg-yellow-50' : ''}`}
+                          className={`hover:bg-gray-50 ${pp.isModified ? 'bg-yellow-50' : ''} ${selectedProducts.has(pp.product.code) ? 'bg-blue-50' : ''}`}
                         >
+                          <td className="px-2 py-3 text-center">
+                            <button
+                              onClick={() => toggleProductSelection(pp.product.code)}
+                              className="p-1 hover:bg-gray-200 rounded"
+                            >
+                              {selectedProducts.has(pp.product.code) ? (
+                                <CheckSquare size={18} className="text-green-600" />
+                              ) : (
+                                <Square size={18} className="text-gray-400" />
+                              )}
+                            </button>
+                          </td>
                           <td className="px-4 py-3 font-mono text-sm text-gray-800 font-semibold">
                             {pp.product.code}
                           </td>
@@ -601,6 +709,109 @@ export default function PricesPage() {
             </div>
           )}
         </div>
+
+        {/* 일괄 수정 모달 */}
+        <Modal
+          isOpen={bulkEditModal}
+          onClose={() => {
+            setBulkEditModal(false);
+            setBulkEditValue('');
+          }}
+          title="일괄 가격 수정"
+        >
+          <div className="p-4">
+            <p className="text-sm text-gray-600 mb-4">
+              선택한 <strong>{selectedProducts.size}개</strong> 제품의 가격을 일괄 수정합니다.
+            </p>
+
+            <div className="space-y-4">
+              {/* 수정 대상 */}
+              <div>
+                <label className="block text-sm font-medium text-gray-700 mb-2">수정 대상</label>
+                <div className="flex gap-2 flex-wrap">
+                  {[
+                    { value: 'all', label: '전체' },
+                    { value: 'pur', label: '매입가만' },
+                    { value: 'min', label: '최소가만' },
+                    { value: 'mid', label: '중간가만' },
+                  ].map((opt) => (
+                    <button
+                      key={opt.value}
+                      onClick={() => setBulkEditType(opt.value as 'all' | 'pur' | 'min' | 'mid')}
+                      className={`px-3 py-1.5 text-sm rounded-lg border transition-colors ${
+                        bulkEditType === opt.value
+                          ? 'border-green-500 bg-green-50 text-green-700'
+                          : 'border-gray-300 text-gray-600 hover:bg-gray-50'
+                      }`}
+                    >
+                      {opt.label}
+                    </button>
+                  ))}
+                </div>
+              </div>
+
+              {/* 수정 방식 */}
+              <div>
+                <label className="block text-sm font-medium text-gray-700 mb-2">수정 방식</label>
+                <div className="flex gap-2">
+                  <button
+                    onClick={() => setBulkEditMode('percent')}
+                    className={`flex-1 px-3 py-2 text-sm rounded-lg border transition-colors ${
+                      bulkEditMode === 'percent'
+                        ? 'border-green-500 bg-green-50 text-green-700'
+                        : 'border-gray-300 text-gray-600 hover:bg-gray-50'
+                    }`}
+                  >
+                    <Percent size={16} className="inline mr-1" />
+                    비율 (%)
+                  </button>
+                  <button
+                    onClick={() => setBulkEditMode('fixed')}
+                    className={`flex-1 px-3 py-2 text-sm rounded-lg border transition-colors ${
+                      bulkEditMode === 'fixed'
+                        ? 'border-green-500 bg-green-50 text-green-700'
+                        : 'border-gray-300 text-gray-600 hover:bg-gray-50'
+                    }`}
+                  >
+                    고정값 (฿)
+                  </button>
+                </div>
+              </div>
+
+              {/* 수정 값 */}
+              <div>
+                <label className="block text-sm font-medium text-gray-700 mb-2">
+                  {bulkEditMode === 'percent' ? '변경 비율 (%)' : '변경값 (฿)'}
+                </label>
+                <input
+                  type="number"
+                  value={bulkEditValue}
+                  onChange={(e) => setBulkEditValue(e.target.value)}
+                  placeholder={bulkEditMode === 'percent' ? '예: 5 (5% 인상), -3 (3% 인하)' : '예: 10 (10฿ 인상), -5 (5฿ 인하)'}
+                  className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-green-500"
+                />
+                <p className="text-xs text-gray-500 mt-1">
+                  양수: 인상 / 음수: 인하
+                </p>
+              </div>
+            </div>
+
+            <div className="flex justify-end gap-2 mt-6">
+              <Button
+                variant="secondary"
+                onClick={() => {
+                  setBulkEditModal(false);
+                  setBulkEditValue('');
+                }}
+              >
+                취소
+              </Button>
+              <Button onClick={applyBulkEdit}>
+                적용
+              </Button>
+            </div>
+          </div>
+        </Modal>
       </MainLayout>
     </ProtectedRoute>
   );

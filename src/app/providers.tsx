@@ -2,11 +2,14 @@
 
 import { AuthProvider } from '@/lib/context';
 import { I18nProvider } from '@/lib/i18n';
+import { ToastProvider } from '@/components/ui';
 
 export function Providers({ children }: { children: React.ReactNode }) {
   return (
     <I18nProvider>
-      <AuthProvider>{children}</AuthProvider>
+      <ToastProvider>
+        <AuthProvider>{children}</AuthProvider>
+      </ToastProvider>
     </I18nProvider>
   );
 }

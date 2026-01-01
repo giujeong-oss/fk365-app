@@ -5,3 +5,5 @@ export { default as Modal } from './Modal';
 export { default as Badge } from './Badge';
 export { default as EmptyState } from './EmptyState';
 export { default as Spinner, LoadingState } from './Spinner';
+export { ToastProvider, useToast } from './Toast';
+export type { ToastType, ToastMessage } from './Toast';

@@ -1,0 +1,104 @@
+rules_version = '2';
+
+service cloud.firestore {
+  match /databases/{database}/documents {
+    // 인증된 사용자만 접근 가능
+    function isAuthenticated() {
+      return request.auth != null;
+    }
+
+    // 관리자 확인 (fk365_users 컬렉션에서 role 확인)
+    function isAdmin() {
+      return isAuthenticated() &&
+        exists(/databases/$(database)/documents/fk365_users/$(request.auth.token.email.replace('.', '_').replace('@', '_'))) &&
+        get(/databases/$(database)/documents/fk365_users/$(request.auth.token.email.replace('.', '_').replace('@', '_'))).data.role == 'admin';
+    }
+
+    // 활성 사용자 확인
+    function isActiveUser() {
+      return isAuthenticated() &&
+        exists(/databases/$(database)/documents/fk365_users/$(request.auth.token.email.replace('.', '_').replace('@', '_'))) &&
+        get(/databases/$(database)/documents/fk365_users/$(request.auth.token.email.replace('.', '_').replace('@', '_'))).data.isActive == true;
+    }
+
+    // 제품 컬렉션 - 모든 인증된 사용자 읽기, 관리자만 쓰기
+    match /fk365_products/{productId} {
+      allow read: if isAuthenticated();
+      allow write: if isAdmin();
+    }
+
+    // 고객 컬렉션 - 모든 인증된 사용자 읽기, 관리자만 쓰기
+    match /fk365_customers/{customerId} {
+      allow read: if isAuthenticated();
+      allow write: if isAdmin();
+    }
+
+    // 구매처 컬렉션 - 모든 인증된 사용자 읽기, 관리자만 쓰기
+    match /fk365_vendors/{vendorId} {
+      allow read: if isAuthenticated();
+      allow write: if isAdmin();
+    }
+
+    // 주문 컬렉션 - 인증된 사용자 읽기/쓰기
+    match /fk365_orders/{orderId} {
+      allow read: if isAuthenticated();
+      allow write: if isActiveUser();
+    }
+
+    // 발주서 컬렉션 - 관리자만 읽기/쓰기
+    match /fk365_purchaseOrders/{poId} {
+      allow read, write: if isAdmin();
+    }
+
+    // 재고 컬렉션 - 인증된 사용자 읽기, 관리자만 쓰기
+    match /fk365_stock/{stockId} {
+      allow read: if isAuthenticated();
+      allow write: if isAdmin();
+    }
+
+    // 가격 히스토리 - 관리자만 읽기/쓰기
+    match /fk365_priceHistory/{historyId} {
+      allow read, write: if isAdmin();
+    }
+
+    // 마진 설정 - 인증된 사용자 읽기, 관리자만 쓰기
+    match /fk365_margins/{marginId} {
+      allow read: if isAuthenticated();
+      allow write: if isAdmin();
+    }
+
+    // 마진 히스토리 - 관리자만 읽기/쓰기
+    match /fk365_marginHistory/{historyId} {
+      allow read, write: if isAdmin();
+    }
+
+    // 고객별 제품 adj - 인증된 사용자 읽기, 관리자만 쓰기
+    match /fk365_customerProductAdj/{adjId} {
+      allow read: if isAuthenticated();
+      allow write: if isAdmin();
+    }
+
+    // 설정 - 인증된 사용자 읽기, 관리자만 쓰기
+    match /fk365_settings/{settingId} {
+      allow read: if isAuthenticated();
+      allow write: if isAdmin();
+    }
+
+    // 사용자 컬렉션 - 관리자만 읽기/쓰기
+    match /fk365_users/{userId} {
+      allow read: if isAuthenticated();
+      allow write: if isAdmin();
+    }
+
+    // 잠금 컬렉션 - 인증된 사용자 읽기/쓰기
+    match /fk365_locks/{lockId} {
+      allow read, write: if isAuthenticated();
+    }
+
+    // 다국어 컬렉션 - 모든 인증된 사용자 읽기, 관리자만 쓰기
+    match /fk365_i18n/{docId} {
+      allow read: if isAuthenticated();
+      allow write: if isAdmin();
+    }
+  }
+}

@@ -12,19 +12,14 @@ import {
   createOrder,
   updateOrderItems,
   deleteOrder,
-  getCustomerProductAdj,
+  getCustomerProductAdjs,
   getFreshMarginMap,
   getIndustrialMarginMap,
 } from '@/lib/firebase';
+import { CUTOFF_OPTIONS, formatCurrency } from '@/lib/constants';
 import { calculateSellPrice as calcPrice } from '@/lib/utils';
 import type { Customer, Product, Order, OrderItem, Cutoff, Grade, IndustrialMargin } from '@/types';
 import Link from 'next/link';
-
-const CUTOFF_OPTIONS = [
-  { value: '1', label: '1차 (정상)' },
-  { value: '2', label: '2차 (추가)' },
-  { value: '3', label: '3차 (긴급)' },
-];
 
 interface ProductOrderState {
   product: Product;
@@ -60,6 +55,7 @@ export default function OrderEntryPage() {
   const loadData = async () => {
     setLoading(true);
     try {
+      // 병렬로 모든 기본 데이터 로드
       const [customerData, allProducts, freshMap, industrialMap] = await Promise.all([
         getCustomerByCode(customerCode),
         getProducts(true),
@@ -82,42 +78,45 @@ export default function OrderEntryPage() {
       );
       setProducts(customerProducts);
 
-      // 기존 주문 로드
-      const orders = await getOrdersByCustomer(customerCode, new Date(dateParam));
+      // N+1 쿼리 해결: 고객의 모든 제품 adj를 한 번에 조회
+      const [orders, productAdjs] = await Promise.all([
+        getOrdersByCustomer(customerCode, new Date(dateParam)),
+        getCustomerProductAdjs(customerCode),
+      ]);
       setExistingOrders(orders);
 
-      // 제품별 adj 로드 및 상태 초기화
-      const states: ProductOrderState[] = await Promise.all(
-        customerProducts.map(async (product) => {
-          const adjData = await getCustomerProductAdj(customerCode, product.code);
-          const baseAdj = adjData?.adj || 0;
+      // adj를 Map으로 변환 (productCode -> adj)
+      const adjMap = new Map(productAdjs.map(a => [a.productCode, a.adj]));
 
-          // 기존 주문에서 수량/adj 가져오기
-          let qty = 0;
-          let orderAdj = 0;
-          orders.forEach((order) => {
-            const item = order.items.find((i) => i.productCode === product.code);
-            if (item) {
-              qty += item.qty;
-              orderAdj = item.orderAdj;
-            }
-          });
+      // 제품별 상태 초기화 (더 이상 N+1 쿼리 없음)
+      const states: ProductOrderState[] = customerProducts.map((product) => {
+        const baseAdj = adjMap.get(product.code) || 0;
 
-          // 제품에 저장된 등급별 판매가가 있으면 사용
-          const preCalcPrice = (product as Product & { prices?: Record<string, number> }).prices?.[customerData.grade];
-          const sellPrice = preCalcPrice
-            ? preCalcPrice + baseAdj + orderAdj
-            : calculateSellPriceWithMargin(product, customerData.grade, freshMap, industrialMap, baseAdj + orderAdj);
+        // 기존 주문에서 수량/adj 가져오기
+        let qty = 0;
+        let orderAdj = 0;
+        orders.forEach((order) => {
+          const item = order.items.find((i) => i.productCode === product.code);
+          if (item) {
+            qty += item.qty;
+            orderAdj = item.orderAdj;
+          }
+        });
 
-          return {
-            product,
-            qty,
-            baseAdj,
-            orderAdj,
-            sellPrice,
-          };
-        })
-      );
+        // 제품에 저장된 등급별 판매가가 있으면 사용
+        const preCalcPrice = (product as Product & { prices?: Record<string, number> }).prices?.[customerData.grade];
+        const sellPrice = preCalcPrice
+          ? preCalcPrice + baseAdj + orderAdj
+          : calculateSellPriceWithMargin(product, customerData.grade, freshMap, industrialMap, baseAdj + orderAdj);
+
+        return {
+          product,
+          qty,
+          baseAdj,
+          orderAdj,
+          sellPrice,
+        };
+      });
 
       setProductStates(states);
     } catch (error) {
@@ -237,14 +236,6 @@ export default function OrderEntryPage() {
     (sum, state) => sum + state.qty * state.sellPrice,
     0
   );
-
-  const formatCurrency = (amount: number) => {
-    return new Intl.NumberFormat('th-TH', {
-      style: 'currency',
-      currency: 'THB',
-      minimumFractionDigits: 0,
-    }).format(amount);
-  };
 
   if (loading) {
     return (

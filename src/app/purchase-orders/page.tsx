@@ -18,8 +18,9 @@ import {
   getOrdersByCutoff,
 } from '@/lib/firebase';
 import type { Product, Vendor, PurchaseOrder, Cutoff } from '@/types';
-import { Home } from 'lucide-react';
+import { Home, Printer, X } from 'lucide-react';
 import Link from 'next/link';
+import { useRef } from 'react';
 
 type POType = 'buy1' | 'buy2' | 'buy3';
 
@@ -49,6 +50,8 @@ export default function PurchaseOrdersPage() {
   const [generating, setGenerating] = useState<POType | null>(null);
   const [selectedVendor, setSelectedVendor] = useState<string>('');
   const [activeTab, setActiveTab] = useState<POType>('buy1');
+  const [printPO, setPrintPO] = useState<PurchaseOrder | null>(null);
+  const printRef = useRef<HTMLDivElement>(null);
 
   useEffect(() => {
     loadData();
@@ -223,6 +226,61 @@ export default function PurchaseOrdersPage() {
     return products.find((p) => p.code === productCode)?.name_ko || productCode;
   };
 
+  const getProductDetails = (productCode: string) => {
+    return products.find((p) => p.code === productCode);
+  };
+
+  const handlePrint = () => {
+    if (printRef.current) {
+      const printWindow = window.open('', '_blank');
+      if (printWindow) {
+        printWindow.document.write(`
+          <!DOCTYPE html>
+          <html>
+          <head>
+            <title>발주서 - ${printPO?.vendorCode ? getVendorName(printPO.vendorCode) : printPO?.note || ''}</title>
+            <style>
+              @page { size: A4; margin: 10mm; }
+              body { font-family: Arial, sans-serif; font-size: 12px; line-height: 1.4; }
+              .header { text-align: center; margin-bottom: 20px; border-bottom: 2px solid #000; padding-bottom: 10px; }
+              .header h1 { margin: 0; font-size: 24px; }
+              .header .date { font-size: 14px; color: #666; margin-top: 5px; }
+              .info-row { display: flex; justify-content: space-between; margin-bottom: 10px; padding: 8px; background: #f5f5f5; }
+              .info-row span { font-weight: bold; }
+              table { width: 100%; border-collapse: collapse; margin-top: 15px; }
+              th, td { border: 1px solid #ddd; padding: 8px; text-align: left; }
+              th { background: #f0f0f0; font-weight: bold; }
+              td.number { text-align: right; }
+              .total { margin-top: 15px; text-align: right; font-size: 16px; font-weight: bold; }
+              .footer { margin-top: 30px; text-align: center; font-size: 11px; color: #888; }
+              @media print {
+                body { -webkit-print-color-adjust: exact; print-color-adjust: exact; }
+              }
+            </style>
+          </head>
+          <body>
+            ${printRef.current.innerHTML}
+          </body>
+          </html>
+        `);
+        printWindow.document.close();
+        printWindow.focus();
+        setTimeout(() => {
+          printWindow.print();
+          printWindow.close();
+        }, 250);
+      }
+    }
+  };
+
+  const getPOTypeLabel = (type: POType) => {
+    switch (type) {
+      case 'buy1': return '1차 발주 (정상)';
+      case 'buy2': return '2차 발주 (끌렁떠이 추가)';
+      case 'buy3': return '3차 발주 (라라무브 긴급)';
+    }
+  };
+
   const formatCurrency = (amount: number) => {
     return new Intl.NumberFormat('th-TH', {
       style: 'currency',
@@ -370,12 +428,22 @@ export default function PurchaseOrdersPage() {
                           {po.items.length}개 품목
                         </span>
                       </div>
-                      <div className="text-right">
-                        <div className="font-medium">
-                          {po.totalAmount ? formatCurrency(po.totalAmount) : '-'}
-                        </div>
-                        <div className="text-xs text-gray-500">
-                          {po.createdAt.toLocaleTimeString()}
+                      <div className="flex items-center gap-4">
+                        <Button
+                          variant="secondary"
+                          size="sm"
+                          onClick={() => setPrintPO(po)}
+                        >
+                          <Printer size={16} className="mr-1" />
+                          인쇄
+                        </Button>
+                        <div className="text-right">
+                          <div className="font-medium">
+                            {po.totalAmount ? formatCurrency(po.totalAmount) : '-'}
+                          </div>
+                          <div className="text-xs text-gray-500">
+                            {po.createdAt.toLocaleTimeString()}
+                          </div>
                         </div>
                       </div>
                     </div>
@@ -486,6 +554,91 @@ export default function PurchaseOrdersPage() {
           </div>
         )}
       </div>
+
+      {/* 발주서 인쇄 모달 */}
+      {printPO && (
+        <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50 p-4">
+          <div className="bg-white rounded-lg max-w-4xl w-full max-h-[90vh] flex flex-col">
+            <div className="flex items-center justify-between p-4 border-b">
+              <h3 className="text-lg font-semibold">발주서 미리보기</h3>
+              <div className="flex items-center gap-2">
+                <Button onClick={handlePrint}>
+                  <Printer size={18} className="mr-1" />
+                  인쇄
+                </Button>
+                <button
+                  onClick={() => setPrintPO(null)}
+                  className="p-2 hover:bg-gray-100 rounded"
+                >
+                  <X size={20} />
+                </button>
+              </div>
+            </div>
+            <div className="flex-1 overflow-auto p-4">
+              <div ref={printRef}>
+                <div className="header">
+                  <h1>발주서</h1>
+                  <div className="date">{date}</div>
+                </div>
+
+                <div className="info-row">
+                  <div>
+                    <strong>발주 유형:</strong> {getPOTypeLabel(printPO.type as POType)}
+                  </div>
+                  <div>
+                    <strong>구매처:</strong> {printPO.vendorCode ? getVendorName(printPO.vendorCode) : (printPO.note || '전체')}
+                  </div>
+                </div>
+
+                <table>
+                  <thead>
+                    <tr>
+                      <th style={{ width: '80px' }}>코드</th>
+                      <th>제품명</th>
+                      <th style={{ width: '80px', textAlign: 'center' }}>유형</th>
+                      <th style={{ width: '80px', textAlign: 'right' }}>수량</th>
+                      <th style={{ width: '100px', textAlign: 'right' }}>단가</th>
+                      <th style={{ width: '100px', textAlign: 'right' }}>금액</th>
+                    </tr>
+                  </thead>
+                  <tbody>
+                    {printPO.items.map((item, idx) => {
+                      const product = getProductDetails(item.productCode);
+                      const unitPrice = item.buyPrice || 0;
+                      const amount = item.buyQty * unitPrice;
+                      return (
+                        <tr key={idx}>
+                          <td>{item.productCode}</td>
+                          <td>
+                            <div>{product?.name_ko || item.productCode}</div>
+                            {product?.name_th && (
+                              <div style={{ fontSize: '11px', color: '#888' }}>{product.name_th}</div>
+                            )}
+                          </td>
+                          <td style={{ textAlign: 'center' }}>
+                            {product?.priceType === 'fresh' ? '신선' : '공산품'}
+                          </td>
+                          <td className="number">{item.buyQty}</td>
+                          <td className="number">{formatCurrency(unitPrice)}</td>
+                          <td className="number">{formatCurrency(amount)}</td>
+                        </tr>
+                      );
+                    })}
+                  </tbody>
+                </table>
+
+                <div className="total">
+                  총 금액: {formatCurrency(printPO.totalAmount || 0)}
+                </div>
+
+                <div className="footer">
+                  Fresh Kitchen 365 - {new Date().toLocaleDateString('ko-KR')} {new Date().toLocaleTimeString('ko-KR', { hour: '2-digit', minute: '2-digit' })} 생성
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+      )}
       </MainLayout>
     </ProtectedRoute>
   );
