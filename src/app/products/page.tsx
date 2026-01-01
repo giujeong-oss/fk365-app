@@ -170,7 +170,7 @@ export default function ProductsPage() {
             <div className="flex items-center gap-4">
               <h1 className="text-2xl font-bold text-gray-900">제품 관리</h1>
               {selectedIds.size > 0 && (
-                <Badge variant="primary">{selectedIds.size}개 선택</Badge>
+                <Badge variant="info">{selectedIds.size}개 선택</Badge>
               )}
             </div>
             <div className="flex items-center gap-2">

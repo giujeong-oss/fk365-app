@@ -8,7 +8,7 @@ export interface CsvColumn<T> {
 /**
  * Export data to CSV format and trigger download
  */
-export function exportToCsv<T extends Record<string, unknown>>(
+export function exportToCsv<T extends object>(
   data: T[],
   columns: CsvColumn<T>[],
   filename: string
@@ -45,7 +45,7 @@ export function exportToCsv<T extends Record<string, unknown>>(
 /**
  * Export data to Excel-compatible format (CSV with Excel-friendly encoding)
  */
-export function exportToExcel<T extends Record<string, unknown>>(
+export function exportToExcel<T extends object>(
   data: T[],
   columns: CsvColumn<T>[],
   filename: string
