@@ -276,3 +276,14 @@ export async function getIndustrialMarginMap(): Promise<Map<Grade, IndustrialMar
   margins.forEach((m) => map.set(m.grade, m));
   return map;
 }
+
+// 모든 마진 설정 조회 (진단용)
+export async function getMargins(): Promise<{ id: string; type: string; grade: string }[]> {
+  const marginsRef = collection(getDb(), FK365_COLLECTIONS.MARGINS);
+  const snapshot = await getDocs(marginsRef);
+  return snapshot.docs.map((docSnap) => ({
+    id: docSnap.id,
+    type: docSnap.data().type,
+    grade: docSnap.data().grade,
+  }));
+}
