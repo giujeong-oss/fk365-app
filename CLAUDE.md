@@ -8,7 +8,9 @@
 - **이름**: FK365 (Fresh Kitchen 365)
 - **목적**: 채소/과일/식자재/소모품 주문-발주-재고-배송 통합 관리 웹앱
 - **도메인**: freshkitchen365.com
-- **Firebase**: meet365-12ce8 프로젝트 공유 (fk365_ 접두사 컬렉션)
+- **Firebase**: fk365-e8f90 (프로젝트 번호: 242061459214)
+- **Vercel**: https://fk365-app.vercel.app
+- **GitHub**: https://github.com/giujeong-oss/fk365-app
 
 ## 기술 스택
 - **Frontend**: Next.js 14, TypeScript, Tailwind CSS

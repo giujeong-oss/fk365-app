@@ -1,5 +1,5 @@
 // FK365 Firebase Configuration
-// Firebase 프로젝트: meet365-12ce8 (Meet365와 공유)
+// Firebase 프로젝트: fk365-e8f90 (프로젝트 번호: 242061459214)
 
 import { initializeApp, getApps, getApp, FirebaseApp } from 'firebase/app';
 import { getAuth, GoogleAuthProvider, Auth } from 'firebase/auth';
