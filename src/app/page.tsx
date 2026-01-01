@@ -12,13 +12,29 @@ import {
   Clock,
   TrendingUp,
   AlertCircle,
+  Ban,
 } from 'lucide-react';
 import Link from 'next/link';
+
+// 태국 시간대 (UTC+7)
+const THAILAND_OFFSET = 7 * 60 * 60 * 1000;
+
+// 마감 시간 설정 (새벽 4시 기준)
+const CUTOFF_HOUR = 4; // 새벽 4시
 
 export default function Dashboard() {
   const { user, isAdmin, signOut } = useAuth();
   const [orderCounts, setOrderCounts] = useState({ cut1: 0, cut2: 0, cut3: 0, total: 0 });
   const [loading, setLoading] = useState(true);
+  const [currentTime, setCurrentTime] = useState(new Date());
+
+  // 실시간 시계 업데이트 (1초마다)
+  useEffect(() => {
+    const timer = setInterval(() => {
+      setCurrentTime(new Date());
+    }, 1000);
+    return () => clearInterval(timer);
+  }, []);
 
   useEffect(() => {
     const loadData = async () => {
@@ -35,15 +51,54 @@ export default function Dashboard() {
     loadData();
   }, []);
 
-  // 마감까지 남은 시간 계산 (임시)
-  const now = new Date();
-  const cutoff = new Date();
-  cutoff.setHours(11, 0, 0, 0);
-  const diffMs = cutoff.getTime() - now.getTime();
-  const diffMins = Math.max(0, Math.floor(diffMs / 60000));
-  const hours = Math.floor(diffMins / 60);
-  const mins = diffMins % 60;
-  const timeUntilCutoff = diffMs > 0 ? `${hours}시간 ${mins}분` : '마감됨';
+  // 태국 시간 계산
+  const getThailandTime = () => {
+    const utc = currentTime.getTime() + (currentTime.getTimezoneOffset() * 60000);
+    return new Date(utc + THAILAND_OFFSET);
+  };
+
+  const thailandTime = getThailandTime();
+  const currentHour = thailandTime.getHours();
+  const currentMinute = thailandTime.getMinutes();
+  const currentSecond = thailandTime.getSeconds();
+
+  // 일반 주문 마감 여부 (새벽 4시 이후 마감)
+  const isNormalOrderClosed = currentHour >= CUTOFF_HOUR;
+
+  // 마감까지 남은 시간 계산
+  const getCutoffTimeRemaining = () => {
+    if (isNormalOrderClosed) {
+      // 이미 마감됨 - 다음날 마감까지 시간
+      const nextCutoff = new Date(thailandTime);
+      nextCutoff.setDate(nextCutoff.getDate() + 1);
+      nextCutoff.setHours(CUTOFF_HOUR, 0, 0, 0);
+      const diffMs = nextCutoff.getTime() - thailandTime.getTime();
+      const hours = Math.floor(diffMs / (1000 * 60 * 60));
+      const mins = Math.floor((diffMs % (1000 * 60 * 60)) / (1000 * 60));
+      return { closed: true, hours, mins, nextDay: true };
+    } else {
+      // 오늘 마감까지 남은 시간
+      const todayCutoff = new Date(thailandTime);
+      todayCutoff.setHours(CUTOFF_HOUR, 0, 0, 0);
+      const diffMs = todayCutoff.getTime() - thailandTime.getTime();
+      const hours = Math.floor(diffMs / (1000 * 60 * 60));
+      const mins = Math.floor((diffMs % (1000 * 60 * 60)) / (1000 * 60));
+      const secs = Math.floor((diffMs % (1000 * 60)) / 1000);
+      return { closed: false, hours, mins, secs };
+    }
+  };
+
+  const cutoffStatus = getCutoffTimeRemaining();
+
+  // 시간 포맷
+  const formatTime = (date: Date) => {
+    return date.toLocaleTimeString('ko-KR', {
+      hour: '2-digit',
+      minute: '2-digit',
+      second: '2-digit',
+      hour12: false,
+    });
+  };
 
   return (
     <ProtectedRoute>
@@ -59,6 +114,12 @@ export default function Dashboard() {
           대시보드
         </h1>
 
+        {/* Current Time */}
+        <div className="mb-4 text-right text-sm text-gray-600">
+          <span className="font-mono">{formatTime(thailandTime)}</span>
+          <span className="ml-2 text-gray-400">(태국 시간)</span>
+        </div>
+
         {/* Order Summary Cards */}
         <section className="mb-8">
           <h2 className="text-lg font-semibold text-gray-800 mb-4 flex items-center gap-2">
@@ -67,15 +128,30 @@ export default function Dashboard() {
           </h2>
           <div className="grid grid-cols-3 gap-3 lg:gap-6">
             {/* Cut 1: Normal */}
-            <div className="bg-white rounded-xl shadow-sm border border-gray-100 p-4 lg:p-6">
+            <div className={`rounded-xl shadow-sm border p-4 lg:p-6 ${
+              isNormalOrderClosed
+                ? 'bg-gray-100 border-gray-200'
+                : 'bg-white border-gray-100'
+            }`}>
               <div className="flex items-center justify-between mb-2">
                 <span className="text-sm font-medium text-gray-700">정상 (1)</span>
-                <span className="w-2 h-2 rounded-full bg-green-500"></span>
+                <span className={`w-2 h-2 rounded-full ${
+                  isNormalOrderClosed ? 'bg-gray-400' : 'bg-green-500'
+                }`}></span>
               </div>
               <p className="text-2xl lg:text-3xl font-bold text-gray-900">
                 {loading ? '-' : orderCounts.cut1}
               </p>
-              <p className="text-xs text-gray-600 mt-1">11시 전</p>
+              <div className="flex items-center gap-1 mt-1">
+                {isNormalOrderClosed ? (
+                  <>
+                    <Ban size={12} className="text-red-500" />
+                    <span className="text-xs text-red-600 font-medium">마감됨</span>
+                  </>
+                ) : (
+                  <span className="text-xs text-gray-600">04시 전</span>
+                )}
+              </div>
             </div>
 
             {/* Cut 2: Additional */}
@@ -107,22 +183,35 @@ export default function Dashboard() {
         {/* Time Until Cutoff */}
         <section className="mb-8">
           <div className={`rounded-xl p-4 lg:p-6 flex items-center gap-4 ${
-            diffMs > 0 ? 'bg-blue-50 border border-blue-200' : 'bg-gray-100 border border-gray-200'
+            isNormalOrderClosed
+              ? 'bg-red-50 border border-red-200'
+              : 'bg-blue-50 border border-blue-200'
           }`}>
-            <Clock size={24} className={diffMs > 0 ? 'text-blue-600' : 'text-gray-400'} />
-            <div>
-              <p className="text-sm text-gray-600">마감까지</p>
-              <p className={`text-xl font-bold ${diffMs > 0 ? 'text-blue-700' : 'text-gray-500'}`}>
-                {timeUntilCutoff}
+            <Clock size={24} className={isNormalOrderClosed ? 'text-red-600' : 'text-blue-600'} />
+            <div className="flex-1">
+              <p className="text-sm text-gray-600">
+                {isNormalOrderClosed ? '일반 주문 마감됨' : '일반 주문 마감까지'}
               </p>
+              {isNormalOrderClosed ? (
+                <p className="text-xl font-bold text-red-700">
+                  새벽 4시 이후 - 추가/긴급 주문만 가능
+                </p>
+              ) : (
+                <p className="text-xl font-bold text-blue-700 font-mono">
+                  {cutoffStatus.hours}시간 {cutoffStatus.mins}분 {cutoffStatus.secs}초
+                </p>
+              )}
             </div>
-            {diffMs <= 0 && (
-              <div className="ml-auto flex items-center gap-2 text-amber-600">
-                <AlertCircle size={16} />
-                <span className="text-sm font-medium">추가주문만 가능</span>
+            {isNormalOrderClosed && (
+              <div className="flex items-center gap-2 text-amber-600">
+                <AlertCircle size={20} />
               </div>
             )}
           </div>
+          {/* 추가 설명 */}
+          <p className="mt-2 text-xs text-gray-500">
+            * 추가/긴급 주문은 시간 제한 없이 관리자 판단에 따라 입력 가능합니다.
+          </p>
         </section>
 
         {/* Quick Menu */}

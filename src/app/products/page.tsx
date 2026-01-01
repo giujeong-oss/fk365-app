@@ -5,8 +5,8 @@ import { MainLayout } from '@/components/layout';
 import { ProtectedRoute } from '@/components/auth';
 import { useAuth } from '@/lib/context';
 import { Button, EmptyState, LoadingState, Badge } from '@/components/ui';
-import { getProducts, deleteProduct, getVendors } from '@/lib/firebase';
-import type { Product, Vendor } from '@/types';
+import { getProducts, deleteProduct, getVendors, updateProduct } from '@/lib/firebase';
+import type { Product, Vendor, PriceType } from '@/types';
 import { Plus, Pencil, Trash2, Apple, Search } from 'lucide-react';
 import Link from 'next/link';
 
@@ -73,6 +73,19 @@ export default function ProductsPage() {
       loadData();
     } catch (error) {
       console.error('Failed to delete product:', error);
+    }
+  };
+
+  // Update product priceType
+  const handlePriceTypeChange = async (productId: string, newType: PriceType) => {
+    try {
+      await updateProduct(productId, { priceType: newType });
+      // Update local state
+      setProducts(prev =>
+        prev.map(p => p.id === productId ? { ...p, priceType: newType } : p)
+      );
+    } catch (error) {
+      console.error('Failed to update price type:', error);
     }
   };
 
@@ -185,16 +198,10 @@ export default function ProductsPage() {
                           코드
                         </th>
                         <th className="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase">
-                          한국어
-                        </th>
-                        <th className="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase">
-                          태국어
-                        </th>
-                        <th className="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase">
-                          미얀마어
-                        </th>
-                        <th className="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase">
                           유형
+                        </th>
+                        <th className="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase">
+                          제품명
                         </th>
                         <th className="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase">
                           단위
@@ -216,22 +223,26 @@ export default function ProductsPage() {
                           <td className="px-4 py-3 whitespace-nowrap font-mono text-sm text-gray-800 font-semibold">
                             {product.code}
                           </td>
-                          <td className="px-4 py-3 whitespace-nowrap text-sm text-gray-900 font-semibold">
-                            {product.name_ko}
-                          </td>
-                          <td className="px-4 py-3 whitespace-nowrap text-sm text-gray-700">
-                            {product.name_th}
-                          </td>
-                          <td className="px-4 py-3 whitespace-nowrap text-sm text-gray-700">
-                            {product.name_mm}
-                          </td>
                           <td className="px-4 py-3 whitespace-nowrap">
-                            <Badge
-                              variant={product.priceType === 'fresh' ? 'success' : 'info'}
-                              size="sm"
+                            <select
+                              value={product.priceType}
+                              onChange={(e) => handlePriceTypeChange(product.id, e.target.value as PriceType)}
+                              className={`text-xs font-medium px-2 py-1 rounded-full border-0 cursor-pointer focus:ring-2 focus:ring-green-500 ${
+                                product.priceType === 'fresh'
+                                  ? 'bg-green-100 text-green-800'
+                                  : 'bg-blue-100 text-blue-800'
+                              }`}
                             >
-                              {product.priceType === 'fresh' ? '신선' : '공산품'}
-                            </Badge>
+                              <option value="fresh">신선</option>
+                              <option value="industrial">공산품</option>
+                            </select>
+                          </td>
+                          <td className="px-4 py-3">
+                            <div className="space-y-0.5">
+                              <p className="text-sm font-semibold text-gray-900">{product.name_ko}</p>
+                              <p className="text-xs text-gray-600">{product.name_th}</p>
+                              <p className="text-xs text-gray-500">{product.name_mm}</p>
+                            </div>
                           </td>
                           <td className="px-4 py-3 whitespace-nowrap text-sm text-gray-700 font-medium">
                             {product.unit}
@@ -282,12 +293,18 @@ export default function ProductsPage() {
                         <span className="font-mono text-sm font-medium text-gray-900">
                           {product.code}
                         </span>
-                        <Badge
-                          variant={product.priceType === 'fresh' ? 'success' : 'info'}
-                          size="sm"
+                        <select
+                          value={product.priceType}
+                          onChange={(e) => handlePriceTypeChange(product.id, e.target.value as PriceType)}
+                          className={`text-xs font-medium px-2 py-1 rounded-full border-0 cursor-pointer ${
+                            product.priceType === 'fresh'
+                              ? 'bg-green-100 text-green-800'
+                              : 'bg-blue-100 text-blue-800'
+                          }`}
                         >
-                          {product.priceType === 'fresh' ? '신선' : '공산품'}
-                        </Badge>
+                          <option value="fresh">신선</option>
+                          <option value="industrial">공산품</option>
+                        </select>
                       </div>
                       <div className="flex items-center gap-1">
                         <Link href={`/products/${product.id}/edit`}>
@@ -303,12 +320,13 @@ export default function ProductsPage() {
                         </button>
                       </div>
                     </div>
-                    <div className="space-y-1">
+                    {/* 제품명 통합 셀 */}
+                    <div className="bg-gray-50 rounded-lg p-3 mb-3">
                       <p className="font-semibold text-gray-900">{product.name_ko}</p>
                       <p className="text-sm text-gray-700">{product.name_th}</p>
                       <p className="text-sm text-gray-600">{product.name_mm}</p>
                     </div>
-                    <div className="flex items-center gap-4 mt-3 pt-3 border-t border-gray-100 text-sm text-gray-700 font-medium">
+                    <div className="flex items-center gap-4 text-sm text-gray-700 font-medium">
                       <span>단위: {product.unit}</span>
                       <span>구매처: {getVendorName(product.vendorCode)}</span>
                     </div>

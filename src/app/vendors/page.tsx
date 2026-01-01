@@ -7,7 +7,7 @@ import { useAuth } from '@/lib/context';
 import { Button, Modal, Input, EmptyState, LoadingState, Badge } from '@/components/ui';
 import { getVendors, createVendor, updateVendor, deleteVendor, getProducts } from '@/lib/firebase';
 import type { Vendor, Product } from '@/types';
-import { Plus, Pencil, Trash2, Store, Search, Package } from 'lucide-react';
+import { Plus, Pencil, Trash2, Store, Search, Package, Link as LinkIcon } from 'lucide-react';
 import Link from 'next/link';
 
 export default function VendorsPage() {
@@ -201,6 +201,9 @@ export default function VendorsPage() {
                       <th className="px-6 py-3 text-left text-xs font-medium text-gray-600 uppercase">
                         코드
                       </th>
+                      <th className="px-6 py-3 text-center text-xs font-medium text-gray-600 uppercase">
+                        제품 매핑
+                      </th>
                       <th className="px-6 py-3 text-left text-xs font-medium text-gray-600 uppercase">
                         이름
                       </th>
@@ -220,6 +223,14 @@ export default function VendorsPage() {
                       <tr key={vendor.id} className="hover:bg-gray-50">
                         <td className="px-6 py-4 whitespace-nowrap font-mono text-sm text-gray-800 font-semibold">
                           {vendor.code}
+                        </td>
+                        <td className="px-6 py-4 whitespace-nowrap text-center">
+                          <Link href={`/vendors/${vendor.id}/products`}>
+                            <button className="inline-flex items-center gap-1 px-3 py-1.5 bg-green-50 text-green-700 rounded-lg text-sm font-medium hover:bg-green-100 transition-colors">
+                              <LinkIcon size={14} />
+                              매핑
+                            </button>
+                          </Link>
                         </td>
                         <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-900 font-semibold">
                           {vendor.name}
@@ -283,13 +294,21 @@ export default function VendorsPage() {
                           </Badge>
                         </div>
                         <p className="text-gray-800 font-medium">{vendor.name}</p>
-                        <button
-                          onClick={() => showVendorProducts(vendor)}
-                          className="mt-2 inline-flex items-center gap-1 px-2 py-1 bg-blue-50 text-blue-700 rounded text-xs font-medium"
-                        >
-                          <Package size={12} />
-                          제품 {getProductCount(vendor.code)}개
-                        </button>
+                        <div className="flex gap-2 mt-2">
+                          <Link href={`/vendors/${vendor.id}/products`}>
+                            <button className="inline-flex items-center gap-1 px-2 py-1 bg-green-50 text-green-700 rounded text-xs font-medium">
+                              <LinkIcon size={12} />
+                              제품 매핑
+                            </button>
+                          </Link>
+                          <button
+                            onClick={() => showVendorProducts(vendor)}
+                            className="inline-flex items-center gap-1 px-2 py-1 bg-blue-50 text-blue-700 rounded text-xs font-medium"
+                          >
+                            <Package size={12} />
+                            {getProductCount(vendor.code)}개
+                          </button>
+                        </div>
                       </div>
                       <div className="flex items-center gap-1">
                         <button

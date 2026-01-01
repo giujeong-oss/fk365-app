@@ -7,26 +7,23 @@ import { ProtectedRoute } from '@/components/auth';
 import { useAuth } from '@/lib/context';
 import { Button, LoadingState, Badge } from '@/components/ui';
 import {
-  getCustomer,
+  getVendor,
   getProducts,
-  updateCustomerProducts,
-  getCustomerProductAdjs,
-  setCustomerProductAdj,
+  updateProduct,
   getCategories,
 } from '@/lib/firebase';
-import type { Customer, Product, CustomerProductAdj } from '@/types';
+import type { Vendor, Product } from '@/types';
 import { ArrowLeft, Search, Check } from 'lucide-react';
 import Link from 'next/link';
 
-export default function CustomerProductsPage() {
+export default function VendorProductsPage() {
   const params = useParams();
-  const customerId = params.id as string;
+  const vendorId = params.id as string;
 
   const { user, isAdmin, signOut } = useAuth();
-  const [customer, setCustomer] = useState<Customer | null>(null);
+  const [vendor, setVendor] = useState<Vendor | null>(null);
   const [products, setProducts] = useState<Product[]>([]);
   const [categories, setCategories] = useState<string[]>([]);
-  const [adjs, setAdjs] = useState<Map<string, number>>(new Map());
   const [selectedProducts, setSelectedProducts] = useState<Set<string>>(new Set());
   const [loading, setLoading] = useState(true);
   const [saving, setSaving] = useState(false);
@@ -37,28 +34,21 @@ export default function CustomerProductsPage() {
   useEffect(() => {
     const loadData = async () => {
       try {
-        const [customerData, productsData, adjsData, categoriesData] = await Promise.all([
-          getCustomer(customerId),
-          getProducts(true),
-          getCustomerProductAdjs(customerId),
+        const [vendorData, productsData, categoriesData] = await Promise.all([
+          getVendor(vendorId),
+          getProducts(false), // Include all products
           getCategories(),
         ]);
 
-        if (!customerData) return;
+        if (!vendorData) return;
 
-        setCustomer(customerData);
+        setVendor(vendorData);
         setProducts(productsData);
         setCategories(categoriesData);
 
-        // Set initial selected products
-        setSelectedProducts(new Set(customerData.products || []));
-
-        // Set initial adj values
-        const adjMap = new Map<string, number>();
-        adjsData.forEach((adj: CustomerProductAdj) => {
-          adjMap.set(adj.productCode, adj.adj);
-        });
-        setAdjs(adjMap);
+        // Set initial selected products (products that have this vendor)
+        const vendorProducts = productsData.filter(p => p.vendorCode === vendorData.code);
+        setSelectedProducts(new Set(vendorProducts.map(p => p.id)));
       } catch (err) {
         console.error('Failed to load data:', err);
       } finally {
@@ -67,7 +57,7 @@ export default function CustomerProductsPage() {
     };
 
     loadData();
-  }, [customerId]);
+  }, [vendorId]);
 
   // Filter products by search and category
   const filteredProducts = useMemo(() => {
@@ -86,66 +76,57 @@ export default function CustomerProductsPage() {
   }, [products, searchTerm, activeTab]);
 
   // Toggle product selection
-  const toggleProduct = (productCode: string) => {
+  const toggleProduct = (productId: string) => {
     const newSelected = new Set(selectedProducts);
-    if (newSelected.has(productCode)) {
-      newSelected.delete(productCode);
+    if (newSelected.has(productId)) {
+      newSelected.delete(productId);
     } else {
-      newSelected.add(productCode);
+      newSelected.add(productId);
     }
     setSelectedProducts(newSelected);
   };
 
   // Select/Deselect all in current view
   const selectAll = () => {
-    const allCodes = new Set(selectedProducts);
-    filteredProducts.forEach(p => allCodes.add(p.code));
-    setSelectedProducts(allCodes);
+    const allIds = new Set(selectedProducts);
+    filteredProducts.forEach(p => allIds.add(p.id));
+    setSelectedProducts(allIds);
   };
 
   const deselectAll = () => {
     const newSelected = new Set(selectedProducts);
-    filteredProducts.forEach(p => newSelected.delete(p.code));
+    filteredProducts.forEach(p => newSelected.delete(p.id));
     setSelectedProducts(newSelected);
-  };
-
-  // Update adj value
-  const updateAdj = (productCode: string, value: number) => {
-    const newAdjs = new Map(adjs);
-    newAdjs.set(productCode, value);
-    setAdjs(newAdjs);
   };
 
   // Save changes
   const handleSave = async () => {
-    if (!customer) return;
+    if (!vendor) return;
 
     setSaving(true);
     try {
-      // Save product assignments
-      await updateCustomerProducts(customerId, Array.from(selectedProducts));
+      // Update products - assign vendor code to selected, remove from unselected
+      const updatePromises = products.map(async (product) => {
+        const isSelected = selectedProducts.has(product.id);
+        const wasVendorProduct = product.vendorCode === vendor.code;
 
-      // Save adj values for selected products
-      const adjPromises = Array.from(selectedProducts).map(async (productCode) => {
-        const adjValue = adjs.get(productCode) || 0;
-        if (adjValue !== 0) {
-          await setCustomerProductAdj(
-            customer.code,
-            productCode,
-            adjValue,
-            customer.grade
-          );
+        if (isSelected && !wasVendorProduct) {
+          // Assign this vendor to the product
+          await updateProduct(product.id, { vendorCode: vendor.code });
+        } else if (!isSelected && wasVendorProduct) {
+          // Remove vendor assignment (set to empty)
+          await updateProduct(product.id, { vendorCode: '' });
         }
       });
 
-      await Promise.all(adjPromises);
+      await Promise.all(updatePromises);
 
-      // Reload data
-      const updatedCustomer = await getCustomer(customerId);
-      if (updatedCustomer) {
-        setCustomer(updatedCustomer);
-        setSelectedProducts(new Set(updatedCustomer.products || []));
-      }
+      // Reload products
+      const updatedProducts = await getProducts(false);
+      setProducts(updatedProducts);
+
+      const vendorProducts = updatedProducts.filter(p => p.vendorCode === vendor.code);
+      setSelectedProducts(new Set(vendorProducts.map(p => p.id)));
     } catch (err) {
       console.error('Failed to save:', err);
     } finally {
@@ -159,7 +140,7 @@ export default function CustomerProductsPage() {
         <MainLayout
           isAdmin={isAdmin}
           userName={user?.email || ''}
-          pageTitle="제품 매핑"
+          pageTitle="구매 제품 매핑"
           onLogout={signOut}
         >
           <LoadingState message="데이터를 불러오는 중..." />
@@ -168,7 +149,7 @@ export default function CustomerProductsPage() {
     );
   }
 
-  if (!customer) {
+  if (!vendor) {
     return null;
   }
 
@@ -177,24 +158,21 @@ export default function CustomerProductsPage() {
       <MainLayout
         isAdmin={isAdmin}
         userName={user?.email || ''}
-        pageTitle="제품 매핑"
+        pageTitle="구매 제품 매핑"
         onLogout={signOut}
       >
         <div className="p-4 lg:p-8 max-w-5xl mx-auto">
           {/* Header */}
           <div className="flex items-center gap-4 mb-6">
-            <Link href="/customers">
+            <Link href="/vendors">
               <button className="p-2 text-gray-400 hover:text-gray-600 hover:bg-gray-100 rounded-lg">
                 <ArrowLeft size={20} />
               </button>
             </Link>
             <div>
-              <h1 className="text-2xl font-bold text-gray-900">제품 매핑</h1>
-              <p className="text-gray-500">
-                {customer.code} - {customer.fullName}
-                <Badge variant="info" size="sm" className="ml-2">
-                  {customer.grade}등급
-                </Badge>
+              <h1 className="text-2xl font-bold text-gray-900">구매 제품 매핑</h1>
+              <p className="text-gray-600">
+                <span className="font-mono font-medium">{vendor.code}</span> - {vendor.name}
               </p>
             </div>
           </div>
@@ -255,9 +233,7 @@ export default function CustomerProductsPage() {
 
           {/* Info */}
           <div className="mb-4 p-3 bg-blue-50 rounded-lg text-sm text-blue-700">
-            <strong>adj</strong>: 제품별 기본 가격 조정 (마이너스: 할인, 플러스: 추가)
-            <br />
-            <span className="text-blue-600">등급 변경 시 모든 adj가 0으로 초기화됩니다.</span>
+            선택된 제품은 이 구매처에서 매입하는 제품으로 설정됩니다.
           </div>
 
           {/* Product List */}
@@ -279,15 +255,17 @@ export default function CustomerProductsPage() {
                     <th className="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase">
                       유형
                     </th>
-                    <th className="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase w-32">
-                      adj (฿)
+                    <th className="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase">
+                      카테고리
+                    </th>
+                    <th className="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase">
+                      현재 구매처
                     </th>
                   </tr>
                 </thead>
                 <tbody className="divide-y divide-gray-200">
                   {filteredProducts.map((product) => {
-                    const isSelected = selectedProducts.has(product.code);
-                    const adjValue = adjs.get(product.code) || 0;
+                    const isSelected = selectedProducts.has(product.id);
 
                     return (
                       <tr
@@ -296,7 +274,7 @@ export default function CustomerProductsPage() {
                       >
                         <td className="px-4 py-3">
                           <button
-                            onClick={() => toggleProduct(product.code)}
+                            onClick={() => toggleProduct(product.id)}
                             className={`w-6 h-6 rounded border-2 flex items-center justify-center transition-colors ${
                               isSelected
                                 ? 'bg-green-600 border-green-600 text-white'
@@ -324,18 +302,11 @@ export default function CustomerProductsPage() {
                             {product.priceType === 'fresh' ? '신선' : '공산품'}
                           </Badge>
                         </td>
-                        <td className="px-4 py-3">
-                          {isSelected && (
-                            <input
-                              type="number"
-                              value={adjValue}
-                              onChange={(e) =>
-                                updateAdj(product.code, Number(e.target.value))
-                              }
-                              className="w-20 px-2 py-1 text-sm border border-gray-300 rounded focus:outline-none focus:ring-1 focus:ring-green-500"
-                              placeholder="0"
-                            />
-                          )}
+                        <td className="px-4 py-3 text-sm text-gray-700">
+                          {product.category || '-'}
+                        </td>
+                        <td className="px-4 py-3 text-sm text-gray-700">
+                          {product.vendorCode || '-'}
                         </td>
                       </tr>
                     );
@@ -347,8 +318,7 @@ export default function CustomerProductsPage() {
             {/* Mobile Cards */}
             <div className="lg:hidden divide-y divide-gray-200">
               {filteredProducts.map((product) => {
-                const isSelected = selectedProducts.has(product.code);
-                const adjValue = adjs.get(product.code) || 0;
+                const isSelected = selectedProducts.has(product.id);
 
                 return (
                   <div
@@ -357,7 +327,7 @@ export default function CustomerProductsPage() {
                   >
                     <div className="flex items-start gap-3">
                       <button
-                        onClick={() => toggleProduct(product.code)}
+                        onClick={() => toggleProduct(product.id)}
                         className={`w-6 h-6 rounded border-2 flex items-center justify-center flex-shrink-0 mt-1 transition-colors ${
                           isSelected
                             ? 'bg-green-600 border-green-600 text-white'
@@ -384,22 +354,10 @@ export default function CustomerProductsPage() {
                           <p className="text-xs text-gray-600">{product.name_th}</p>
                           <p className="text-xs text-gray-500">{product.name_mm}</p>
                         </div>
-
-                        {isSelected && (
-                          <div className="flex items-center gap-2">
-                            <span className="text-sm text-gray-600">adj:</span>
-                            <input
-                              type="number"
-                              value={adjValue}
-                              onChange={(e) =>
-                                updateAdj(product.code, Number(e.target.value))
-                              }
-                              className="w-20 px-2 py-1 text-sm border border-gray-300 rounded"
-                              placeholder="0"
-                            />
-                            <span className="text-sm text-gray-500">฿</span>
-                          </div>
-                        )}
+                        <div className="flex items-center gap-4 text-xs text-gray-600">
+                          <span>카테고리: {product.category || '-'}</span>
+                          <span>현재: {product.vendorCode || '-'}</span>
+                        </div>
                       </div>
                     </div>
                   </div>
