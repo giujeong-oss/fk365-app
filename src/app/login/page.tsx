@@ -115,13 +115,13 @@ export default function LoginPage() {
           </button>
 
           {/* Domain Notice */}
-          <p className="mt-4 text-xs text-center text-gray-400">
+          <p className="mt-4 text-xs text-center text-gray-500">
             @meet365.com 또는 @freshkitchen365.com 이메일로만 로그인 가능합니다
           </p>
         </div>
 
         {/* Footer */}
-        <p className="text-center text-xs text-gray-400 mt-6">
+        <p className="text-center text-xs text-gray-500 mt-6">
           FK365 v0.1.0 | Fresh Kitchen 365
         </p>
       </div>

@@ -291,7 +291,7 @@ export default function NewProductPage() {
                 >
                   <p className="font-medium text-gray-900">신선제품</p>
                   <p className="text-sm text-gray-500">채소/과일/장보기</p>
-                  <p className="text-xs text-gray-400 mt-1">바트 고정 마진</p>
+                  <p className="text-xs text-gray-500 mt-1">바트 고정 마진</p>
                 </button>
 
                 <button
@@ -305,7 +305,7 @@ export default function NewProductPage() {
                 >
                   <p className="font-medium text-gray-900">공산품</p>
                   <p className="text-sm text-gray-500">소모품/세제/봉투</p>
-                  <p className="text-xs text-gray-400 mt-1">% 계산 마진</p>
+                  <p className="text-xs text-gray-500 mt-1">% 계산 마진</p>
                 </button>
               </div>
 

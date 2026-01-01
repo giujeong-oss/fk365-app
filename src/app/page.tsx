@@ -158,7 +158,7 @@ export default function Dashboard() {
           </div>
           <div className="text-sm text-gray-600">
             <span className="font-mono">{formatTime(thailandTime)}</span>
-            <span className="ml-2 text-gray-400">(태국 시간)</span>
+            <span className="ml-2 text-gray-500">(태국 시간)</span>
           </div>
         </div>
 
