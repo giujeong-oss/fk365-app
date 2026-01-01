@@ -18,6 +18,7 @@ const Button = forwardRef<HTMLButtonElement, ButtonProps>(
       loading = false,
       disabled,
       className = '',
+      type = 'button',
       ...props
     },
     ref
@@ -45,6 +46,7 @@ const Button = forwardRef<HTMLButtonElement, ButtonProps>(
     return (
       <button
         ref={ref}
+        type={type}
         disabled={disabled || loading}
         className={`${baseStyles} ${variants[variant]} ${sizes[size]} ${className}`}
         {...props}

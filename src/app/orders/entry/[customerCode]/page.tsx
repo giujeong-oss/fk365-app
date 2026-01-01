@@ -389,6 +389,7 @@ export default function OrderEntryPage() {
                       <label className="text-sm text-gray-600">수량:</label>
                       <div className="flex items-center">
                         <button
+                          type="button"
                           onClick={() => handleQtyChange(state.product.code, state.qty - 1)}
                           className="w-8 h-8 bg-gray-100 rounded-l border border-gray-300 hover:bg-gray-200"
                         >
@@ -403,6 +404,7 @@ export default function OrderEntryPage() {
                           className="w-16 h-8 text-center border-t border-b border-gray-300 focus:outline-none"
                         />
                         <button
+                          type="button"
                           onClick={() => handleQtyChange(state.product.code, state.qty + 1)}
                           className="w-8 h-8 bg-gray-100 rounded-r border border-gray-300 hover:bg-gray-200"
                         >
