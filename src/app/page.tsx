@@ -4,6 +4,7 @@ import { useState, useEffect, useCallback } from 'react';
 import { MainLayout } from '@/components/layout';
 import { ProtectedRoute } from '@/components/auth';
 import { useAuth } from '@/lib/context';
+import { useI18n } from '@/lib/i18n/I18nContext';
 import { getOrderCountByCutoff, getCutoffSummary, getCustomers, getProducts } from '@/lib/firebase';
 import { formatCurrency } from '@/lib/constants';
 import {
@@ -45,6 +46,7 @@ interface DailySales {
 
 export default function Dashboard() {
   const { user, isAdmin, signOut } = useAuth();
+  const { t } = useI18n();
   const [selectedDate, setSelectedDate] = useState(() => getThailandToday());
   const [orderCounts, setOrderCounts] = useState({ cut1: 0, cut2: 0, cut3: 0, total: 0 });
   const [orderSummary, setOrderSummary] = useState({ cut1: 0, cut2: 0, cut3: 0, total: 0 });
@@ -179,13 +181,13 @@ export default function Dashboard() {
       <MainLayout
         isAdmin={isAdmin}
         userName={user?.email || ''}
-        pageTitle="대시보드"
+        pageTitle={t('dashboard.title')}
         onLogout={signOut}
       >
       <div className="p-4 lg:p-8 max-w-7xl mx-auto">
         {/* Page Title (PC only) */}
         <h1 className="hidden lg:block text-2xl font-bold text-gray-900 mb-6">
-          대시보드
+          {t('dashboard.title')}
         </h1>
 
         {/* Date Selection & Time */}
@@ -236,7 +238,7 @@ export default function Dashboard() {
         <section className="mb-8">
           <h2 className="text-lg font-semibold text-gray-800 mb-4 flex items-center gap-2">
             <TrendingUp size={20} className="text-green-600" />
-            {isToday ? '오늘' : selectedDate} 주문 현황
+            {t('dashboard.todayOrders')} {!isToday && `(${selectedDate})`}
           </h2>
           <div className="grid grid-cols-3 gap-3 lg:gap-6">
             {/* Cut 1: Normal */}
@@ -246,7 +248,7 @@ export default function Dashboard() {
                 : 'bg-white border-gray-100'
             }`}>
               <div className="flex items-center justify-between mb-2">
-                <span className="text-sm font-medium text-gray-700">정상 (1)</span>
+                <span className="text-sm font-medium text-gray-700">{t('dashboard.normal')} (1)</span>
                 <span className={`w-2 h-2 rounded-full ${
                   isNormalOrderClosed ? 'bg-gray-400' : 'bg-green-500'
                 }`}></span>
@@ -269,7 +271,7 @@ export default function Dashboard() {
             {/* Cut 2: Additional */}
             <div className="bg-white rounded-xl shadow-sm border border-gray-100 p-4 lg:p-6">
               <div className="flex items-center justify-between mb-2">
-                <span className="text-sm font-medium text-gray-700">추가 (2)</span>
+                <span className="text-sm font-medium text-gray-700">{t('dashboard.additional')} (2)</span>
                 <span className="w-2 h-2 rounded-full bg-yellow-500"></span>
               </div>
               <p className="text-2xl lg:text-3xl font-bold text-gray-900">
@@ -281,7 +283,7 @@ export default function Dashboard() {
             {/* Cut 3: Urgent */}
             <div className="bg-white rounded-xl shadow-sm border border-gray-100 p-4 lg:p-6">
               <div className="flex items-center justify-between mb-2">
-                <span className="text-sm font-medium text-gray-700">긴급 (3)</span>
+                <span className="text-sm font-medium text-gray-700">{t('dashboard.urgent')} (3)</span>
                 <span className="w-2 h-2 rounded-full bg-red-500"></span>
               </div>
               <p className="text-2xl lg:text-3xl font-bold text-gray-900">
@@ -330,7 +332,7 @@ export default function Dashboard() {
         <section className="mb-8">
           <h2 className="text-lg font-semibold text-gray-800 mb-4 flex items-center gap-2">
             <BarChart2 size={20} className="text-indigo-600" />
-            7일간 매출 추이
+            {t('dashboard.weeklySales')}
           </h2>
           <div className="bg-white rounded-xl shadow-sm border border-gray-100 p-4 lg:p-6">
             {loading ? (
@@ -421,11 +423,11 @@ export default function Dashboard() {
             <Clock size={24} className={isNormalOrderClosed ? 'text-red-600' : 'text-blue-600'} />
             <div className="flex-1">
               <p className="text-sm text-gray-600">
-                {isNormalOrderClosed ? '일반 주문 마감됨' : '일반 주문 마감까지'}
+                {isNormalOrderClosed ? t('dashboard.afterCutoff') : t('dashboard.timeRemaining')}
               </p>
               {isNormalOrderClosed ? (
                 <p className="text-xl font-bold text-red-700">
-                  새벽 4시 이후 - 추가/긴급 주문만 가능
+                  {t('dashboard.afterCutoff')}
                 </p>
               ) : (
                 <p className="text-xl font-bold text-blue-700 font-mono">
@@ -447,7 +449,7 @@ export default function Dashboard() {
 
         {/* Quick Menu */}
         <section>
-          <h2 className="text-lg font-semibold text-gray-800 mb-4">빠른 메뉴</h2>
+          <h2 className="text-lg font-semibold text-gray-800 mb-4">{t('dashboard.quickMenu')}</h2>
           <div className="grid grid-cols-2 lg:grid-cols-4 gap-4">
             <Link
               href="/orders"

@@ -97,12 +97,23 @@ export default function VendorsPage() {
     }
   };
 
-  // 검색 필터
-  const filteredVendors = vendors.filter(
-    (v) =>
-      v.code.toLowerCase().includes(searchTerm.toLowerCase()) ||
-      v.name.toLowerCase().includes(searchTerm.toLowerCase())
-  );
+  // 검색 필터 (구매처 코드/이름 또는 제품코드로 검색)
+  const filteredVendors = vendors.filter((v) => {
+    const term = searchTerm.toLowerCase();
+    // 구매처 코드/이름 매칭
+    const matchesVendor =
+      v.code.toLowerCase().includes(term) ||
+      v.name.toLowerCase().includes(term);
+
+    // 제품코드로 매칭 (해당 구매처에서 판매하는 제품 검색)
+    const matchesProduct = products.some(
+      (p) =>
+        p.vendorCode === v.code &&
+        p.code.toLowerCase().includes(term)
+    );
+
+    return matchesVendor || matchesProduct;
+  });
 
   // 모달 열기 (추가)
   const openAddModal = () => {
@@ -193,7 +204,7 @@ export default function VendorsPage() {
               />
               <input
                 type="text"
-                placeholder="코드 또는 이름으로 검색..."
+                placeholder="구매처 또는 제품코드로 검색..."
                 value={searchTerm}
                 onChange={(e) => setSearchTerm(e.target.value)}
                 className="w-full pl-10 pr-4 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-green-500"

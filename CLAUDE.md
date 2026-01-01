@@ -375,7 +375,40 @@ node scripts/seed-data.mjs
 
 ## 업데이트 이력
 
-### 2026-01-02 (테스트 피드백 반영 - 최신)
+### 2026-01-02 (테스트 피드백 반영 2차)
+
+**[Critical] 신선제품 판매가 계산 오류 수정**
+- 신선제품이 `product.pur` 대신 3일 최고가(`max3DayPrice`)를 사용하도록 수정
+- `getAllPriceHistory()` 호출하여 가격 히스토리 로드
+- 3일 최고가 맵 생성 및 판매가 계산에 적용
+- 파일: `src/app/orders/entry/[customerCode]/page.tsx`
+
+**주문 페이지 UI 개선**
+- 검색 아이콘: `text-gray-400` → `text-green-600`
+- 뒤로가기 아이콘: `text-gray-500` → `text-green-600`
+- 고객 정보 텍스트: `text-gray-500` → `text-gray-700`
+- 판매가 라벨: `text-gray-500` → `text-gray-700`
+
+**발주서 매입가 입력 기능 추가**
+- 발주서 테이블에 매입가 입력 컬럼 추가
+- "매입가 저장" 버튼으로 가격 히스토리에 일괄 저장
+- `setPrice()` 연동하여 당일 매입가 반영
+- 파일: `src/app/purchase-orders/page.tsx`
+
+**구매처 제품코드 검색 기능**
+- 구매처 검색창에서 제품코드로 해당 구매처 검색 가능
+- 구매처 코드/이름 + 제품코드 복합 검색
+- 검색 placeholder 업데이트: "구매처 또는 제품코드로 검색..."
+- 파일: `src/app/vendors/page.tsx`
+
+**대시보드 다국어 적용**
+- `useI18n()` 훅 사용하여 번역 함수 호출
+- 페이지 타이틀, 주문 현황, 빠른 메뉴 등 다국어 적용
+- 번역 키 추가: `dashboard.title`, `dashboard.todayOrders`, `dashboard.quickMenu` 등
+- 한국어/태국어/영어 3개 언어 지원
+- 파일: `src/app/page.tsx`, `src/lib/i18n/translations.ts`
+
+### 2026-01-02 (테스트 피드백 반영 - 이전)
 
 **UI 가독성 개선**
 - 발주서 페이지: 탭, 테이블 헤더, 구매처명 등 연한 회색 → 진한 색상으로 변경

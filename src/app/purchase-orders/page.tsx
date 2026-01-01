@@ -16,9 +16,10 @@ import {
   generateBuy2PurchaseOrder,
   generateBuy3PurchaseOrder,
   getOrdersByCutoff,
+  setPrice,
 } from '@/lib/firebase';
 import type { Product, Vendor, PurchaseOrder, Cutoff } from '@/types';
-import { Home, Printer, X, Download, FileDown } from 'lucide-react';
+import { Home, Printer, X, Download, FileDown, Save } from 'lucide-react';
 import Link from 'next/link';
 import { useRef } from 'react';
 import { exportToCsv, getDateForFilename, type CsvColumn } from '@/lib/utils';
@@ -35,6 +36,7 @@ interface ProductSummary {
   buy2: number;
   buy3: number;
   overrideVendorCode?: string; // 임시 구매처 변경용
+  buyPrice?: number; // 실제 매입가 입력용
 }
 
 export default function PurchaseOrdersPage() {
@@ -53,6 +55,7 @@ export default function PurchaseOrdersPage() {
   const [vendorSearch, setVendorSearch] = useState('');
   const [activeTab, setActiveTab] = useState<POType>('buy1');
   const [printPO, setPrintPO] = useState<PurchaseOrder | null>(null);
+  const [savingPrices, setSavingPrices] = useState(false);
   const printRef = useRef<HTMLDivElement>(null);
 
   useEffect(() => {
@@ -222,6 +225,46 @@ export default function PurchaseOrdersPage() {
     return summary.overrideVendorCode !== undefined
       ? summary.overrideVendorCode
       : summary.product.vendorCode;
+  };
+
+  // 매입가 입력 처리
+  const handleBuyPriceChange = (productCode: string, price: number) => {
+    setProductSummaries((prev) =>
+      prev.map((s) =>
+        s.product.code === productCode
+          ? { ...s, buyPrice: price }
+          : s
+      )
+    );
+  };
+
+  // 매입가 저장 (가격 히스토리에 반영)
+  const handleSaveBuyPrices = async () => {
+    const summariesWithPrice = productSummaries.filter((s) => s.buyPrice !== undefined && s.buyPrice > 0);
+
+    if (summariesWithPrice.length === 0) {
+      alert('입력된 매입가가 없습니다.');
+      return;
+    }
+
+    setSavingPrices(true);
+    try {
+      const selectedDate = new Date(date);
+
+      // 병렬로 모든 가격 저장
+      await Promise.all(
+        summariesWithPrice.map((s) =>
+          setPrice(s.product.code, selectedDate, s.buyPrice!)
+        )
+      );
+
+      alert(`${summariesWithPrice.length}개 제품의 매입가가 저장되었습니다.`);
+    } catch (error) {
+      console.error('Failed to save buy prices:', error);
+      alert('매입가 저장에 실패했습니다.');
+    } finally {
+      setSavingPrices(false);
+    }
   };
 
   const getProductName = (productCode: string) => {
@@ -411,6 +454,15 @@ export default function PurchaseOrdersPage() {
                 업체별
               </Button>
             )}
+            <Button
+              variant="primary"
+              size="sm"
+              onClick={handleSaveBuyPrices}
+              disabled={savingPrices}
+            >
+              <Save size={16} className="mr-1" />
+              {savingPrices ? '저장 중...' : '매입가 저장'}
+            </Button>
           </div>
         </div>
 
@@ -562,6 +614,7 @@ export default function PurchaseOrdersPage() {
                       </>
                     )}
                     <th className="px-4 py-3 text-right text-sm font-medium text-gray-800">발주량</th>
+                    <th className="px-4 py-3 text-center text-sm font-medium text-gray-800">매입가</th>
                     <th className="px-4 py-3 text-left text-sm font-medium text-gray-800">구매처</th>
                   </tr>
                 </thead>
@@ -592,6 +645,15 @@ export default function PurchaseOrdersPage() {
                         )}
                         <td className="px-4 py-3 text-right font-bold text-blue-600">
                           {activeTab === 'buy1' ? summary.buy1 : activeTab === 'buy2' ? summary.buy2 : summary.buy3}
+                        </td>
+                        <td className="px-4 py-3 text-center">
+                          <input
+                            type="number"
+                            placeholder="฿"
+                            value={summary.buyPrice || ''}
+                            onChange={(e) => handleBuyPriceChange(summary.product.code, parseFloat(e.target.value) || 0)}
+                            className="w-20 px-2 py-1 text-sm text-center border border-gray-300 rounded focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
+                          />
                         </td>
                         <td className="px-4 py-3">
                           {/* 신선 제품은 구매처 변경 가능 */}

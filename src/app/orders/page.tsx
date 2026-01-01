@@ -242,7 +242,7 @@ export default function OrdersPage() {
         <div className="flex flex-col md:flex-row gap-4 mb-6">
           {/* 고객 코드/이름 검색 */}
           <div className="relative flex-1">
-            <Search size={18} className="absolute left-3 top-1/2 -translate-y-1/2 text-gray-400" />
+            <Search size={18} className="absolute left-3 top-1/2 -translate-y-1/2 text-green-600" />
             <input
               type="text"
               placeholder="고객 코드 또는 이름으로 검색..."

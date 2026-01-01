@@ -15,6 +15,7 @@ import {
   getCustomerProductAdjs,
   getFreshMarginMap,
   getIndustrialMarginMap,
+  getAllPriceHistory,
 } from '@/lib/firebase';
 import { CUTOFF_OPTIONS, formatCurrency } from '@/lib/constants';
 import { calculateSellPrice as calcPrice } from '@/lib/utils';
@@ -47,6 +48,7 @@ export default function OrderEntryPage() {
   const [saving, setSaving] = useState(false);
   const [freshMarginMap, setFreshMarginMap] = useState<Map<Grade, number>>(new Map());
   const [industrialMarginMap, setIndustrialMarginMap] = useState<Map<Grade, IndustrialMargin>>(new Map());
+  const [max3DayPriceMap, setMax3DayPriceMap] = useState<Map<string, number>>(new Map());
   const [showingAllProducts, setShowingAllProducts] = useState(false);
   const [loadError, setLoadError] = useState<string | null>(null);
 
@@ -88,12 +90,33 @@ export default function OrderEntryPage() {
       const normalizedCode = decodeURIComponent(customerCode).trim();
 
       // 병렬로 모든 기본 데이터 로드
-      const [customerData, allProducts, freshMap, industrialMap] = await Promise.all([
+      const [customerData, allProducts, freshMap, industrialMap, priceHistories] = await Promise.all([
         getCustomerByCode(normalizedCode),
         getProducts(true),
         getFreshMarginMap(),
         getIndustrialMarginMap(),
+        getAllPriceHistory(),
       ]);
+
+      // 신선제품용 3일 최고가 맵 생성
+      const max3DayMap = new Map<string, number>();
+      const today = new Date(dateParam);
+      priceHistories.forEach((ph) => {
+        // 3일 최고가 계산
+        let maxPrice = 0;
+        for (let i = 0; i < 3; i++) {
+          const d = new Date(today);
+          d.setDate(d.getDate() - i);
+          const dateKey = d.toISOString().split('T')[0];
+          if (ph.prices[dateKey] && ph.prices[dateKey] > maxPrice) {
+            maxPrice = ph.prices[dateKey];
+          }
+        }
+        if (maxPrice > 0) {
+          max3DayMap.set(ph.code, maxPrice);
+        }
+      });
+      setMax3DayPriceMap(max3DayMap);
 
       if (!customerData) {
         setLoadError(`고객 코드 "${normalizedCode}"를 찾을 수 없습니다. 고객이 등록되어 있는지 확인해주세요.`);
@@ -152,9 +175,15 @@ export default function OrderEntryPage() {
 
         // 제품에 저장된 등급별 판매가가 있으면 사용
         const preCalcPrice = (product as Product & { prices?: Record<string, number> }).prices?.[customerData.grade];
+
+        // 신선제품은 3일 최고가 사용, 공산품은 pur 사용
+        const buyPrice = product.priceType === 'fresh'
+          ? (max3DayMap.get(product.code) || product.pur || 0)
+          : (product.pur || 0);
+
         const sellPrice = preCalcPrice
           ? preCalcPrice + baseAdj + orderAdj
-          : calculateSellPriceWithMargin(product, customerData.grade, freshMap, industrialMap, baseAdj + orderAdj);
+          : calculateSellPriceWithMargin(product, customerData.grade, freshMap, industrialMap, buyPrice, baseAdj + orderAdj);
 
         return {
           product,
@@ -180,9 +209,10 @@ export default function OrderEntryPage() {
     grade: Grade,
     freshMap: Map<Grade, number>,
     industrialMap: Map<Grade, IndustrialMargin>,
+    buyPrice: number,
     totalAdj: number
   ): number => {
-    const result = calcPrice(product, grade, freshMap, industrialMap, product.pur || 0, totalAdj);
+    const result = calcPrice(product, grade, freshMap, industrialMap, buyPrice, totalAdj);
     return result.sellPrice;
   };
 
@@ -196,7 +226,12 @@ export default function OrderEntryPage() {
       return preCalcPrice + totalAdj;
     }
 
-    return calculateSellPriceWithMargin(product, customer.grade, freshMarginMap, industrialMarginMap, totalAdj);
+    // 신선제품은 3일 최고가 사용, 공산품은 pur 사용
+    const buyPrice = product.priceType === 'fresh'
+      ? (max3DayPriceMap.get(product.code) || product.pur || 0)
+      : (product.pur || 0);
+
+    return calculateSellPriceWithMargin(product, customer.grade, freshMarginMap, industrialMarginMap, buyPrice, totalAdj);
   };
 
   const handleQtyChange = (productCode: string, newQty: number) => {
@@ -335,7 +370,7 @@ export default function OrderEntryPage() {
         <div className="bg-white border-b sticky top-0 z-10">
           <div className="p-4 max-w-4xl mx-auto">
             <div className="flex items-center justify-between mb-3">
-              <Link href="/orders" className="text-gray-500 hover:text-gray-700">
+              <Link href="/orders" className="text-green-600 hover:text-green-700">
                 <svg className="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                   <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15 19l-7-7 7-7" />
                 </svg>
@@ -346,9 +381,9 @@ export default function OrderEntryPage() {
             <div className="flex items-center justify-between">
               <div className="flex items-center gap-2">
                 <Badge variant="success">{customer.grade}</Badge>
-                <span className="text-sm text-gray-500">{customer.code}</span>
-                <span className="text-sm text-gray-500">|</span>
-                <span className="text-sm text-gray-500">{dateParam}</span>
+                <span className="text-sm text-gray-700">{customer.code}</span>
+                <span className="text-sm text-gray-700">|</span>
+                <span className="text-sm text-gray-700">{dateParam}</span>
               </div>
               <Select
                 value={cutoff}
@@ -443,7 +478,7 @@ export default function OrderEntryPage() {
                       <div className="text-lg font-bold">
                         {formatCurrency(state.sellPrice)}
                       </div>
-                      <div className="text-xs text-gray-500">판매가</div>
+                      <div className="text-xs text-gray-700">판매가</div>
                     </div>
                   </div>
 

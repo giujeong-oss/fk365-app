@@ -49,6 +49,22 @@ export const translations = {
     'auth.loginRequired': '로그인이 필요합니다',
     'auth.adminOnly': '관리자만 접근 가능합니다',
 
+    // Dashboard
+    'dashboard.title': '대시보드',
+    'dashboard.todayOrders': '오늘 주문',
+    'dashboard.normal': '정상',
+    'dashboard.additional': '추가',
+    'dashboard.urgent': '긴급',
+    'dashboard.total': '총 매출',
+    'dashboard.timeRemaining': '마감까지',
+    'dashboard.afterCutoff': '추가/긴급 주문만 가능',
+    'dashboard.quickMenu': '빠른 메뉴',
+    'dashboard.orderEntry': '주문 입력',
+    'dashboard.orderList': '주문 목록',
+    'dashboard.newOrder': '새 주문',
+    'dashboard.weeklySales': '1주일 매출',
+    'dashboard.selectDate': '날짜 선택',
+
     // Products
     'products.title': '제품 관리',
     'products.new': '제품 등록',
@@ -189,6 +205,22 @@ export const translations = {
     'auth.loginRequired': 'ต้องเข้าสู่ระบบ',
     'auth.adminOnly': 'เฉพาะผู้ดูแลระบบ',
 
+    // Dashboard
+    'dashboard.title': 'แดชบอร์ด',
+    'dashboard.todayOrders': 'ออเดอร์วันนี้',
+    'dashboard.normal': 'ปกติ',
+    'dashboard.additional': 'เพิ่ม',
+    'dashboard.urgent': 'เร่งด่วน',
+    'dashboard.total': 'รวม',
+    'dashboard.timeRemaining': 'เหลือเวลา',
+    'dashboard.afterCutoff': 'สั่งเพิ่ม/เร่งด่วนเท่านั้น',
+    'dashboard.quickMenu': 'เมนูด่วน',
+    'dashboard.orderEntry': 'ป้อนออเดอร์',
+    'dashboard.orderList': 'รายการออเดอร์',
+    'dashboard.newOrder': 'ออเดอร์ใหม่',
+    'dashboard.weeklySales': 'ยอดขาย 7 วัน',
+    'dashboard.selectDate': 'เลือกวันที่',
+
     // Products
     'products.title': 'จัดการสินค้า',
     'products.new': 'เพิ่มสินค้า',
@@ -328,6 +360,22 @@ export const translations = {
     'auth.loginWithGoogle': 'Login with Google',
     'auth.loginRequired': 'Login required',
     'auth.adminOnly': 'Admin only',
+
+    // Dashboard
+    'dashboard.title': 'Dashboard',
+    'dashboard.todayOrders': 'Today\'s Orders',
+    'dashboard.normal': 'Normal',
+    'dashboard.additional': 'Additional',
+    'dashboard.urgent': 'Urgent',
+    'dashboard.total': 'Total',
+    'dashboard.timeRemaining': 'Time Remaining',
+    'dashboard.afterCutoff': 'Additional/Urgent orders only',
+    'dashboard.quickMenu': 'Quick Menu',
+    'dashboard.orderEntry': 'Order Entry',
+    'dashboard.orderList': 'Order List',
+    'dashboard.newOrder': 'New Order',
+    'dashboard.weeklySales': 'Weekly Sales',
+    'dashboard.selectDate': 'Select Date',
 
     // Products
     'products.title': 'Product Management',
