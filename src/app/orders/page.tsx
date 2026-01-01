@@ -2,6 +2,7 @@
 
 import { useState, useEffect } from 'react';
 import { useAuth } from '@/lib/context';
+import { useI18n } from '@/lib/i18n/I18nContext';
 import { ProtectedRoute } from '@/components/auth';
 import { MainLayout } from '@/components/layout';
 import { Button, Select, Spinner, EmptyState, Badge, Modal, useToast } from '@/components/ui';
@@ -27,6 +28,7 @@ const getThailandToday = (): string => {
 
 export default function OrdersPage() {
   const { user, isAdmin, signOut } = useAuth();
+  const { t } = useI18n();
   const { showSuccess, showError, showWarning } = useToast();
   const [date, setDate] = useState(() => getThailandToday());
   const [customers, setCustomers] = useState<Customer[]>([]);
@@ -161,7 +163,7 @@ export default function OrdersPage() {
       <MainLayout
         isAdmin={isAdmin}
         userName={user?.email || ''}
-        pageTitle="주문 입력"
+        pageTitle={t('orders.title')}
         onLogout={signOut}
       >
       <div className="p-4 md:p-6 max-w-6xl mx-auto">
@@ -170,10 +172,10 @@ export default function OrdersPage() {
             <Link href="/">
               <Button variant="secondary" size="sm">
                 <Home size={18} className="mr-1" />
-                홈
+                {t('nav.dashboard')}
               </Button>
             </Link>
-            <h1 className="text-2xl font-bold">주문 입력</h1>
+            <h1 className="text-2xl font-bold text-gray-900">{t('orders.title')}</h1>
           </div>
           <div className="flex items-center gap-2">
             <input
@@ -189,14 +191,14 @@ export default function OrdersPage() {
         <div className="grid grid-cols-2 md:grid-cols-4 gap-4 mb-6">
           <div className="bg-blue-50 p-4 rounded-lg">
             <div className="flex items-center justify-between mb-1">
-              <span className="text-sm text-blue-600">1차 (정상)</span>
+              <span className="text-sm font-medium text-blue-700">{t('orders.cutoff1')}</span>
               {isAdmin && getDraftCount(1) > 0 && (
                 <button
                   onClick={() => setConfirmModal({ open: true, type: 'bulk', cutoff: 1 })}
                   className="text-xs px-2 py-0.5 bg-blue-600 text-white rounded hover:bg-blue-700"
                   title="1차 전체 확정"
                 >
-                  확정 ({getDraftCount(1)})
+                  {t('common.confirm')} ({getDraftCount(1)})
                 </button>
               )}
             </div>
@@ -204,14 +206,14 @@ export default function OrdersPage() {
           </div>
           <div className="bg-yellow-50 p-4 rounded-lg">
             <div className="flex items-center justify-between mb-1">
-              <span className="text-sm text-yellow-600">2차 (추가)</span>
+              <span className="text-sm font-medium text-yellow-700">{t('orders.cutoff2')}</span>
               {isAdmin && getDraftCount(2) > 0 && (
                 <button
                   onClick={() => setConfirmModal({ open: true, type: 'bulk', cutoff: 2 })}
                   className="text-xs px-2 py-0.5 bg-yellow-600 text-white rounded hover:bg-yellow-700"
                   title="2차 전체 확정"
                 >
-                  확정 ({getDraftCount(2)})
+                  {t('common.confirm')} ({getDraftCount(2)})
                 </button>
               )}
             </div>
@@ -219,21 +221,21 @@ export default function OrdersPage() {
           </div>
           <div className="bg-red-50 p-4 rounded-lg">
             <div className="flex items-center justify-between mb-1">
-              <span className="text-sm text-red-600">3차 (긴급)</span>
+              <span className="text-sm font-medium text-red-700">{t('orders.cutoff3')}</span>
               {isAdmin && getDraftCount(3) > 0 && (
                 <button
                   onClick={() => setConfirmModal({ open: true, type: 'bulk', cutoff: 3 })}
                   className="text-xs px-2 py-0.5 bg-red-600 text-white rounded hover:bg-red-700"
                   title="3차 전체 확정"
                 >
-                  확정 ({getDraftCount(3)})
+                  {t('common.confirm')} ({getDraftCount(3)})
                 </button>
               )}
             </div>
             <div className="text-xl font-bold text-red-700">{formatCurrency(cutoffSummary.cut3)}</div>
           </div>
           <div className="bg-green-50 p-4 rounded-lg">
-            <div className="text-sm text-green-600 mb-1">총 합계</div>
+            <div className="text-sm font-medium text-green-700 mb-1">{t('orders.total')}</div>
             <div className="text-xl font-bold text-green-700">{formatCurrency(cutoffSummary.total)}</div>
           </div>
         </div>
@@ -245,10 +247,10 @@ export default function OrdersPage() {
             <Search size={18} className="absolute left-3 top-1/2 -translate-y-1/2 text-green-600" />
             <input
               type="text"
-              placeholder="고객 코드 또는 이름으로 검색..."
+              placeholder={`${t('customers.code')} / ${t('customers.name')} ${t('common.search')}...`}
               value={searchTerm}
               onChange={(e) => setSearchTerm(e.target.value)}
-              className="w-full pl-10 pr-4 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-green-500"
+              className="w-full pl-10 pr-4 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-green-500 text-gray-900"
             />
           </div>
           <div className="flex items-center gap-4">
@@ -257,12 +259,12 @@ export default function OrdersPage() {
               onChange={(e) => setSelectedCutoff(e.target.value)}
               className="w-48"
               options={[
-                { value: '', label: '전체 마감' },
+                { value: '', label: `${t('common.all')} ${t('orders.cutoff')}` },
                 ...CUTOFF_OPTIONS.map((opt) => ({ value: opt.value, label: opt.label }))
               ]}
             />
-            <span className="text-sm text-gray-700">
-              주문: {orderedCustomers.length}개 / 미주문: {unorderedCustomers.length}개
+            <span className="text-sm text-gray-900 font-medium">
+              {t('orders.ordered')}: {orderedCustomers.length} / {t('orders.notOrdered')}: {unorderedCustomers.length}
             </span>
           </div>
         </div>
@@ -276,35 +278,35 @@ export default function OrdersPage() {
             {/* 주문 있는 고객 */}
             {orderedCustomers.length > 0 && (
               <div>
-                <h2 className="text-lg font-semibold mb-3 flex items-center gap-2">
+                <h2 className="text-lg font-semibold text-gray-900 mb-3 flex items-center gap-2">
                   <span className="w-3 h-3 bg-green-500 rounded-full"></span>
-                  주문 완료
+                  {t('orders.ordered')}
                 </h2>
                 <div className="grid gap-3">
                   {orderedCustomers.map((customer) => (
                     <Link
                       key={customer.id}
                       href={`/orders/entry/${customer.code}?date=${date}`}
-                      className="block bg-white border border-gray-200 rounded-lg p-4 hover:border-blue-500 hover:shadow-md transition-all"
+                      className="block bg-white border border-gray-200 rounded-lg p-4 hover:border-green-500 hover:shadow-md transition-all"
                     >
                       <div className="flex items-center justify-between">
                         <div className="flex items-center gap-3">
                           <Badge variant="success" size="sm">{customer.grade}</Badge>
-                          <span className="font-semibold text-gray-800">{customer.code}</span>
-                          <span className="text-gray-700 font-medium">{customer.fullName}</span>
-                          <Badge variant="info" size="sm">{customer.region === 'pattaya' ? '파타야' : '방콕'}</Badge>
+                          <span className="font-semibold text-green-700">{customer.code}</span>
+                          <span className="text-gray-900 font-medium">{customer.fullName}</span>
+                          <Badge variant="info" size="sm">{customer.region === 'pattaya' ? t('customers.pattaya') : t('customers.bangkok')}</Badge>
                         </div>
                         <div className="flex items-center gap-4">
                           <div className="text-right">
-                            <div className="flex items-center gap-2 text-sm text-gray-600">
-                              <span>{getCustomerOrders(customer.code).length}건</span>
+                            <div className="flex items-center gap-2 text-sm text-gray-800">
+                              <span className="text-green-600 font-medium">{getCustomerOrders(customer.code).length}건</span>
                               {getOrderStatus(customer.code) === 'confirmed' ? (
                                 <span className="flex items-center gap-1 text-green-600">
                                   <CheckCircle size={14} />
-                                  확정
+                                  {t('common.confirm')}
                                 </span>
                               ) : getOrderStatus(customer.code) === 'draft' ? (
-                                <span className="flex items-center gap-1 text-orange-500">
+                                <span className="flex items-center gap-1 text-orange-600">
                                   <AlertCircle size={14} />
                                   미확정
                                 </span>
@@ -314,11 +316,11 @@ export default function OrdersPage() {
                                 </span>
                               )}
                             </div>
-                            <div className="font-bold text-green-600">
+                            <div className="font-bold text-green-600 text-lg">
                               {formatCurrency(getOrderTotal(customer.code))}
                             </div>
                           </div>
-                          <svg className="w-5 h-5 text-gray-500" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                          <svg className="w-5 h-5 text-green-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                             <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 5l7 7-7 7" />
                           </svg>
                         </div>
@@ -332,27 +334,27 @@ export default function OrdersPage() {
             {/* 주문 없는 고객 */}
             {unorderedCustomers.length > 0 && (
               <div>
-                <h2 className="text-lg font-semibold mb-3 flex items-center gap-2">
-                  <span className="w-3 h-3 bg-gray-300 rounded-full"></span>
-                  미주문
+                <h2 className="text-lg font-semibold text-gray-900 mb-3 flex items-center gap-2">
+                  <span className="w-3 h-3 bg-gray-400 rounded-full"></span>
+                  {t('orders.notOrdered')}
                 </h2>
                 <div className="grid gap-3">
                   {unorderedCustomers.map((customer) => (
                     <Link
                       key={customer.id}
                       href={`/orders/entry/${customer.code}?date=${date}`}
-                      className="block bg-white border border-gray-200 rounded-lg p-4 hover:border-blue-500 hover:shadow-md transition-all"
+                      className="block bg-white border border-gray-200 rounded-lg p-4 hover:border-green-500 hover:shadow-md transition-all"
                     >
                       <div className="flex items-center justify-between">
                         <div className="flex items-center gap-3">
                           <Badge variant="default" size="sm">{customer.grade}</Badge>
-                          <span className="font-semibold text-gray-800">{customer.code}</span>
-                          <span className="text-gray-700 font-medium">{customer.fullName}</span>
-                          <Badge variant="info" size="sm">{customer.region === 'pattaya' ? '파타야' : '방콕'}</Badge>
+                          <span className="font-semibold text-green-700">{customer.code}</span>
+                          <span className="text-gray-900 font-medium">{customer.fullName}</span>
+                          <Badge variant="info" size="sm">{customer.region === 'pattaya' ? t('customers.pattaya') : t('customers.bangkok')}</Badge>
                         </div>
                         <div className="flex items-center gap-2">
-                          <span className="text-sm text-gray-600">주문 입력</span>
-                          <svg className="w-5 h-5 text-gray-500" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                          <span className="text-sm text-gray-800 font-medium">{t('orders.title')}</span>
+                          <svg className="w-5 h-5 text-green-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                             <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 5l7 7-7 7" />
                           </svg>
                         </div>
@@ -365,11 +367,11 @@ export default function OrdersPage() {
 
             {customers.length === 0 && (
               <EmptyState
-                title="등록된 고객이 없습니다"
-                description="먼저 고객을 등록해주세요."
+                title={t('common.noData')}
+                description={`${t('customers.new')} 필요`}
                 action={
                   <Link href="/customers/new">
-                    <Button>고객 등록</Button>
+                    <Button>{t('customers.new')}</Button>
                   </Link>
                 }
               />
@@ -382,15 +384,15 @@ export default function OrdersPage() {
       <Modal
         isOpen={confirmModal.open}
         onClose={() => setConfirmModal({ open: false, type: 'single' })}
-        title={confirmModal.type === 'single' ? '주문 확정' : `${confirmModal.cutoff}차 일괄 확정`}
+        title={confirmModal.type === 'single' ? `${t('common.confirm')}` : `${confirmModal.cutoff}차 일괄 ${t('common.confirm')}`}
       >
         <div className="space-y-4">
           {confirmModal.type === 'single' ? (
-            <p className="text-gray-700">
+            <p className="text-gray-800">
               이 주문을 확정하시겠습니까? 확정된 주문은 수정이 제한됩니다.
             </p>
           ) : (
-            <p className="text-gray-700">
+            <p className="text-gray-800">
               {confirmModal.cutoff}차 마감의 모든 미확정 주문({getDraftCount(confirmModal.cutoff!)}건)을
               일괄 확정하시겠습니까?
             </p>
@@ -401,7 +403,7 @@ export default function OrdersPage() {
               onClick={() => setConfirmModal({ open: false, type: 'single' })}
               disabled={processing}
             >
-              취소
+              {t('common.cancel')}
             </Button>
             <Button
               onClick={() => {
@@ -413,7 +415,7 @@ export default function OrdersPage() {
               }}
               disabled={processing}
             >
-              {processing ? <Spinner size="sm" /> : '확정'}
+              {processing ? <Spinner size="sm" /> : t('common.confirm')}
             </Button>
           </div>
         </div>

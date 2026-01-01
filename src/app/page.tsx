@@ -481,7 +481,7 @@ export default function Dashboard() {
               className="flex flex-col items-center justify-center gap-3 p-6 bg-white rounded-xl shadow-sm border border-gray-100 hover:border-green-300 hover:shadow-md transition-all"
             >
               <ShoppingCart size={32} className="text-green-600" />
-              <span className="font-medium text-gray-800">주문 입력</span>
+              <span className="font-medium text-gray-800">{t('dashboard.orderEntry')}</span>
             </Link>
 
             <Link
@@ -489,7 +489,7 @@ export default function Dashboard() {
               className="flex flex-col items-center justify-center gap-3 p-6 bg-white rounded-xl shadow-sm border border-gray-100 hover:border-green-300 hover:shadow-md transition-all"
             >
               <ClipboardList size={32} className="text-green-600" />
-              <span className="font-medium text-gray-800">발주서</span>
+              <span className="font-medium text-gray-800">{t('nav.purchaseOrders')}</span>
             </Link>
 
             <Link
@@ -497,7 +497,7 @@ export default function Dashboard() {
               className="flex flex-col items-center justify-center gap-3 p-6 bg-white rounded-xl shadow-sm border border-gray-100 hover:border-green-300 hover:shadow-md transition-all"
             >
               <Truck size={32} className="text-green-600" />
-              <span className="font-medium text-gray-800">배송장</span>
+              <span className="font-medium text-gray-800">{t('nav.delivery')}</span>
             </Link>
 
             <Link
@@ -505,7 +505,7 @@ export default function Dashboard() {
               className="flex flex-col items-center justify-center gap-3 p-6 bg-white rounded-xl shadow-sm border border-gray-100 hover:border-green-300 hover:shadow-md transition-all"
             >
               <TrendingUp size={32} className="text-green-600" />
-              <span className="font-medium text-gray-800">재고 현황</span>
+              <span className="font-medium text-gray-800">{t('nav.stock')}</span>
             </Link>
           </div>
         </section>

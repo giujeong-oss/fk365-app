@@ -375,6 +375,28 @@ node scripts/seed-data.mjs
 
 ## 업데이트 이력
 
+### 2026-01-02 (테스트 피드백 반영 4차)
+
+**대시보드 빠른 메뉴 다국어 적용**
+- "주문 입력", "발주서", "배송장", "재고 현황" 버튼 i18n 적용
+- 기존 번역 키 사용: `dashboard.orderEntry`, `nav.purchaseOrders`, `nav.delivery`, `nav.stock`
+- 파일: `src/app/page.tsx`
+
+**주문 페이지 전면 개선**
+- 연한 회색(text-gray-600) → 진한 색상(text-gray-800/900) 변경
+- 고객 코드 → 초록색(text-green-700) 변경
+- 수량/가격 → 초록색(text-green-600) 강조
+- hover 효과: border-blue-500 → border-green-500
+- 화살표 아이콘 → 초록색 변경
+
+**주문 페이지 다국어 완전 적용**
+- 페이지 타이틀, 요약 카드(1차/2차/3차/총합계)
+- 검색 placeholder, 주문/미주문 카운트
+- "주문 완료", "미주문" 섹션 헤더
+- 파타야/방콕 지역명, 확정/취소 버튼
+- EmptyState, Modal 텍스트
+- 파일: `src/app/orders/page.tsx`
+
 ### 2026-01-02 (테스트 피드백 반영 3차)
 
 **대시보드 1주일 매출 바 차트 수정**
