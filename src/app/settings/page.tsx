@@ -5,7 +5,7 @@ import { useAuth } from '@/lib/context';
 import { ProtectedRoute } from '@/components/auth';
 import { MainLayout } from '@/components/layout';
 import { Button, Spinner, Badge, Modal } from '@/components/ui';
-import { getUsers, updateUserRole, updateUserStatus } from '@/lib/firebase';
+import { getUsers, updateUserRole, updateUserStatus, createUserByEmail } from '@/lib/firebase';
 import type { User, UserRole } from '@/types';
 import {
   Shield,
@@ -21,6 +21,8 @@ import {
   RefreshCw,
   Settings,
   ChevronRight,
+  Plus,
+  Mail,
 } from 'lucide-react';
 import Link from 'next/link';
 
@@ -36,6 +38,14 @@ export default function SettingsPage() {
     newValue: string | boolean;
     userName: string;
   } | null>(null);
+
+  // 사용자 추가 모달
+  const [addUserModal, setAddUserModal] = useState(false);
+  const [newUserEmail, setNewUserEmail] = useState('');
+  const [newUserName, setNewUserName] = useState('');
+  const [newUserRole, setNewUserRole] = useState<UserRole>('user');
+  const [addingUser, setAddingUser] = useState(false);
+  const [addUserError, setAddUserError] = useState('');
 
   useEffect(() => {
     loadUsers();
@@ -102,6 +112,30 @@ export default function SettingsPage() {
     } finally {
       setUpdating(null);
       setConfirmModal(null);
+    }
+  };
+
+  // 사용자 추가
+  const handleAddUser = async () => {
+    if (!newUserEmail.trim()) {
+      setAddUserError('이메일을 입력해주세요.');
+      return;
+    }
+
+    setAddingUser(true);
+    setAddUserError('');
+
+    try {
+      await createUserByEmail(newUserEmail, newUserRole, newUserName);
+      await loadUsers();
+      setAddUserModal(false);
+      setNewUserEmail('');
+      setNewUserName('');
+      setNewUserRole('user');
+    } catch (error) {
+      setAddUserError(error instanceof Error ? error.message : '사용자 추가에 실패했습니다.');
+    } finally {
+      setAddingUser(false);
     }
   };
 
@@ -260,10 +294,16 @@ export default function SettingsPage() {
                   등록된 사용자의 권한과 상태를 관리합니다.
                 </p>
               </div>
-              <Button variant="secondary" size="sm" onClick={loadUsers}>
-                <RefreshCw size={16} className="mr-1" />
-                새로고침
-              </Button>
+              <div className="flex items-center gap-2">
+                <Button variant="primary" size="sm" onClick={() => setAddUserModal(true)}>
+                  <Plus size={16} className="mr-1" />
+                  사용자 추가
+                </Button>
+                <Button variant="secondary" size="sm" onClick={loadUsers}>
+                  <RefreshCw size={16} className="mr-1" />
+                  새로고침
+                </Button>
+              </div>
             </div>
 
             {loading ? (
@@ -515,6 +555,93 @@ export default function SettingsPage() {
           </div>
         </Modal>
       )}
+
+      {/* Add User Modal */}
+      <Modal
+        isOpen={addUserModal}
+        onClose={() => {
+          setAddUserModal(false);
+          setNewUserEmail('');
+          setNewUserName('');
+          setNewUserRole('user');
+          setAddUserError('');
+        }}
+        title="사용자 추가"
+      >
+        <div className="p-4">
+          <p className="text-sm text-gray-600 mb-4">
+            이메일 주소를 입력하여 새 사용자를 사전 등록합니다.<br />
+            등록된 사용자는 해당 이메일로 로그인 시 접근 권한을 받습니다.
+          </p>
+
+          <div className="space-y-4">
+            <div>
+              <label className="block text-sm font-medium text-gray-700 mb-1">
+                이메일 주소 <span className="text-red-500">*</span>
+              </label>
+              <div className="relative">
+                <Mail size={18} className="absolute left-3 top-1/2 -translate-y-1/2 text-gray-400" />
+                <input
+                  type="email"
+                  value={newUserEmail}
+                  onChange={(e) => setNewUserEmail(e.target.value)}
+                  placeholder="example@company.com"
+                  className="w-full pl-10 pr-4 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-green-500"
+                />
+              </div>
+            </div>
+
+            <div>
+              <label className="block text-sm font-medium text-gray-700 mb-1">
+                이름 (선택)
+              </label>
+              <input
+                type="text"
+                value={newUserName}
+                onChange={(e) => setNewUserName(e.target.value)}
+                placeholder="홍길동"
+                className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-green-500"
+              />
+            </div>
+
+            <div>
+              <label className="block text-sm font-medium text-gray-700 mb-1">
+                역할
+              </label>
+              <select
+                value={newUserRole}
+                onChange={(e) => setNewUserRole(e.target.value as UserRole)}
+                className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-green-500"
+              >
+                <option value="user">일반 사용자</option>
+                <option value="admin">관리자</option>
+              </select>
+            </div>
+
+            {addUserError && (
+              <div className="p-3 bg-red-50 border border-red-200 rounded-lg text-sm text-red-700">
+                {addUserError}
+              </div>
+            )}
+          </div>
+
+          <div className="flex justify-end gap-2 mt-6">
+            <Button variant="secondary" onClick={() => {
+              setAddUserModal(false);
+              setNewUserEmail('');
+              setNewUserName('');
+              setNewUserRole('user');
+              setAddUserError('');
+            }}>
+              취소
+            </Button>
+            <Button onClick={handleAddUser} loading={addingUser}>
+              <Plus size={16} className="mr-1" />
+              추가
+            </Button>
+          </div>
+        </div>
+      </Modal>
     </ProtectedRoute>
   );
 }

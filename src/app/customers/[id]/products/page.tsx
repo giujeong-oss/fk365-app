@@ -15,7 +15,7 @@ import {
   getCategories,
 } from '@/lib/firebase';
 import type { Customer, Product, CustomerProductAdj } from '@/types';
-import { ArrowLeft, Search, Check } from 'lucide-react';
+import { ArrowLeft, Search, Check, Save } from 'lucide-react';
 import Link from 'next/link';
 
 export default function CustomerProductsPage() {
@@ -408,15 +408,21 @@ export default function CustomerProductsPage() {
             </div>
           </div>
 
-          {/* Summary & Save */}
-          <div className="mt-6 flex items-center justify-between p-4 bg-gray-50 rounded-lg">
-            <p className="text-gray-600">
-              선택된 제품: <strong>{selectedProducts.size}개</strong>
-            </p>
-            <Button onClick={handleSave} loading={saving}>
-              저장
-            </Button>
-          </div>
+          {/* Bottom padding for floating button */}
+          <div className="h-20"></div>
+        </div>
+
+        {/* Floating Save Button */}
+        <div className="fixed bottom-6 right-6 lg:right-10 z-50">
+          <Button
+            onClick={handleSave}
+            loading={saving}
+            className="shadow-lg flex items-center gap-2 px-6 py-3"
+            size="lg"
+          >
+            <Save size={20} />
+            저장 ({selectedProducts.size}개)
+          </Button>
         </div>
       </MainLayout>
     </ProtectedRoute>

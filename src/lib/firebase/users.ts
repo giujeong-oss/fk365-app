@@ -4,9 +4,11 @@ import {
   doc,
   getDocs,
   getDoc,
+  setDoc,
   updateDoc,
   query,
   orderBy,
+  where,
   serverTimestamp,
 } from 'firebase/firestore';
 import { db, FK365_COLLECTIONS } from './config';
@@ -98,4 +100,49 @@ export async function updateUserPermissions(
     permissions,
     updatedAt: serverTimestamp(),
   });
+}
+
+// 이메일 중복 확인
+export async function isEmailExists(email: string): Promise<boolean> {
+  const usersRef = collection(getDb(), FK365_COLLECTIONS.USERS);
+  const q = query(usersRef, where('email', '==', email.toLowerCase().trim()));
+  const snapshot = await getDocs(q);
+  return !snapshot.empty;
+}
+
+// 이메일로 사용자 사전 등록 (로그인 전에 미리 등록)
+export async function createUserByEmail(
+  email: string,
+  role: UserRole = 'user',
+  name?: string
+): Promise<string> {
+  const normalizedEmail = email.toLowerCase().trim();
+
+  // 이메일 형식 검증
+  const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+  if (!emailRegex.test(normalizedEmail)) {
+    throw new Error('유효하지 않은 이메일 형식입니다.');
+  }
+
+  // 중복 확인
+  const exists = await isEmailExists(normalizedEmail);
+  if (exists) {
+    throw new Error('이미 등록된 이메일입니다.');
+  }
+
+  // 이메일 기반 ID 생성 (Firebase Auth UID 대신 사용)
+  const docId = normalizedEmail.replace(/[.@]/g, '_');
+  const docRef = doc(getDb(), FK365_COLLECTIONS.USERS, docId);
+
+  await setDoc(docRef, {
+    email: normalizedEmail,
+    name: name || '',
+    role,
+    isActive: true,
+    preferredLanguage: 'ko',
+    createdAt: serverTimestamp(),
+    updatedAt: serverTimestamp(),
+  });
+
+  return docId;
 }

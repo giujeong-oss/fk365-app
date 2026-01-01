@@ -295,10 +295,25 @@ export default function OrderEntryPage() {
         {/* 제품 목록 */}
         <div className="p-4 max-w-4xl mx-auto pb-32">
           {productStates.length === 0 ? (
-            <div className="text-center py-12 text-gray-500">
-              <p>주문 가능한 제품이 없습니다.</p>
-              <Link href={`/customers/${customer.id}/products`} className="text-blue-600 hover:underline">
-                제품 매핑 설정
+            <div className="text-center py-12 bg-white rounded-lg border border-gray-200">
+              <div className="w-16 h-16 mx-auto mb-4 bg-orange-100 rounded-full flex items-center justify-center">
+                <svg className="w-8 h-8 text-orange-500" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-3L13.732 4c-.77-1.333-2.694-1.333-3.464 0L3.34 16c-.77 1.333.192 3 1.732 3z" />
+                </svg>
+              </div>
+              <p className="text-lg font-medium text-gray-900 mb-2">주문 가능한 제품이 없습니다</p>
+              <p className="text-sm text-gray-600 mb-4">
+                이 고객({customer.code})에게 판매 가능한 제품이 설정되지 않았습니다.<br />
+                관리자에게 제품 매핑을 요청하거나, 아래 버튼을 클릭해 설정해주세요.
+              </p>
+              <Link
+                href={`/customers/${customer.id}/products`}
+                className="inline-flex items-center gap-2 px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition-colors"
+              >
+                <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 6v6m0 0v6m0-6h6m-6 0H6" />
+                </svg>
+                제품 매핑 설정하기
               </Link>
             </div>
           ) : (

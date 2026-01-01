@@ -5,9 +5,9 @@ import { MainLayout } from '@/components/layout';
 import { ProtectedRoute } from '@/components/auth';
 import { useAuth } from '@/lib/context';
 import { Button, Modal, Input, EmptyState, LoadingState, Badge } from '@/components/ui';
-import { getVendors, createVendor, updateVendor, deleteVendor, getProducts } from '@/lib/firebase';
+import { getVendors, createVendor, updateVendor, deleteVendor, getProducts, updateProduct } from '@/lib/firebase';
 import type { Vendor, Product } from '@/types';
-import { Plus, Pencil, Trash2, Store, Search, Package, Link as LinkIcon } from 'lucide-react';
+import { Plus, Pencil, Trash2, Store, Search, Package, Link as LinkIcon, X } from 'lucide-react';
 import Link from 'next/link';
 
 export default function VendorsPage() {
@@ -61,6 +61,27 @@ export default function VendorsPage() {
   const showVendorProducts = (vendor: Vendor) => {
     const vendorProducts = products.filter(p => p.vendorCode === vendor.code);
     setSelectedVendorProducts({ vendor, products: vendorProducts });
+  };
+
+  // 구매처에서 제품 제거
+  const removeProductFromVendor = async (productId: string) => {
+    try {
+      await updateProduct(productId, { vendorCode: '' });
+      // 로컬 상태 업데이트
+      const updatedProducts = products.map(p =>
+        p.id === productId ? { ...p, vendorCode: '' } : p
+      );
+      setProducts(updatedProducts);
+      // 모달 업데이트
+      if (selectedVendorProducts) {
+        setSelectedVendorProducts({
+          ...selectedVendorProducts,
+          products: selectedVendorProducts.products.filter(p => p.id !== productId)
+        });
+      }
+    } catch (err) {
+      console.error('Failed to remove product:', err);
+    }
   };
 
   // 검색 필터
@@ -413,6 +434,7 @@ export default function VendorsPage() {
                       <th className="px-3 py-2 text-left font-medium text-gray-700">제품명</th>
                       <th className="px-3 py-2 text-left font-medium text-gray-700">분류</th>
                       <th className="px-3 py-2 text-right font-medium text-gray-700">매입가</th>
+                      <th className="px-3 py-2 text-center font-medium text-gray-700">제거</th>
                     </tr>
                   </thead>
                   <tbody className="divide-y">
@@ -428,6 +450,15 @@ export default function VendorsPage() {
                         </td>
                         <td className="px-3 py-2 text-right text-gray-800">
                           {product.pur ? `฿${product.pur}` : '-'}
+                        </td>
+                        <td className="px-3 py-2 text-center">
+                          <button
+                            onClick={() => removeProductFromVendor(product.id)}
+                            className="p-1.5 text-gray-400 hover:text-red-600 hover:bg-red-50 rounded-lg transition-colors"
+                            title="이 구매처에서 제거"
+                          >
+                            <X size={16} />
+                          </button>
                         </td>
                       </tr>
                     ))}

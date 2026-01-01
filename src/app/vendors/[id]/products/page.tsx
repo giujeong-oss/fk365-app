@@ -10,10 +10,9 @@ import {
   getVendor,
   getProducts,
   updateProduct,
-  getCategories,
 } from '@/lib/firebase';
-import type { Vendor, Product } from '@/types';
-import { ArrowLeft, Search, Check } from 'lucide-react';
+import type { Vendor, Product, PriceType } from '@/types';
+import { ArrowLeft, Search, Check, X, Save } from 'lucide-react';
 import Link from 'next/link';
 
 export default function VendorProductsPage() {
@@ -23,28 +22,25 @@ export default function VendorProductsPage() {
   const { user, isAdmin, signOut } = useAuth();
   const [vendor, setVendor] = useState<Vendor | null>(null);
   const [products, setProducts] = useState<Product[]>([]);
-  const [categories, setCategories] = useState<string[]>([]);
   const [selectedProducts, setSelectedProducts] = useState<Set<string>>(new Set());
   const [loading, setLoading] = useState(true);
   const [saving, setSaving] = useState(false);
   const [searchTerm, setSearchTerm] = useState('');
-  const [activeTab, setActiveTab] = useState<string>('all');
+  const [activeTab, setActiveTab] = useState<PriceType | 'all'>('all');
 
   // Load data
   useEffect(() => {
     const loadData = async () => {
       try {
-        const [vendorData, productsData, categoriesData] = await Promise.all([
+        const [vendorData, productsData] = await Promise.all([
           getVendor(vendorId),
           getProducts(false), // Include all products
-          getCategories(),
         ]);
 
         if (!vendorData) return;
 
         setVendor(vendorData);
         setProducts(productsData);
-        setCategories(categoriesData);
 
         // Set initial selected products (products that have this vendor)
         const vendorProducts = productsData.filter(p => p.vendorCode === vendorData.code);
@@ -59,7 +55,12 @@ export default function VendorProductsPage() {
     loadData();
   }, [vendorId]);
 
-  // Filter products by search and category
+  // Get selected products list
+  const selectedProductsList = useMemo(() => {
+    return products.filter(p => selectedProducts.has(p.id));
+  }, [products, selectedProducts]);
+
+  // Filter products by search and type (priceType)
   const filteredProducts = useMemo(() => {
     return products.filter((p) => {
       const matchesSearch =
@@ -68,10 +69,10 @@ export default function VendorProductsPage() {
         p.name_th.toLowerCase().includes(searchTerm.toLowerCase()) ||
         p.name_mm.toLowerCase().includes(searchTerm.toLowerCase());
 
-      const matchesCategory =
-        activeTab === 'all' || p.category === activeTab;
+      const matchesType =
+        activeTab === 'all' || p.priceType === activeTab;
 
-      return matchesSearch && matchesCategory;
+      return matchesSearch && matchesType;
     });
   }, [products, searchTerm, activeTab]);
 
@@ -177,7 +178,7 @@ export default function VendorProductsPage() {
             </div>
           </div>
 
-          {/* Category Tabs */}
+          {/* Type Tabs (신선/공산품) */}
           <div className="mb-4 overflow-x-auto">
             <div className="flex gap-2 min-w-max pb-2">
               <button
@@ -190,24 +191,31 @@ export default function VendorProductsPage() {
               >
                 전체
               </button>
-              {categories.map((cat) => (
-                <button
-                  key={cat}
-                  onClick={() => setActiveTab(cat)}
-                  className={`px-4 py-2 text-sm font-medium rounded-lg transition-colors whitespace-nowrap ${
-                    activeTab === cat
-                      ? 'bg-green-600 text-white'
-                      : 'bg-gray-100 text-gray-700 hover:bg-gray-200'
-                  }`}
-                >
-                  {cat}
-                </button>
-              ))}
+              <button
+                onClick={() => setActiveTab('fresh')}
+                className={`px-4 py-2 text-sm font-medium rounded-lg transition-colors ${
+                  activeTab === 'fresh'
+                    ? 'bg-emerald-600 text-white'
+                    : 'bg-gray-100 text-gray-700 hover:bg-gray-200'
+                }`}
+              >
+                신선제품
+              </button>
+              <button
+                onClick={() => setActiveTab('industrial')}
+                className={`px-4 py-2 text-sm font-medium rounded-lg transition-colors ${
+                  activeTab === 'industrial'
+                    ? 'bg-blue-600 text-white'
+                    : 'bg-gray-100 text-gray-700 hover:bg-gray-200'
+                }`}
+              >
+                공산품
+              </button>
             </div>
           </div>
 
           {/* Search & Actions */}
-          <div className="flex flex-col sm:flex-row gap-4 mb-6">
+          <div className="flex flex-col sm:flex-row gap-4 mb-4">
             <div className="relative flex-1">
               <Search
                 size={18}
@@ -230,6 +238,40 @@ export default function VendorProductsPage() {
               </Button>
             </div>
           </div>
+
+          {/* Selected Products Summary */}
+          {selectedProductsList.length > 0 && (
+            <div className="mb-4 p-4 bg-green-50 border border-green-200 rounded-lg">
+              <div className="flex items-center justify-between mb-3">
+                <h3 className="font-semibold text-green-800">
+                  선택된 제품 ({selectedProductsList.length}개)
+                </h3>
+                <button
+                  onClick={deselectAll}
+                  className="text-sm text-green-600 hover:text-green-800"
+                >
+                  전체 해제
+                </button>
+              </div>
+              <div className="flex flex-wrap gap-2 max-h-32 overflow-y-auto">
+                {selectedProductsList.map((product) => (
+                  <div
+                    key={product.id}
+                    className="inline-flex items-center gap-2 px-3 py-1.5 bg-white border border-green-300 rounded-full text-sm"
+                  >
+                    <span className="font-mono text-xs text-gray-600">{product.code}</span>
+                    <span className="text-gray-900">{product.name_ko}</span>
+                    <button
+                      onClick={() => toggleProduct(product.id)}
+                      className="w-4 h-4 flex items-center justify-center text-gray-400 hover:text-red-500"
+                    >
+                      <X size={12} />
+                    </button>
+                  </div>
+                ))}
+              </div>
+            </div>
+          )}
 
           {/* Info */}
           <div className="mb-4 p-3 bg-blue-50 rounded-lg text-sm text-blue-700">
@@ -366,15 +408,21 @@ export default function VendorProductsPage() {
             </div>
           </div>
 
-          {/* Summary & Save */}
-          <div className="mt-6 flex items-center justify-between p-4 bg-gray-50 rounded-lg">
-            <p className="text-gray-600">
-              선택된 제품: <strong>{selectedProducts.size}개</strong>
-            </p>
-            <Button onClick={handleSave} loading={saving}>
-              저장
-            </Button>
-          </div>
+          {/* Bottom padding for floating button */}
+          <div className="h-20"></div>
+        </div>
+
+        {/* Floating Save Button */}
+        <div className="fixed bottom-6 right-6 lg:right-10 z-50">
+          <Button
+            onClick={handleSave}
+            loading={saving}
+            className="shadow-lg flex items-center gap-2 px-6 py-3"
+            size="lg"
+          >
+            <Save size={20} />
+            저장 ({selectedProducts.size}개)
+          </Button>
         </div>
       </MainLayout>
     </ProtectedRoute>

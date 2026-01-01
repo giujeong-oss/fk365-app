@@ -32,6 +32,7 @@ interface ProductSummary {
   buy1: number;
   buy2: number;
   buy3: number;
+  overrideVendorCode?: string; // 임시 구매처 변경용
 }
 
 export default function PurchaseOrdersPage() {
@@ -137,8 +138,9 @@ export default function PurchaseOrdersPage() {
           return;
         }
 
+        // 선택된 구매처 또는 해당 구매처로 override된 제품 모두 포함
         const vendorProducts = productSummaries.filter(
-          (s) => s.product.vendorCode === selectedVendor && s.buy1 > 0
+          (s) => getEffectiveVendorCode(s) === selectedVendor && s.buy1 > 0
         );
 
         if (vendorProducts.length === 0) {
@@ -199,6 +201,24 @@ export default function PurchaseOrdersPage() {
     return vendors.find((v) => v.code === vendorCode)?.name || vendorCode;
   };
 
+  // 제품별 구매처 임시 변경
+  const handleVendorOverride = (productCode: string, newVendorCode: string) => {
+    setProductSummaries((prev) =>
+      prev.map((s) =>
+        s.product.code === productCode
+          ? { ...s, overrideVendorCode: newVendorCode || undefined }
+          : s
+      )
+    );
+  };
+
+  // 실제 사용할 구매처 코드 반환 (override가 있으면 override 사용)
+  const getEffectiveVendorCode = (summary: ProductSummary): string => {
+    return summary.overrideVendorCode !== undefined
+      ? summary.overrideVendorCode
+      : summary.product.vendorCode;
+  };
+
   const getProductName = (productCode: string) => {
     return products.find((p) => p.code === productCode)?.name_ko || productCode;
   };
@@ -215,7 +235,7 @@ export default function PurchaseOrdersPage() {
   const getFilteredSummaries = () => {
     if (activeTab === 'buy1') {
       return selectedVendor
-        ? productSummaries.filter((s) => s.product.vendorCode === selectedVendor && s.buy1 > 0)
+        ? productSummaries.filter((s) => getEffectiveVendorCode(s) === selectedVendor && s.buy1 > 0)
         : productSummaries.filter((s) => s.buy1 > 0);
     } else if (activeTab === 'buy2') {
       return productSummaries.filter((s) => s.buy2 > 0);
@@ -370,6 +390,7 @@ export default function PurchaseOrdersPage() {
                 <thead className="bg-gray-50">
                   <tr>
                     <th className="px-4 py-3 text-left text-sm font-medium text-gray-600">제품</th>
+                    <th className="px-4 py-3 text-center text-sm font-medium text-gray-600">유형</th>
                     {activeTab === 'buy1' && (
                       <>
                         <th className="px-4 py-3 text-right text-sm font-medium text-gray-600">1차 주문</th>
@@ -377,30 +398,74 @@ export default function PurchaseOrdersPage() {
                       </>
                     )}
                     <th className="px-4 py-3 text-right text-sm font-medium text-gray-600">발주량</th>
-                    <th className="px-4 py-3 text-right text-sm font-medium text-gray-600">구매처</th>
+                    <th className="px-4 py-3 text-left text-sm font-medium text-gray-600">구매처</th>
                   </tr>
                 </thead>
                 <tbody className="divide-y">
-                  {getFilteredSummaries().map((summary) => (
-                    <tr key={summary.product.code} className="hover:bg-gray-50">
-                      <td className="px-4 py-3">
-                        <div className="font-medium">{summary.product.name_ko}</div>
-                        <div className="text-sm text-gray-500">{summary.product.code}</div>
-                      </td>
-                      {activeTab === 'buy1' && (
-                        <>
-                          <td className="px-4 py-3 text-right">{summary.cut1}</td>
-                          <td className="px-4 py-3 text-right">{summary.stock}</td>
-                        </>
-                      )}
-                      <td className="px-4 py-3 text-right font-bold text-blue-600">
-                        {activeTab === 'buy1' ? summary.buy1 : activeTab === 'buy2' ? summary.buy2 : summary.buy3}
-                      </td>
-                      <td className="px-4 py-3 text-right text-sm text-gray-500">
-                        {getVendorName(summary.product.vendorCode)}
-                      </td>
-                    </tr>
-                  ))}
+                  {getFilteredSummaries().map((summary) => {
+                    const effectiveVendorCode = getEffectiveVendorCode(summary);
+                    const isOverridden = summary.overrideVendorCode !== undefined;
+
+                    return (
+                      <tr key={summary.product.code} className={`hover:bg-gray-50 ${isOverridden ? 'bg-yellow-50' : ''}`}>
+                        <td className="px-4 py-3">
+                          <div className="font-medium">{summary.product.name_ko}</div>
+                          <div className="text-sm text-gray-500">{summary.product.code}</div>
+                        </td>
+                        <td className="px-4 py-3 text-center">
+                          <Badge
+                            variant={summary.product.priceType === 'fresh' ? 'success' : 'info'}
+                            size="sm"
+                          >
+                            {summary.product.priceType === 'fresh' ? '신선' : '공산품'}
+                          </Badge>
+                        </td>
+                        {activeTab === 'buy1' && (
+                          <>
+                            <td className="px-4 py-3 text-right">{summary.cut1}</td>
+                            <td className="px-4 py-3 text-right">{summary.stock}</td>
+                          </>
+                        )}
+                        <td className="px-4 py-3 text-right font-bold text-blue-600">
+                          {activeTab === 'buy1' ? summary.buy1 : activeTab === 'buy2' ? summary.buy2 : summary.buy3}
+                        </td>
+                        <td className="px-4 py-3">
+                          {/* 신선 제품은 구매처 변경 가능 */}
+                          {summary.product.priceType === 'fresh' ? (
+                            <div className="flex items-center gap-2">
+                              <select
+                                value={effectiveVendorCode}
+                                onChange={(e) => handleVendorOverride(summary.product.code, e.target.value)}
+                                className={`px-2 py-1 text-sm border rounded focus:ring-2 focus:ring-blue-500 ${
+                                  isOverridden ? 'border-yellow-400 bg-yellow-50' : 'border-gray-300'
+                                }`}
+                              >
+                                <option value="">선택 안함</option>
+                                {vendors.map((v) => (
+                                  <option key={v.code} value={v.code}>
+                                    {v.name}
+                                  </option>
+                                ))}
+                              </select>
+                              {isOverridden && (
+                                <button
+                                  onClick={() => handleVendorOverride(summary.product.code, summary.product.vendorCode)}
+                                  className="text-xs text-gray-500 hover:text-gray-700"
+                                  title="원래 구매처로 복원"
+                                >
+                                  원복
+                                </button>
+                              )}
+                            </div>
+                          ) : (
+                            <span className="text-sm text-gray-700">
+                              {getVendorName(summary.product.vendorCode)}
+                            </span>
+                          )}
+                        </td>
+                      </tr>
+                    );
+                  })}
                 </tbody>
               </table>
 
@@ -410,6 +475,14 @@ export default function PurchaseOrdersPage() {
                 </div>
               )}
             </div>
+
+            {/* 신선 제품 구매처 변경 안내 */}
+            {activeTab === 'buy1' && productSummaries.some(s => s.product.priceType === 'fresh' && s.buy1 > 0) && (
+              <div className="mt-4 p-3 bg-amber-50 border border-amber-200 rounded-lg text-sm text-amber-700">
+                <strong>신선 제품 구매처 변경:</strong> 신선 제품은 당일 가격에 따라 구매처를 변경할 수 있습니다.
+                드롭다운에서 다른 구매처를 선택하세요.
+              </div>
+            )}
           </div>
         )}
       </div>
