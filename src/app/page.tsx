@@ -207,7 +207,7 @@ export default function Dashboard() {
                 onClick={goToToday}
                 className="px-3 py-1.5 text-sm bg-green-100 hover:bg-green-200 text-green-700 rounded-lg transition-colors"
               >
-                오늘로
+                {t('dashboard.goToToday')}
               </button>
             )}
             <button
@@ -216,12 +216,12 @@ export default function Dashboard() {
               className="flex items-center gap-1 px-3 py-1.5 text-sm bg-gray-100 hover:bg-gray-200 rounded-lg transition-colors disabled:opacity-50"
             >
               <RefreshCw size={14} className={refreshing ? 'animate-spin' : ''} />
-              새로고침
+              {t('dashboard.refresh')}
             </button>
           </div>
           <div className="text-sm text-gray-700">
             <span className="font-mono">{formatTime(thailandTime)}</span>
-            <span className="ml-2 text-gray-600">(태국 시간)</span>
+            <span className="ml-2 text-gray-600">({t('dashboard.thailandTime')})</span>
           </div>
         </div>
 
@@ -260,10 +260,10 @@ export default function Dashboard() {
                 {isNormalOrderClosed ? (
                   <>
                     <Ban size={12} className="text-red-500" />
-                    <span className="text-xs text-red-600 font-medium">마감됨</span>
+                    <span className="text-xs text-red-600 font-medium">{t('dashboard.closed')}</span>
                   </>
                 ) : (
-                  <span className="text-xs text-gray-600">04시 전</span>
+                  <span className="text-xs text-gray-600">{t('dashboard.before04')}</span>
                 )}
               </div>
             </div>
@@ -298,29 +298,29 @@ export default function Dashboard() {
         <section className="mb-8">
           <h2 className="text-lg font-semibold text-gray-800 mb-4 flex items-center gap-2">
             <DollarSign size={20} className="text-emerald-600" />
-            {isToday ? '오늘' : selectedDate} 매출 현황
+            {isToday ? t('dashboard.todaySales') : `${selectedDate} ${t('dashboard.salesStatus')}`}
           </h2>
           <div className="grid grid-cols-2 lg:grid-cols-4 gap-3 lg:gap-6">
             <div className="bg-gradient-to-br from-emerald-50 to-emerald-100 rounded-xl p-4 lg:p-6 border border-emerald-200">
-              <p className="text-sm text-emerald-700 mb-1">총 매출</p>
+              <p className="text-sm text-emerald-700 mb-1">{t('dashboard.totalSales')}</p>
               <p className="text-xl lg:text-2xl font-bold text-emerald-800">
                 {loading ? '-' : formatCurrency(orderSummary.total)}
               </p>
             </div>
             <div className="bg-white rounded-xl shadow-sm border border-gray-100 p-4 lg:p-6">
-              <p className="text-sm text-gray-600 mb-1">1차 매출</p>
+              <p className="text-sm text-gray-600 mb-1">{t('dashboard.cut1Sales')}</p>
               <p className="text-lg lg:text-xl font-bold text-gray-800">
                 {loading ? '-' : formatCurrency(orderSummary.cut1)}
               </p>
             </div>
             <div className="bg-white rounded-xl shadow-sm border border-gray-100 p-4 lg:p-6">
-              <p className="text-sm text-gray-600 mb-1">2차 매출</p>
+              <p className="text-sm text-gray-600 mb-1">{t('dashboard.cut2Sales')}</p>
               <p className="text-lg lg:text-xl font-bold text-gray-800">
                 {loading ? '-' : formatCurrency(orderSummary.cut2)}
               </p>
             </div>
             <div className="bg-white rounded-xl shadow-sm border border-gray-100 p-4 lg:p-6">
-              <p className="text-sm text-gray-600 mb-1">3차 매출</p>
+              <p className="text-sm text-gray-600 mb-1">{t('dashboard.cut3Sales')}</p>
               <p className="text-lg lg:text-xl font-bold text-gray-800">
                 {loading ? '-' : formatCurrency(orderSummary.cut3)}
               </p>
@@ -340,38 +340,63 @@ export default function Dashboard() {
                 로딩 중...
               </div>
             ) : weeklySales.length > 0 ? (
-              <div className="flex items-end justify-between gap-2 h-48">
-                {weeklySales.map((day, idx) => {
-                  const maxSales = Math.max(...weeklySales.map(d => d.total), 1);
-                  const heightPercent = (day.total / maxSales) * 100;
-                  const isSelected = day.date === selectedDate;
+              <div className="space-y-2">
+                {/* 바 차트 영역 */}
+                <div className="flex items-end justify-between gap-2 h-32">
+                  {weeklySales.map((day) => {
+                    const maxSales = Math.max(...weeklySales.map(d => d.total), 1);
+                    const heightPercent = (day.total / maxSales) * 100;
+                    const isSelected = day.date === selectedDate;
+                    const barHeight = Math.max(heightPercent, 8);
 
-                  return (
-                    <div
-                      key={day.date}
-                      className="flex-1 flex flex-col items-center gap-1"
-                    >
-                      <span className="text-xs text-gray-600 font-medium">
-                        {formatCurrency(day.total)}
-                      </span>
+                    return (
                       <div
-                        className={`w-full rounded-t transition-all ${
-                          isSelected
-                            ? 'bg-green-500'
-                            : 'bg-indigo-400 hover:bg-indigo-500'
-                        }`}
-                        style={{ height: `${Math.max(heightPercent, 5)}%` }}
-                        title={`${day.date}: ${formatCurrency(day.total)}`}
-                      />
-                      <span className={`text-xs font-medium ${isSelected ? 'text-green-700' : 'text-gray-700'}`}>
-                        {day.label}
-                      </span>
-                      <span className={`text-xs ${isSelected ? 'text-green-600' : 'text-gray-500'}`}>
-                        {day.date.slice(5)}
-                      </span>
-                    </div>
-                  );
-                })}
+                        key={day.date}
+                        className="flex-1 flex flex-col items-center justify-end h-full"
+                      >
+                        <div
+                          className={`w-full max-w-[40px] mx-auto rounded-t-md transition-all cursor-pointer ${
+                            isSelected
+                              ? 'bg-green-500 hover:bg-green-600'
+                              : 'bg-indigo-400 hover:bg-indigo-500'
+                          }`}
+                          style={{ height: `${barHeight}%`, minHeight: '8px' }}
+                          title={`${day.date}: ${formatCurrency(day.total)}`}
+                        />
+                      </div>
+                    );
+                  })}
+                </div>
+                {/* 금액 라벨 */}
+                <div className="flex justify-between gap-2">
+                  {weeklySales.map((day) => {
+                    const isSelected = day.date === selectedDate;
+                    return (
+                      <div key={`amount-${day.date}`} className="flex-1 text-center">
+                        <span className={`text-xs font-medium ${isSelected ? 'text-green-700' : 'text-gray-700'}`}>
+                          {formatCurrency(day.total)}
+                        </span>
+                      </div>
+                    );
+                  })}
+                </div>
+                {/* 날짜 라벨 */}
+                <div className="flex justify-between gap-2">
+                  {weeklySales.map((day) => {
+                    const isSelected = day.date === selectedDate;
+                    return (
+                      <div key={`label-${day.date}`} className="flex-1 text-center">
+                        <span className={`text-xs font-medium ${isSelected ? 'text-green-700' : 'text-gray-700'}`}>
+                          {day.label}
+                        </span>
+                        <br />
+                        <span className={`text-xs ${isSelected ? 'text-green-600' : 'text-gray-500'}`}>
+                          {day.date.slice(5)}
+                        </span>
+                      </div>
+                    );
+                  })}
+                </div>
               </div>
             ) : (
               <div className="h-48 flex items-center justify-center text-gray-500">
@@ -385,7 +410,7 @@ export default function Dashboard() {
         <section className="mb-8">
           <h2 className="text-lg font-semibold text-gray-800 mb-4 flex items-center gap-2">
             <TrendingUp size={20} className="text-blue-600" />
-            기본 현황
+            {t('dashboard.basicStats')}
           </h2>
           <div className="grid grid-cols-2 gap-3 lg:gap-6">
             <div className="bg-white rounded-xl shadow-sm border border-gray-100 p-4 lg:p-6 flex items-center gap-4">
@@ -393,7 +418,7 @@ export default function Dashboard() {
                 <Users size={24} className="text-blue-600" />
               </div>
               <div>
-                <p className="text-sm text-gray-700">활성 고객</p>
+                <p className="text-sm text-gray-700">{t('dashboard.activeCustomers')}</p>
                 <p className="text-2xl font-bold text-gray-900">
                   {loading ? '-' : customerCount}
                 </p>
@@ -404,7 +429,7 @@ export default function Dashboard() {
                 <Package size={24} className="text-purple-600" />
               </div>
               <div>
-                <p className="text-sm text-gray-700">활성 제품</p>
+                <p className="text-sm text-gray-700">{t('dashboard.activeProducts')}</p>
                 <p className="text-2xl font-bold text-gray-900">
                   {loading ? '-' : productCount}
                 </p>

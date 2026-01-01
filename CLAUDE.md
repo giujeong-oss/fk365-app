@@ -375,6 +375,31 @@ node scripts/seed-data.mjs
 
 ## 업데이트 이력
 
+### 2026-01-02 (테스트 피드백 반영 3차)
+
+**대시보드 1주일 매출 바 차트 수정**
+- 기존: 바 차트가 보이지 않는 문제
+- 수정: 바 차트 구조 개선 (h-32 고정 높이 컨테이너, 금액/날짜 라벨 분리)
+- 시각적 막대 차트로 매출 추이 확인 가능
+- 파일: `src/app/page.tsx`
+
+**대시보드 전체 다국어(i18n) 완전 적용**
+- 오늘 매출 현황 섹션: 총 매출, 1차/2차/3차 매출
+- 기본 현황 섹션: 활성 고객, 활성 제품
+- 버튼: 오늘로, 새로고침
+- 상태: 마감됨, 04시 전, 태국 시간
+- 한국어/태국어/영어 3개 언어 모두 지원
+- 파일: `src/app/page.tsx`, `src/lib/i18n/translations.ts`
+
+**추가된 번역 키 (17개)**
+```
+dashboard.todaySales, dashboard.salesStatus, dashboard.totalSales
+dashboard.cut1Sales, dashboard.cut2Sales, dashboard.cut3Sales
+dashboard.basicStats, dashboard.activeCustomers, dashboard.activeProducts
+dashboard.today, dashboard.goToToday, dashboard.refresh
+dashboard.thailandTime, dashboard.closed, dashboard.before04
+```
+
 ### 2026-01-02 (테스트 피드백 반영 2차)
 
 **[Critical] 신선제품 판매가 계산 오류 수정**
