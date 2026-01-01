@@ -1,0 +1,7 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 512 512">
+  <rect width="512" height="512" rx="96" fill="#16a34a"/>
+  <path d="M256 120c-75 0-136 61-136 136 0 30 10 58 27 81l-27 95 98-26c22 15 49 24 78 24 75 0 136-61 136-136s-61-136-136-136z" fill="white" opacity="0.9"/>
+  <ellipse cx="256" cy="256" rx="60" ry="70" fill="#16a34a"/>
+  <path d="M256 140c-8-30 15-50 40-45 10 20 5 40-15 55" fill="#22c55e" stroke="#16a34a" stroke-width="8"/>
+  <text x="256" y="380" font-family="Arial, sans-serif" font-size="100" font-weight="bold" fill="white" text-anchor="middle">FK</text>
+</svg>

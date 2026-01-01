@@ -198,3 +198,47 @@ src/
 - 마감 후 "추가/긴급 주문만 가능" 표시
 - 추가/긴급 주문은 시간 제한 없음 (관리자 판단)
 - 파일: `src/app/page.tsx`
+
+## 업데이트 이력 (2026-01-02)
+
+### PWA 아이콘 에러 수정
+- `icon-192.png`, `icon-512.png` 404 에러 해결
+- SVG 아이콘 파일 생성 (`public/icon.svg`)
+- `manifest.json` 업데이트 - SVG 아이콘 참조로 변경
+- 파일: `public/icon.svg`, `public/manifest.json`
+
+### 랜딩 페이지 사업 소개 수정 (fk365-landing)
+- 회사 사업 분야를 **채소, 과일, 주방 비품 전문 유통**으로 명확화
+- 기존 "프리미엄 식자재" 표현을 구체적인 사업 영역으로 변경
+- Hero 섹션, About 섹션, Products 섹션, Footer 모두 일관성 있게 수정
+- 취급 제품에서 육류/수산물 제거 (채소류, 과일류, 가공식품, 주방 비품, 소모품)
+- 파일: `C:\Users\Giuje\fk365-landing\src\app\page.tsx`
+
+### Meet365 자매회사 소개 섹션 추가 (fk365-landing)
+- Products 섹션과 Contact 섹션 사이에 Meet365 홍보 섹션 추가
+- "고기 주문은 Meet365에서!" 안내 문구
+- 프리미엄 돼지고기, 소고기, 닭고기 취급 안내
+- Meet365 방문하기 버튼 (https://www.meet365.net 링크)
+- Footer에 자매회사 섹션 추가
+- 파일: `C:\Users\Giuje\fk365-landing\src\app\page.tsx`
+
+### 랜딩 페이지 메타데이터 업데이트 (fk365-landing)
+- 페이지 타이틀: "Fresh Kitchen 365 | 채소, 과일, 주방 비품 전문 유통"
+- description에 Meet365 자매회사 언급 추가
+- keywords에 채소, 과일, 주방 비품, Meet365 추가
+- 파일: `C:\Users\Giuje\fk365-landing\src\app\layout.tsx`
+
+### Firebase OAuth 도메인 설정 안내
+- `auth/unauthorized-domain` 에러 해결 방법 문서화
+- Google Cloud Console에서 OAuth 리디렉션 URI 설정 필요:
+  - Authorized JavaScript origins: `https://app.freshkitchen365.com`
+  - Authorized redirect URIs: `https://app.freshkitchen365.com/__/auth/handler`
+
+## 관련 프로젝트 연동
+
+### Meet365 (자매회사)
+- **URL**: https://www.meet365.net
+- **사업 분야**: 프리미엄 육류 도매 (돼지고기, 소고기, 닭고기)
+- **연락처**: 093-653-6504, order@meet365.net
+- **LINE**: @928dyodb
+- FK365 랜딩 페이지에서 육류 주문 시 Meet365로 안내
