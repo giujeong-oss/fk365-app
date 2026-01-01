@@ -4,12 +4,11 @@ import { ReactNode } from 'react';
 import Sidebar from './Sidebar';
 import BottomTabs from './BottomTabs';
 import MobileHeader from './MobileHeader';
+import { useI18n } from '@/lib/i18n';
 
 interface MainLayoutProps {
   children: ReactNode;
   isAdmin?: boolean;
-  currentLanguage?: string;
-  onLanguageChange?: (lang: string) => void;
   onLogout?: () => void;
   userName?: string;
   pageTitle?: string;
@@ -20,21 +19,21 @@ interface MainLayoutProps {
 export default function MainLayout({
   children,
   isAdmin = false,
-  currentLanguage = 'ko',
-  onLanguageChange,
   onLogout,
   userName,
   pageTitle,
   showMobileBack = false,
   onMobileBack,
 }: MainLayoutProps) {
+  const { language, setLanguage } = useI18n();
+
   return (
     <div className="min-h-screen bg-gray-50">
       {/* PC: Sidebar */}
       <Sidebar
         isAdmin={isAdmin}
-        currentLanguage={currentLanguage}
-        onLanguageChange={onLanguageChange}
+        currentLanguage={language}
+        onLanguageChange={setLanguage}
         onLogout={onLogout}
         userName={userName}
       />
@@ -44,8 +43,8 @@ export default function MainLayout({
         title={pageTitle}
         showBack={showMobileBack}
         onBack={onMobileBack}
-        currentLanguage={currentLanguage}
-        onLanguageChange={onLanguageChange}
+        currentLanguage={language}
+        onLanguageChange={setLanguage}
         onLogout={onLogout}
         userName={userName}
       />

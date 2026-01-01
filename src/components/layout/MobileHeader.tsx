@@ -3,13 +3,14 @@
 import { Menu, Globe, LogOut, ChevronLeft, Home } from 'lucide-react';
 import { useState } from 'react';
 import { useRouter } from 'next/navigation';
+import type { UILanguage } from '@/types';
 
 interface MobileHeaderProps {
   title?: string;
   showBack?: boolean;
   onBack?: () => void;
-  currentLanguage?: string;
-  onLanguageChange?: (lang: string) => void;
+  currentLanguage?: UILanguage;
+  onLanguageChange?: (lang: UILanguage) => void;
   onLogout?: () => void;
   userName?: string;
 }
@@ -26,7 +27,7 @@ export default function MobileHeader({
   const [showMenu, setShowMenu] = useState(false);
   const router = useRouter();
 
-  const languages = [
+  const languages: { code: UILanguage; label: string }[] = [
     { code: 'ko', label: '한국어' },
     { code: 'th', label: 'ไทย' },
     { code: 'en', label: 'EN' },

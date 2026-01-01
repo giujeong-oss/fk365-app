@@ -17,6 +17,7 @@ import {
   LogOut,
   Globe,
 } from 'lucide-react';
+import type { UILanguage } from '@/types';
 
 interface NavItem {
   href: string;
@@ -42,8 +43,8 @@ const navItems: NavItem[] = [
 
 interface SidebarProps {
   isAdmin?: boolean;
-  currentLanguage?: string;
-  onLanguageChange?: (lang: string) => void;
+  currentLanguage?: UILanguage;
+  onLanguageChange?: (lang: UILanguage) => void;
   onLogout?: () => void;
   userName?: string;
 }
@@ -59,7 +60,7 @@ export default function Sidebar({
 
   const filteredNavItems = navItems.filter(item => !item.adminOnly || isAdmin);
 
-  const languages = [
+  const languages: { code: UILanguage; label: string }[] = [
     { code: 'ko', label: '한국어' },
     { code: 'th', label: 'ไทย' },
     { code: 'en', label: 'EN' },
