@@ -47,6 +47,7 @@ export default function OrderEntryPage() {
   const [saving, setSaving] = useState(false);
   const [freshMarginMap, setFreshMarginMap] = useState<Map<Grade, number>>(new Map());
   const [industrialMarginMap, setIndustrialMarginMap] = useState<Map<Grade, IndustrialMargin>>(new Map());
+  const [showingAllProducts, setShowingAllProducts] = useState(false);
 
   useEffect(() => {
     loadData();
@@ -72,10 +73,24 @@ export default function OrderEntryPage() {
       setFreshMarginMap(freshMap);
       setIndustrialMarginMap(industrialMap);
 
-      // 고객이 주문 가능한 제품만 필터 (products가 없으면 빈 배열 사용)
-      const customerProducts = allProducts.filter((p) =>
-        (customerData.products || []).includes(p.code)
-      );
+      // 고객이 주문 가능한 제품 필터
+      let customerProducts: Product[] = [];
+
+      if (customerData.products && customerData.products.length > 0) {
+        // 고객에게 매핑된 제품이 있으면 해당 제품만 표시
+        customerProducts = allProducts.filter((p) =>
+          customerData.products!.includes(p.code)
+        );
+      }
+
+      // 매핑된 제품이 없거나 매칭되는 제품이 없으면 모든 활성 제품 표시
+      if (customerProducts.length === 0) {
+        customerProducts = allProducts;
+        setShowingAllProducts(true);
+      } else {
+        setShowingAllProducts(false);
+      }
+
       setProducts(customerProducts);
 
       // N+1 쿼리 해결: 고객의 모든 제품 adj를 한 번에 조회
@@ -285,6 +300,24 @@ export default function OrderEntryPage() {
 
         {/* 제품 목록 */}
         <div className="p-4 max-w-4xl mx-auto pb-32">
+          {/* 전체 제품 표시 경고 */}
+          {showingAllProducts && productStates.length > 0 && (
+            <div className="mb-4 p-3 bg-amber-50 border border-amber-200 rounded-lg flex items-start gap-3">
+              <svg className="w-5 h-5 text-amber-500 flex-shrink-0 mt-0.5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-3L13.732 4c-.77-1.333-2.694-1.333-3.464 0L3.34 16c-.77 1.333.192 3 1.732 3z" />
+              </svg>
+              <div className="flex-1">
+                <p className="text-sm font-medium text-amber-800">전체 제품이 표시되고 있습니다</p>
+                <p className="text-xs text-amber-700 mt-1">
+                  이 고객에게 제품이 매핑되지 않았거나 매핑된 제품이 없습니다.
+                  <Link href={`/customers/${customer.id}/products`} className="ml-1 underline font-medium">
+                    제품 매핑 설정
+                  </Link>
+                </p>
+              </div>
+            </div>
+          )}
+
           {productStates.length === 0 ? (
             <div className="text-center py-12 bg-white rounded-lg border border-gray-200">
               <div className="w-16 h-16 mx-auto mb-4 bg-orange-100 rounded-full flex items-center justify-center">
