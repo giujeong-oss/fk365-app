@@ -1,8 +1,10 @@
 'use client';
 
+import { useState, useEffect } from 'react';
 import { MainLayout } from '@/components/layout';
 import { ProtectedRoute } from '@/components/auth';
 import { useAuth } from '@/lib/context';
+import { getOrderCountByCutoff } from '@/lib/firebase';
 import {
   ShoppingCart,
   ClipboardList,
@@ -13,15 +15,25 @@ import {
 } from 'lucide-react';
 import Link from 'next/link';
 
-// 임시 데이터 (나중에 Firebase에서 가져옴)
-const mockOrderSummary = {
-  cut1: 45,
-  cut2: 12,
-  cut3: 3,
-};
-
 export default function Dashboard() {
   const { user, isAdmin, signOut } = useAuth();
+  const [orderCounts, setOrderCounts] = useState({ cut1: 0, cut2: 0, cut3: 0, total: 0 });
+  const [loading, setLoading] = useState(true);
+
+  useEffect(() => {
+    const loadData = async () => {
+      try {
+        const today = new Date();
+        const counts = await getOrderCountByCutoff(today);
+        setOrderCounts(counts);
+      } catch (error) {
+        console.error('Failed to load order counts:', error);
+      } finally {
+        setLoading(false);
+      }
+    };
+    loadData();
+  }, []);
 
   // 마감까지 남은 시간 계산 (임시)
   const now = new Date();
@@ -49,7 +61,7 @@ export default function Dashboard() {
 
         {/* Order Summary Cards */}
         <section className="mb-8">
-          <h2 className="text-lg font-semibold text-gray-700 mb-4 flex items-center gap-2">
+          <h2 className="text-lg font-semibold text-gray-800 mb-4 flex items-center gap-2">
             <TrendingUp size={20} className="text-green-600" />
             오늘 주문 현황
           </h2>
@@ -57,37 +69,37 @@ export default function Dashboard() {
             {/* Cut 1: Normal */}
             <div className="bg-white rounded-xl shadow-sm border border-gray-100 p-4 lg:p-6">
               <div className="flex items-center justify-between mb-2">
-                <span className="text-sm text-gray-500">정상 (1)</span>
+                <span className="text-sm font-medium text-gray-700">정상 (1)</span>
                 <span className="w-2 h-2 rounded-full bg-green-500"></span>
               </div>
               <p className="text-2xl lg:text-3xl font-bold text-gray-900">
-                {mockOrderSummary.cut1}
+                {loading ? '-' : orderCounts.cut1}
               </p>
-              <p className="text-xs text-gray-400 mt-1">11시 전</p>
+              <p className="text-xs text-gray-600 mt-1">11시 전</p>
             </div>
 
             {/* Cut 2: Additional */}
             <div className="bg-white rounded-xl shadow-sm border border-gray-100 p-4 lg:p-6">
               <div className="flex items-center justify-between mb-2">
-                <span className="text-sm text-gray-500">추가 (2)</span>
+                <span className="text-sm font-medium text-gray-700">추가 (2)</span>
                 <span className="w-2 h-2 rounded-full bg-yellow-500"></span>
               </div>
               <p className="text-2xl lg:text-3xl font-bold text-gray-900">
-                {mockOrderSummary.cut2}
+                {loading ? '-' : orderCounts.cut2}
               </p>
-              <p className="text-xs text-gray-400 mt-1">끌렁떠이</p>
+              <p className="text-xs text-gray-600 mt-1">끌렁떠이</p>
             </div>
 
             {/* Cut 3: Urgent */}
             <div className="bg-white rounded-xl shadow-sm border border-gray-100 p-4 lg:p-6">
               <div className="flex items-center justify-between mb-2">
-                <span className="text-sm text-gray-500">긴급 (3)</span>
+                <span className="text-sm font-medium text-gray-700">긴급 (3)</span>
                 <span className="w-2 h-2 rounded-full bg-red-500"></span>
               </div>
               <p className="text-2xl lg:text-3xl font-bold text-gray-900">
-                {mockOrderSummary.cut3}
+                {loading ? '-' : orderCounts.cut3}
               </p>
-              <p className="text-xs text-gray-400 mt-1">라라무브</p>
+              <p className="text-xs text-gray-600 mt-1">라라무브</p>
             </div>
           </div>
         </section>
@@ -115,14 +127,14 @@ export default function Dashboard() {
 
         {/* Quick Menu */}
         <section>
-          <h2 className="text-lg font-semibold text-gray-700 mb-4">빠른 메뉴</h2>
+          <h2 className="text-lg font-semibold text-gray-800 mb-4">빠른 메뉴</h2>
           <div className="grid grid-cols-2 lg:grid-cols-4 gap-4">
             <Link
               href="/orders"
               className="flex flex-col items-center justify-center gap-3 p-6 bg-white rounded-xl shadow-sm border border-gray-100 hover:border-green-300 hover:shadow-md transition-all"
             >
               <ShoppingCart size={32} className="text-green-600" />
-              <span className="font-medium text-gray-700">주문 입력</span>
+              <span className="font-medium text-gray-800">주문 입력</span>
             </Link>
 
             <Link
@@ -130,7 +142,7 @@ export default function Dashboard() {
               className="flex flex-col items-center justify-center gap-3 p-6 bg-white rounded-xl shadow-sm border border-gray-100 hover:border-green-300 hover:shadow-md transition-all"
             >
               <ClipboardList size={32} className="text-green-600" />
-              <span className="font-medium text-gray-700">발주서</span>
+              <span className="font-medium text-gray-800">발주서</span>
             </Link>
 
             <Link
@@ -138,7 +150,7 @@ export default function Dashboard() {
               className="flex flex-col items-center justify-center gap-3 p-6 bg-white rounded-xl shadow-sm border border-gray-100 hover:border-green-300 hover:shadow-md transition-all"
             >
               <Truck size={32} className="text-green-600" />
-              <span className="font-medium text-gray-700">배송장</span>
+              <span className="font-medium text-gray-800">배송장</span>
             </Link>
 
             <Link
@@ -146,13 +158,13 @@ export default function Dashboard() {
               className="flex flex-col items-center justify-center gap-3 p-6 bg-white rounded-xl shadow-sm border border-gray-100 hover:border-green-300 hover:shadow-md transition-all"
             >
               <TrendingUp size={32} className="text-green-600" />
-              <span className="font-medium text-gray-700">재고 현황</span>
+              <span className="font-medium text-gray-800">재고 현황</span>
             </Link>
           </div>
         </section>
 
         {/* Version Info */}
-        <footer className="mt-12 text-center text-xs text-gray-400">
+        <footer className="mt-12 text-center text-xs text-gray-600">
           FK365 v0.1.0 | Fresh Kitchen 365
         </footer>
       </div>

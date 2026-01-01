@@ -5,13 +5,15 @@ import { MainLayout } from '@/components/layout';
 import { ProtectedRoute } from '@/components/auth';
 import { useAuth } from '@/lib/context';
 import { Button, Modal, Input, EmptyState, LoadingState, Badge } from '@/components/ui';
-import { getVendors, createVendor, updateVendor, deleteVendor } from '@/lib/firebase';
-import type { Vendor } from '@/types';
-import { Plus, Pencil, Trash2, Store, Search } from 'lucide-react';
+import { getVendors, createVendor, updateVendor, deleteVendor, getProducts } from '@/lib/firebase';
+import type { Vendor, Product } from '@/types';
+import { Plus, Pencil, Trash2, Store, Search, Package } from 'lucide-react';
+import Link from 'next/link';
 
 export default function VendorsPage() {
   const { user, isAdmin, signOut } = useAuth();
   const [vendors, setVendors] = useState<Vendor[]>([]);
+  const [products, setProducts] = useState<Product[]>([]);
   const [loading, setLoading] = useState(true);
   const [searchTerm, setSearchTerm] = useState('');
   const [showInactive, setShowInactive] = useState(false);
@@ -26,12 +28,19 @@ export default function VendorsPage() {
   // Delete confirmation
   const [deleteTarget, setDeleteTarget] = useState<Vendor | null>(null);
 
+  // Products modal
+  const [selectedVendorProducts, setSelectedVendorProducts] = useState<{vendor: Vendor, products: Product[]} | null>(null);
+
   // 구매처 목록 불러오기
   const loadVendors = async () => {
     setLoading(true);
     try {
-      const data = await getVendors(!showInactive);
-      setVendors(data);
+      const [vendorsData, productsData] = await Promise.all([
+        getVendors(!showInactive),
+        getProducts(true)
+      ]);
+      setVendors(vendorsData);
+      setProducts(productsData);
     } catch (error) {
       console.error('Failed to load vendors:', error);
     } finally {
@@ -42,6 +51,17 @@ export default function VendorsPage() {
   useEffect(() => {
     loadVendors();
   }, [showInactive]);
+
+  // 구매처별 제품 수
+  const getProductCount = (vendorCode: string): number => {
+    return products.filter(p => p.vendorCode === vendorCode).length;
+  };
+
+  // 구매처 제품 목록 보기
+  const showVendorProducts = (vendor: Vendor) => {
+    const vendorProducts = products.filter(p => p.vendorCode === vendor.code);
+    setSelectedVendorProducts({ vendor, products: vendorProducts });
+  };
 
   // 검색 필터
   const filteredVendors = vendors.filter(
@@ -178,16 +198,19 @@ export default function VendorsPage() {
                 <table className="w-full">
                   <thead className="bg-gray-50">
                     <tr>
-                      <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase">
+                      <th className="px-6 py-3 text-left text-xs font-medium text-gray-600 uppercase">
                         코드
                       </th>
-                      <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase">
+                      <th className="px-6 py-3 text-left text-xs font-medium text-gray-600 uppercase">
                         이름
                       </th>
-                      <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase">
+                      <th className="px-6 py-3 text-center text-xs font-medium text-gray-600 uppercase">
+                        제품 수
+                      </th>
+                      <th className="px-6 py-3 text-left text-xs font-medium text-gray-600 uppercase">
                         상태
                       </th>
-                      <th className="px-6 py-3 text-right text-xs font-medium text-gray-500 uppercase">
+                      <th className="px-6 py-3 text-right text-xs font-medium text-gray-600 uppercase">
                         작업
                       </th>
                     </tr>
@@ -201,6 +224,15 @@ export default function VendorsPage() {
                         <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-900 font-semibold">
                           {vendor.name}
                         </td>
+                        <td className="px-6 py-4 whitespace-nowrap text-center">
+                          <button
+                            onClick={() => showVendorProducts(vendor)}
+                            className="inline-flex items-center gap-1 px-3 py-1 bg-blue-50 text-blue-700 rounded-full text-sm font-medium hover:bg-blue-100 transition-colors"
+                          >
+                            <Package size={14} />
+                            {getProductCount(vendor.code)}개
+                          </button>
+                        </td>
                         <td className="px-6 py-4 whitespace-nowrap">
                           <Badge variant={vendor.isActive ? 'success' : 'default'}>
                             {vendor.isActive ? '활성' : '비활성'}
@@ -210,14 +242,14 @@ export default function VendorsPage() {
                           <div className="flex items-center justify-end gap-2">
                             <button
                               onClick={() => openEditModal(vendor)}
-                              className="p-2 text-gray-400 hover:text-green-600 hover:bg-green-50 rounded-lg transition-colors"
+                              className="p-2 text-gray-500 hover:text-green-600 hover:bg-green-50 rounded-lg transition-colors"
                               title="수정"
                             >
                               <Pencil size={16} />
                             </button>
                             <button
                               onClick={() => setDeleteTarget(vendor)}
-                              className="p-2 text-gray-400 hover:text-red-600 hover:bg-red-50 rounded-lg transition-colors"
+                              className="p-2 text-gray-500 hover:text-red-600 hover:bg-red-50 rounded-lg transition-colors"
                               title="삭제"
                             >
                               <Trash2 size={16} />
@@ -251,17 +283,24 @@ export default function VendorsPage() {
                           </Badge>
                         </div>
                         <p className="text-gray-800 font-medium">{vendor.name}</p>
+                        <button
+                          onClick={() => showVendorProducts(vendor)}
+                          className="mt-2 inline-flex items-center gap-1 px-2 py-1 bg-blue-50 text-blue-700 rounded text-xs font-medium"
+                        >
+                          <Package size={12} />
+                          제품 {getProductCount(vendor.code)}개
+                        </button>
                       </div>
                       <div className="flex items-center gap-1">
                         <button
                           onClick={() => openEditModal(vendor)}
-                          className="p-2 text-gray-400 hover:text-green-600 hover:bg-green-50 rounded-lg"
+                          className="p-2 text-gray-500 hover:text-green-600 hover:bg-green-50 rounded-lg"
                         >
                           <Pencil size={18} />
                         </button>
                         <button
                           onClick={() => setDeleteTarget(vendor)}
-                          className="p-2 text-gray-400 hover:text-red-600 hover:bg-red-50 rounded-lg"
+                          className="p-2 text-gray-500 hover:text-red-600 hover:bg-red-50 rounded-lg"
                         >
                           <Trash2 size={18} />
                         </button>
@@ -318,11 +357,11 @@ export default function VendorsPage() {
           size="sm"
         >
           <div className="space-y-4">
-            <p className="text-gray-600">
+            <p className="text-gray-700">
               <span className="font-medium text-gray-900">{deleteTarget?.name}</span>
               {' '}구매처를 삭제하시겠습니까?
             </p>
-            <p className="text-sm text-gray-500">
+            <p className="text-sm text-gray-600">
               삭제된 구매처는 비활성 상태로 변경됩니다.
             </p>
             <div className="flex justify-end gap-3 pt-4">
@@ -331,6 +370,55 @@ export default function VendorsPage() {
               </Button>
               <Button variant="danger" onClick={handleDelete}>
                 삭제
+              </Button>
+            </div>
+          </div>
+        </Modal>
+
+        {/* Products List Modal */}
+        <Modal
+          isOpen={!!selectedVendorProducts}
+          onClose={() => setSelectedVendorProducts(null)}
+          title={`${selectedVendorProducts?.vendor.name} 제품 목록`}
+          size="lg"
+        >
+          <div className="space-y-4">
+            {selectedVendorProducts?.products.length === 0 ? (
+              <p className="text-center text-gray-600 py-8">등록된 제품이 없습니다.</p>
+            ) : (
+              <div className="max-h-96 overflow-y-auto">
+                <table className="w-full text-sm">
+                  <thead className="bg-gray-50 sticky top-0">
+                    <tr>
+                      <th className="px-3 py-2 text-left font-medium text-gray-700">코드</th>
+                      <th className="px-3 py-2 text-left font-medium text-gray-700">제품명</th>
+                      <th className="px-3 py-2 text-left font-medium text-gray-700">분류</th>
+                      <th className="px-3 py-2 text-right font-medium text-gray-700">매입가</th>
+                    </tr>
+                  </thead>
+                  <tbody className="divide-y">
+                    {selectedVendorProducts?.products.map((product) => (
+                      <tr key={product.code} className="hover:bg-gray-50">
+                        <td className="px-3 py-2 font-mono text-gray-800">{product.code}</td>
+                        <td className="px-3 py-2">
+                          <div className="font-medium text-gray-900">{product.name_ko}</div>
+                          <div className="text-xs text-gray-600">{product.name_th}</div>
+                        </td>
+                        <td className="px-3 py-2 text-gray-700">
+                          {product.priceType === 'fresh' ? '신선' : '공산품'}
+                        </td>
+                        <td className="px-3 py-2 text-right text-gray-800">
+                          {product.pur ? `฿${product.pur}` : '-'}
+                        </td>
+                      </tr>
+                    ))}
+                  </tbody>
+                </table>
+              </div>
+            )}
+            <div className="flex justify-end pt-4 border-t">
+              <Button variant="secondary" onClick={() => setSelectedVendorProducts(null)}>
+                닫기
               </Button>
             </div>
           </div>

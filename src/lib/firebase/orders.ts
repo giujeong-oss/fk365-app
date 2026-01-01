@@ -225,3 +225,23 @@ export async function getCutoffSummary(date: Date): Promise<{
 
   return summary;
 }
+
+// cutoff별 주문 건수 조회 (대시보드용)
+export async function getOrderCountByCutoff(date: Date): Promise<{
+  cut1: number;
+  cut2: number;
+  cut3: number;
+  total: number;
+}> {
+  const orders = await getOrdersByDate(date);
+
+  const counts = { cut1: 0, cut2: 0, cut3: 0, total: orders.length };
+
+  orders.forEach((order) => {
+    if (order.cutoff === 1) counts.cut1++;
+    else if (order.cutoff === 2) counts.cut2++;
+    else if (order.cutoff === 3) counts.cut3++;
+  });
+
+  return counts;
+}
