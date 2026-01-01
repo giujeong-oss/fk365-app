@@ -13,8 +13,11 @@ import {
   updateOrderItems,
   deleteOrder,
   getCustomerProductAdj,
+  getFreshMarginMap,
+  getIndustrialMarginMap,
 } from '@/lib/firebase';
-import type { Customer, Product, Order, OrderItem, Cutoff } from '@/types';
+import { calculateSellPrice as calcPrice } from '@/lib/utils';
+import type { Customer, Product, Order, OrderItem, Cutoff, Grade, IndustrialMargin } from '@/types';
 import Link from 'next/link';
 
 const CUTOFF_OPTIONS = [
@@ -47,6 +50,8 @@ export default function OrderEntryPage() {
   const [cutoff, setCutoff] = useState<string>('1');
   const [loading, setLoading] = useState(true);
   const [saving, setSaving] = useState(false);
+  const [freshMarginMap, setFreshMarginMap] = useState<Map<Grade, number>>(new Map());
+  const [industrialMarginMap, setIndustrialMarginMap] = useState<Map<Grade, IndustrialMargin>>(new Map());
 
   useEffect(() => {
     loadData();
@@ -55,9 +60,11 @@ export default function OrderEntryPage() {
   const loadData = async () => {
     setLoading(true);
     try {
-      const [customerData, allProducts] = await Promise.all([
+      const [customerData, allProducts, freshMap, industrialMap] = await Promise.all([
         getCustomerByCode(customerCode),
         getProducts(true),
+        getFreshMarginMap(),
+        getIndustrialMarginMap(),
       ]);
 
       if (!customerData) {
@@ -66,6 +73,8 @@ export default function OrderEntryPage() {
       }
 
       setCustomer(customerData);
+      setFreshMarginMap(freshMap);
+      setIndustrialMarginMap(industrialMap);
 
       // 고객이 주문 가능한 제품만 필터
       const customerProducts = allProducts.filter((p) =>
@@ -94,12 +103,18 @@ export default function OrderEntryPage() {
             }
           });
 
+          // 제품에 저장된 등급별 판매가가 있으면 사용
+          const preCalcPrice = (product as Product & { prices?: Record<string, number> }).prices?.[customerData.grade];
+          const sellPrice = preCalcPrice
+            ? preCalcPrice + baseAdj + orderAdj
+            : calculateSellPriceWithMargin(product, customerData.grade, freshMap, industrialMap, baseAdj + orderAdj);
+
           return {
             product,
             qty,
             baseAdj,
             orderAdj,
-            sellPrice: calculateSellPrice(product, baseAdj + orderAdj),
+            sellPrice,
           };
         })
       );
@@ -112,16 +127,29 @@ export default function OrderEntryPage() {
     }
   };
 
-  // 판매가 계산 (간단한 버전 - 실제로는 마진 설정에 따라 계산)
-  const calculateSellPrice = (product: Product, totalAdj: number): number => {
-    if (product.priceType === 'fresh') {
-      // 신선제품: 매입가 + 마진(바트) + adj
-      // 여기서는 임시로 매입가 없이 0으로 처리
-      return totalAdj;
-    } else {
-      // 공산품: pur 기반 계산 + adj
-      return (product.pur || 0) + totalAdj;
+  // 마진을 적용한 판매가 계산
+  const calculateSellPriceWithMargin = (
+    product: Product,
+    grade: Grade,
+    freshMap: Map<Grade, number>,
+    industrialMap: Map<Grade, IndustrialMargin>,
+    totalAdj: number
+  ): number => {
+    const result = calcPrice(product, grade, freshMap, industrialMap, product.pur || 0, totalAdj);
+    return result.sellPrice;
+  };
+
+  // 현재 상태에서 판매가 계산
+  const calculateCurrentSellPrice = (product: Product, totalAdj: number): number => {
+    if (!customer) return 0;
+
+    // 제품에 저장된 등급별 판매가가 있으면 사용
+    const preCalcPrice = (product as Product & { prices?: Record<string, number> }).prices?.[customer.grade];
+    if (preCalcPrice) {
+      return preCalcPrice + totalAdj;
     }
+
+    return calculateSellPriceWithMargin(product, customer.grade, freshMarginMap, industrialMarginMap, totalAdj);
   };
 
   const handleQtyChange = (productCode: string, newQty: number) => {
@@ -141,7 +169,7 @@ export default function OrderEntryPage() {
           ? {
               ...state,
               orderAdj: newAdj,
-              sellPrice: calculateSellPrice(
+              sellPrice: calculateCurrentSellPrice(
                 state.product,
                 state.baseAdj + newAdj
               ),
