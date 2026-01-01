@@ -147,8 +147,8 @@ export default function OrdersPage() {
                       <div className="flex items-center justify-between">
                         <div className="flex items-center gap-3">
                           <Badge variant="success" size="sm">{customer.grade}</Badge>
-                          <span className="font-medium">{customer.code}</span>
-                          <span className="text-gray-600">{customer.fullName}</span>
+                          <span className="font-semibold text-gray-800">{customer.code}</span>
+                          <span className="text-gray-700 font-medium">{customer.fullName}</span>
                           <Badge variant="info" size="sm">{customer.region === 'pattaya' ? '파타야' : '방콕'}</Badge>
                         </div>
                         <div className="flex items-center gap-4">
@@ -188,8 +188,8 @@ export default function OrdersPage() {
                       <div className="flex items-center justify-between">
                         <div className="flex items-center gap-3">
                           <Badge variant="default" size="sm">{customer.grade}</Badge>
-                          <span className="font-medium">{customer.code}</span>
-                          <span className="text-gray-600">{customer.fullName}</span>
+                          <span className="font-semibold text-gray-800">{customer.code}</span>
+                          <span className="text-gray-700 font-medium">{customer.fullName}</span>
                           <Badge variant="info" size="sm">{customer.region === 'pattaya' ? '파타야' : '방콕'}</Badge>
                         </div>
                         <div className="flex items-center gap-2">

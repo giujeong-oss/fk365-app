@@ -218,7 +218,7 @@ export default function MarginsPage() {
                           <td className="px-4 py-3">
                             <Badge variant="success" size="sm">{grade}</Badge>
                           </td>
-                          <td className="px-4 py-3 text-sm text-gray-600">
+                          <td className="px-4 py-3 text-sm text-gray-700 font-medium">
                             {GRADE_DESCRIPTIONS[grade]}
                           </td>
                           <td className="px-4 py-3">
@@ -284,7 +284,7 @@ export default function MarginsPage() {
                         <div className="flex items-center justify-between mb-4">
                           <div className="flex items-center gap-3">
                             <Badge variant="info">{grade}</Badge>
-                            <span className="text-sm text-gray-600">{GRADE_DESCRIPTIONS[grade]}</span>
+                            <span className="text-sm text-gray-700 font-medium">{GRADE_DESCRIPTIONS[grade]}</span>
                             {isIndustrialModified(grade) && (
                               <Badge variant="warning" size="sm">수정됨</Badge>
                             )}

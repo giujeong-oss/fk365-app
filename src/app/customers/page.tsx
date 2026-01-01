@@ -218,10 +218,10 @@ export default function CustomersPage() {
                   <tbody className="divide-y divide-gray-200">
                     {sortedCustomers.map((customer) => (
                       <tr key={customer.id} className="hover:bg-gray-50">
-                        <td className="px-4 py-3 whitespace-nowrap font-mono text-sm text-gray-900">
+                        <td className="px-4 py-3 whitespace-nowrap font-mono text-sm text-gray-800 font-semibold">
                           {customer.code}
                         </td>
-                        <td className="px-4 py-3 whitespace-nowrap text-sm text-gray-900">
+                        <td className="px-4 py-3 whitespace-nowrap text-sm text-gray-900 font-semibold">
                           {customer.fullName}
                         </td>
                         <td className="px-4 py-3 whitespace-nowrap">
@@ -229,13 +229,13 @@ export default function CustomersPage() {
                             {customer.grade}
                           </Badge>
                         </td>
-                        <td className="px-4 py-3 whitespace-nowrap text-sm text-gray-600">
+                        <td className="px-4 py-3 whitespace-nowrap text-sm text-gray-700 font-medium">
                           {REGION_LABELS[customer.region]}
                         </td>
-                        <td className="px-4 py-3 whitespace-nowrap text-sm text-gray-600">
+                        <td className="px-4 py-3 whitespace-nowrap text-sm text-gray-700 font-medium">
                           {customer.deliveryTime || '-'}
                         </td>
-                        <td className="px-4 py-3 whitespace-nowrap text-sm text-gray-600">
+                        <td className="px-4 py-3 whitespace-nowrap text-sm text-gray-700 font-medium">
                           {customer.products?.length || 0}개
                         </td>
                         <td className="px-4 py-3 whitespace-nowrap">
@@ -317,8 +317,8 @@ export default function CustomersPage() {
                         </button>
                       </div>
                     </div>
-                    <p className="font-medium text-gray-900">{customer.fullName}</p>
-                    <div className="flex items-center gap-4 mt-2 text-sm text-gray-500">
+                    <p className="font-semibold text-gray-900">{customer.fullName}</p>
+                    <div className="flex items-center gap-4 mt-2 text-sm text-gray-700 font-medium">
                       <span>제품: {customer.products?.length || 0}개</span>
                       {customer.deliveryTime && <span>배송: {customer.deliveryTime}</span>}
                     </div>

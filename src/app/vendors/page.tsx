@@ -195,10 +195,10 @@ export default function VendorsPage() {
                   <tbody className="divide-y divide-gray-200">
                     {filteredVendors.map((vendor) => (
                       <tr key={vendor.id} className="hover:bg-gray-50">
-                        <td className="px-6 py-4 whitespace-nowrap font-mono text-sm text-gray-900">
+                        <td className="px-6 py-4 whitespace-nowrap font-mono text-sm text-gray-800 font-semibold">
                           {vendor.code}
                         </td>
-                        <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-900">
+                        <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-900 font-semibold">
                           {vendor.name}
                         </td>
                         <td className="px-6 py-4 whitespace-nowrap">
@@ -250,7 +250,7 @@ export default function VendorsPage() {
                             {vendor.isActive ? '활성' : '비활성'}
                           </Badge>
                         </div>
-                        <p className="text-gray-600">{vendor.name}</p>
+                        <p className="text-gray-800 font-medium">{vendor.name}</p>
                       </div>
                       <div className="flex items-center gap-1">
                         <button

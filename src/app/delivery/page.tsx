@@ -162,8 +162,8 @@ export default function DeliveryPage() {
         <thead className="bg-gray-50">
           <tr>
             <th className="px-2 py-1 text-left">제품</th>
-            <th className="px-2 py-1 text-left text-gray-400">태국어</th>
-            <th className="px-2 py-1 text-left text-gray-400">미얀마어</th>
+            <th className="px-2 py-1 text-left text-gray-600">태국어</th>
+            <th className="px-2 py-1 text-left text-gray-600">미얀마어</th>
             <th className="px-2 py-1 text-center">수량</th>
             {showPrice && (
               <>
@@ -176,9 +176,9 @@ export default function DeliveryPage() {
         <tbody className="divide-y">
           {note.items.map((item) => (
             <tr key={item.product.code}>
-              <td className="px-2 py-2 font-medium">{item.product.name_ko}</td>
-              <td className="px-2 py-2 text-gray-500">{item.product.name_th}</td>
-              <td className="px-2 py-2 text-gray-500">{item.product.name_mm}</td>
+              <td className="px-2 py-2 font-semibold text-gray-900">{item.product.name_ko}</td>
+              <td className="px-2 py-2 text-gray-700">{item.product.name_th}</td>
+              <td className="px-2 py-2 text-gray-700">{item.product.name_mm}</td>
               <td className="px-2 py-2 text-center font-bold">
                 {item.qty} {item.product.unit}
               </td>
@@ -285,17 +285,17 @@ export default function DeliveryPage() {
         {/* 요약 */}
         <div className="grid grid-cols-3 gap-4 mb-6 print:hidden">
           <div className="bg-gray-50 p-4 rounded-lg">
-            <div className="text-sm text-gray-600 mb-1">총 고객</div>
+            <div className="text-sm text-gray-700 font-medium mb-1">총 고객</div>
             <div className="text-xl font-bold">{filteredNotes.length}곳</div>
           </div>
           <div className="bg-gray-50 p-4 rounded-lg">
-            <div className="text-sm text-gray-600 mb-1">총 품목</div>
+            <div className="text-sm text-gray-700 font-medium mb-1">총 품목</div>
             <div className="text-xl font-bold">
               {filteredNotes.reduce((sum, n) => sum + n.items.length, 0)}개
             </div>
           </div>
           <div className="bg-gray-50 p-4 rounded-lg">
-            <div className="text-sm text-gray-600 mb-1">총 금액</div>
+            <div className="text-sm text-gray-700 font-medium mb-1">총 금액</div>
             <div className="text-xl font-bold text-blue-600">
               {formatCurrency(filteredNotes.reduce((sum, n) => sum + n.totalAmount, 0))}
             </div>

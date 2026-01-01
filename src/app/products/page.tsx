@@ -213,16 +213,16 @@ export default function ProductsPage() {
                     <tbody className="divide-y divide-gray-200">
                       {filteredProducts.map((product) => (
                         <tr key={product.id} className="hover:bg-gray-50">
-                          <td className="px-4 py-3 whitespace-nowrap font-mono text-sm text-gray-900">
+                          <td className="px-4 py-3 whitespace-nowrap font-mono text-sm text-gray-800 font-semibold">
                             {product.code}
                           </td>
-                          <td className="px-4 py-3 whitespace-nowrap text-sm text-gray-900">
+                          <td className="px-4 py-3 whitespace-nowrap text-sm text-gray-900 font-semibold">
                             {product.name_ko}
                           </td>
-                          <td className="px-4 py-3 whitespace-nowrap text-sm text-gray-600">
+                          <td className="px-4 py-3 whitespace-nowrap text-sm text-gray-700">
                             {product.name_th}
                           </td>
-                          <td className="px-4 py-3 whitespace-nowrap text-sm text-gray-600">
+                          <td className="px-4 py-3 whitespace-nowrap text-sm text-gray-700">
                             {product.name_mm}
                           </td>
                           <td className="px-4 py-3 whitespace-nowrap">
@@ -233,10 +233,10 @@ export default function ProductsPage() {
                               {product.priceType === 'fresh' ? '신선' : '공산품'}
                             </Badge>
                           </td>
-                          <td className="px-4 py-3 whitespace-nowrap text-sm text-gray-600">
+                          <td className="px-4 py-3 whitespace-nowrap text-sm text-gray-700 font-medium">
                             {product.unit}
                           </td>
-                          <td className="px-4 py-3 whitespace-nowrap text-sm text-gray-600">
+                          <td className="px-4 py-3 whitespace-nowrap text-sm text-gray-700">
                             {getVendorName(product.vendorCode)}
                           </td>
                           <td className="px-4 py-3 whitespace-nowrap">
@@ -304,11 +304,11 @@ export default function ProductsPage() {
                       </div>
                     </div>
                     <div className="space-y-1">
-                      <p className="font-medium text-gray-900">{product.name_ko}</p>
-                      <p className="text-sm text-gray-600">{product.name_th}</p>
-                      <p className="text-sm text-gray-500">{product.name_mm}</p>
+                      <p className="font-semibold text-gray-900">{product.name_ko}</p>
+                      <p className="text-sm text-gray-700">{product.name_th}</p>
+                      <p className="text-sm text-gray-600">{product.name_mm}</p>
                     </div>
-                    <div className="flex items-center gap-4 mt-3 pt-3 border-t border-gray-100 text-sm text-gray-500">
+                    <div className="flex items-center gap-4 mt-3 pt-3 border-t border-gray-100 text-sm text-gray-700 font-medium">
                       <span>단위: {product.unit}</span>
                       <span>구매처: {getVendorName(product.vendorCode)}</span>
                     </div>
