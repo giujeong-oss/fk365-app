@@ -63,3 +63,27 @@ export async function getAdminUsers(): Promise<User[]> {
   const users = await getUsers();
   return users.filter((u) => u.role === 'admin');
 }
+
+// 사용자 활성화/비활성화
+export async function updateUserStatus(
+  userId: string,
+  isActive: boolean
+): Promise<void> {
+  const docRef = doc(getDb(), FK365_COLLECTIONS.USERS, userId);
+  await updateDoc(docRef, {
+    isActive,
+    updatedAt: serverTimestamp(),
+  });
+}
+
+// 사용자 정보 업데이트
+export async function updateUser(
+  userId: string,
+  data: Partial<Pick<User, 'name' | 'role' | 'isActive' | 'preferredLanguage'>>
+): Promise<void> {
+  const docRef = doc(getDb(), FK365_COLLECTIONS.USERS, userId);
+  await updateDoc(docRef, {
+    ...data,
+    updatedAt: serverTimestamp(),
+  });
+}

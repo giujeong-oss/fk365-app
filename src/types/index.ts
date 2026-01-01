@@ -202,7 +202,9 @@ export interface User {
   email: string;
   name?: string;
   role: UserRole;
+  isActive: boolean;
   preferredLanguage: UILanguage;
+  lastLoginAt?: Date;
   createdAt: Date;
   updatedAt: Date;
 }

@@ -58,7 +58,7 @@ export default function MainLayout({
       </main>
 
       {/* Mobile: Bottom Tabs */}
-      <BottomTabs />
+      <BottomTabs isAdmin={isAdmin} />
     </div>
   );
 }

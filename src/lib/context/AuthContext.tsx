@@ -80,19 +80,22 @@ export function AuthProvider({ children }: { children: ReactNode }) {
         email: firebaseUser.email,
         name: userData.name || firebaseUser.displayName || '',
         role,
+        isActive: userData.isActive !== false,
         preferredLanguage: userData.preferredLanguage as UILanguage || 'ko',
+        lastLoginAt: userData.lastLoginAt?.toDate(),
         createdAt: userData.createdAt?.toDate() || new Date(),
         updatedAt: userData.updatedAt?.toDate() || new Date(),
       };
     }
 
     // 새 사용자 생성 (관리자 이메일이면 admin, 아니면 user)
-    const isAdmin = ADMIN_EMAILS.includes(firebaseUser.email);
+    const isAdminEmail = ADMIN_EMAILS.includes(firebaseUser.email);
     const newUser: Omit<User, 'id'> = {
       uid: firebaseUser.uid,
       email: firebaseUser.email,
       name: firebaseUser.displayName || '',
-      role: isAdmin ? 'admin' : 'user',
+      role: isAdminEmail ? 'admin' : 'user',
+      isActive: true,
       preferredLanguage: 'ko',
       createdAt: new Date(),
       updatedAt: new Date(),

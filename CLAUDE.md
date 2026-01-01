@@ -7,10 +7,19 @@
 ## 프로젝트 개요
 - **이름**: FK365 (Fresh Kitchen 365)
 - **목적**: 채소/과일/식자재/소모품 주문-발주-재고-배송 통합 관리 웹앱
-- **도메인**: freshkitchen365.com
 - **Firebase**: fk365-e8f90 (프로젝트 번호: 242061459214)
-- **Vercel**: https://fk365-app.vercel.app
 - **GitHub**: https://github.com/giujeong-oss/fk365-app
+
+### 도메인 구성
+| 도메인 | 용도 | Vercel 프로젝트 |
+|--------|------|-----------------|
+| freshkitchen365.com | 회사 소개 랜딩 페이지 | fk365-landing |
+| app.freshkitchen365.com | 웹앱 (주문/발주/재고 관리) | fk365-app |
+
+### 랜딩 페이지 (fk365-landing)
+- **경로**: `C:\Users\Giuje\fk365-landing`
+- **URL**: https://freshkitchen365.com
+- **기능**: 회사 소개, 서비스 안내, 연락처, 견적 문의 폼
 
 ## 기술 스택
 - **Frontend**: Next.js 14, TypeScript, Tailwind CSS
@@ -149,3 +158,13 @@ src/
   - 공산품: 매입가(VAT포함), 최소가, 중간가 입력
   - 신선제품: 3일 최고가 표시, 오늘 매입가 입력, 최근 3일 가격 히스토리
 - [x] 마진 페이지 MainLayout 추가 및 홈 버튼 추가
+- [x] 모바일 관리자 "더보기" 메뉴 추가 (BottomTabs)
+  - 관리자 전용 메뉴(발주서, 재고, 가격, 마진, 구매처, 설정) 접근 가능
+- [x] 설정 페이지 사용자 권한 관리 고도화
+  - 역할 변경 (admin/user)
+  - 계정 활성화/비활성화
+  - 사용자 통계 표시
+- [x] Firebase API 키 하드코딩 제거 (보안 개선)
+  - 환경변수 필수 사용으로 변경
+- [x] User 타입에 isActive, lastLoginAt 필드 추가
+- [x] 회사 소개 웹사이트 생성 (freshkitchen365.com)

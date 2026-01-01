@@ -5,18 +5,32 @@ import { initializeApp, getApps, getApp, FirebaseApp } from 'firebase/app';
 import { getAuth, GoogleAuthProvider, Auth } from 'firebase/auth';
 import { getFirestore, Firestore } from 'firebase/firestore';
 
+// Firebase 환경 변수 검증
 const firebaseConfig = {
-  apiKey: process.env.NEXT_PUBLIC_FIREBASE_API_KEY || 'AIzaSyBWYkijZRFzqEd0vJlT8Nq5YgvC2PlNSvU',
-  authDomain: process.env.NEXT_PUBLIC_FIREBASE_AUTH_DOMAIN || 'fk365-e8f90.firebaseapp.com',
-  projectId: process.env.NEXT_PUBLIC_FIREBASE_PROJECT_ID || 'fk365-e8f90',
-  storageBucket: process.env.NEXT_PUBLIC_FIREBASE_STORAGE_BUCKET || 'fk365-e8f90.firebasestorage.app',
-  messagingSenderId: process.env.NEXT_PUBLIC_FIREBASE_MESSAGING_SENDER_ID || '242061459214',
-  appId: process.env.NEXT_PUBLIC_FIREBASE_APP_ID || '1:242061459214:web:721cd1e14ec49cdb75a15f',
+  apiKey: process.env.NEXT_PUBLIC_FIREBASE_API_KEY,
+  authDomain: process.env.NEXT_PUBLIC_FIREBASE_AUTH_DOMAIN,
+  projectId: process.env.NEXT_PUBLIC_FIREBASE_PROJECT_ID,
+  storageBucket: process.env.NEXT_PUBLIC_FIREBASE_STORAGE_BUCKET,
+  messagingSenderId: process.env.NEXT_PUBLIC_FIREBASE_MESSAGING_SENDER_ID,
+  appId: process.env.NEXT_PUBLIC_FIREBASE_APP_ID,
 };
 
-// Check if we're in browser and have config
+// Check if we're in browser and have complete config
 const isBrowser = typeof window !== 'undefined';
-const hasConfig = !!firebaseConfig.apiKey;
+const hasConfig = !!(
+  firebaseConfig.apiKey &&
+  firebaseConfig.authDomain &&
+  firebaseConfig.projectId
+);
+
+// 개발 환경에서 환경 변수 누락 경고
+if (isBrowser && !hasConfig && process.env.NODE_ENV === 'development') {
+  console.warn(
+    'Firebase 환경 변수가 설정되지 않았습니다.',
+    '다음 환경 변수를 .env.local에 설정하세요:',
+    'NEXT_PUBLIC_FIREBASE_API_KEY, NEXT_PUBLIC_FIREBASE_AUTH_DOMAIN, NEXT_PUBLIC_FIREBASE_PROJECT_ID'
+  );
+}
 
 // Initialize Firebase (singleton pattern) - only in browser with valid config
 let app: FirebaseApp | null = null;
@@ -30,9 +44,9 @@ if (isBrowser && hasConfig) {
   db = getFirestore(app);
   googleProvider = new GoogleAuthProvider();
 
-  // 회사 도메인만 허용
+  // 회사 도메인 로그인 힌트 (Google Workspace 도메인)
   googleProvider.setCustomParameters({
-    hd: 'meet365.com', // 또는 freshkitchen365.com
+    hd: 'freshkitchen365.com',
   });
 }
 
