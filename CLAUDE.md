@@ -100,18 +100,30 @@ src/
 - Meet365 프로젝트 지침: meet365_프로젝트_지침_v5.md
 
 ## 현재 진행 상황
-- [x] 프로젝트 초기 설정
-- [x] 기본 레이아웃 (PC/모바일)
-- [x] 다국어 설정 (ko/th/en)
-- [x] Firebase 인증 (Google OAuth, 권한 관리)
-- [x] 구매처 관리 CRUD
-- [x] 제품 관리 CRUD (구매처 연결, 신선/공산품 구분)
-- [x] 고객 관리 CRUD (제품 매핑, adj 설정)
-- [x] 주문 입력 (고객별 제품 주문, cutoff별 구분)
-- [x] 발주서 생성 (buy1/buy2/buy3, 구매처별)
-- [x] 배송장 출력 (지역별, 인보이스 모드)
-- [ ] 판매가 계산 로직 (마진 적용)
-- [ ] 가격 관리 페이지
+
+### 완료된 기능
+- [x] 프로젝트 초기 설정 (Next.js 16, TypeScript, Tailwind)
+- [x] 기본 레이아웃 (PC 사이드바 / 모바일 헤더+하단탭)
+- [x] 다국어 설정 (ko/th/en, localStorage 저장)
+- [x] Firebase 인증 (Google OAuth, 도메인 제한, 관리자 권한)
+- [x] 구매처 관리 CRUD (/vendors)
+- [x] 제품 관리 CRUD (/products, /products/new, /products/[id]/edit)
+- [x] 고객 관리 CRUD (/customers, /customers/new, /customers/[id]/edit)
+- [x] 고객별 제품 매핑 (/customers/[id]/products)
+- [x] 재고 관리 (/stock)
+- [x] 마진 설정 관리 (/margins)
+- [x] 주문 목록 (/orders)
+- [x] 주문 입력 (/orders/entry/[customerCode]) - 등급별 판매가 계산
+- [x] 발주서 생성 (/purchase-orders) - buy1/buy2/buy3
+- [x] 배송장 출력 (/delivery)
+- [x] 실제 데이터 시드 (scripts/seed-data.mjs)
+
+### 진행 예정
+- [ ] 가격 관리 페이지 (/prices) - 매입가 일괄 수정
+- [ ] 설정 페이지 (/settings)
+- [ ] 주문 확정 및 마감 처리
+- [ ] 발주서 인쇄 기능
+- [ ] 대시보드 실시간 데이터 연동
 
 ## 주의사항
 - Firebase 컬렉션은 반드시 fk365_ 접두사 사용
