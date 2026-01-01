@@ -1,0 +1,143 @@
+{
+  "common": {
+    "appName": "FK365",
+    "appFullName": "Fresh Kitchen 365",
+    "loading": "로딩 중...",
+    "save": "저장",
+    "cancel": "취소",
+    "delete": "삭제",
+    "edit": "수정",
+    "add": "추가",
+    "search": "검색",
+    "filter": "필터",
+    "all": "전체",
+    "yes": "예",
+    "no": "아니오",
+    "confirm": "확인",
+    "back": "뒤로",
+    "next": "다음",
+    "print": "출력",
+    "export": "내보내기",
+    "logout": "로그아웃"
+  },
+  "nav": {
+    "dashboard": "대시보드",
+    "orders": "주문",
+    "purchaseOrders": "발주서",
+    "stock": "재고",
+    "delivery": "배송장",
+    "products": "제품",
+    "customers": "고객",
+    "vendors": "구매처",
+    "margins": "마진",
+    "prices": "가격",
+    "settings": "설정"
+  },
+  "auth": {
+    "login": "로그인",
+    "loginWithGoogle": "Google로 로그인",
+    "loginDescription": "회사 이메일로 로그인하세요",
+    "unauthorized": "접근 권한이 없습니다",
+    "invalidDomain": "허용된 도메인이 아닙니다"
+  },
+  "dashboard": {
+    "todayOrders": "오늘 주문 현황",
+    "normal": "정상",
+    "additional": "추가",
+    "urgent": "긴급",
+    "quickMenu": "빠른 메뉴",
+    "timeUntilCutoff": "마감까지"
+  },
+  "orders": {
+    "title": "주문 입력",
+    "selectCustomer": "고객 선택",
+    "cutoff": "마감 구분",
+    "cutoff1": "정상 (11시 전)",
+    "cutoff2": "추가 (장보는 중)",
+    "cutoff3": "긴급 (장 본 후)",
+    "qty": "수량",
+    "unit": "단위",
+    "total": "합계",
+    "items": "품목",
+    "saved": "저장 완료",
+    "editLocked": "다른 사용자가 편집 중",
+    "modifyDeadline": "11시까지만 수정 가능"
+  },
+  "purchaseOrders": {
+    "title": "발주서",
+    "firstBuy": "1차 장보기",
+    "additionalBuy": "끌렁떠이 추가",
+    "urgentBuy": "긴급 (라라무브)",
+    "stock": "재고",
+    "buyQty": "발주량",
+    "buyPrice": "매입가",
+    "savePrices": "매입가 저장"
+  },
+  "delivery": {
+    "title": "배송장",
+    "pattaya": "파타야",
+    "bangkok": "방콕",
+    "printSelected": "선택 출력",
+    "printAll": "전체 출력",
+    "preview": "미리보기",
+    "totalItems": "총 {count}개 품목"
+  },
+  "products": {
+    "title": "제품 관리",
+    "newProduct": "신규 제품",
+    "code": "코드",
+    "nameKo": "한국어",
+    "nameTh": "태국어",
+    "nameMm": "미얀마어",
+    "unit": "단위",
+    "color": "색상",
+    "category": "카테고리",
+    "vendor": "구매처",
+    "priceType": "가격 유형",
+    "fresh": "신선제품",
+    "industrial": "공산품"
+  },
+  "customers": {
+    "title": "고객 관리",
+    "newCustomer": "신규 고객",
+    "code": "코드",
+    "name": "상호명",
+    "grade": "등급",
+    "region": "지역",
+    "deliveryTime": "배송 시간",
+    "productMapping": "제품 매핑",
+    "adj": "조정가"
+  },
+  "margins": {
+    "title": "마진 관리",
+    "freshMargin": "신선제품 마진",
+    "industrialMargin": "공산품 마진",
+    "currentMargin": "현재 마진",
+    "newMargin": "변경 마진",
+    "history": "변경 이력",
+    "changedBy": "변경자",
+    "changedAt": "변경일",
+    "reason": "사유",
+    "baht": "바트"
+  },
+  "region": {
+    "pattaya": "파타야",
+    "bangkok": "방콕"
+  },
+  "grade": {
+    "S": "S등급",
+    "A": "A등급",
+    "B": "B등급",
+    "C": "C등급",
+    "D": "D등급",
+    "E": "E등급"
+  },
+  "errors": {
+    "required": "필수 항목입니다",
+    "invalidFormat": "형식이 올바르지 않습니다",
+    "saveFailed": "저장에 실패했습니다",
+    "loadFailed": "불러오기에 실패했습니다",
+    "networkError": "네트워크 오류가 발생했습니다",
+    "offline": "오프라인 상태입니다"
+  }
+}

@@ -1,0 +1,143 @@
+{
+  "common": {
+    "appName": "FK365",
+    "appFullName": "Fresh Kitchen 365",
+    "loading": "กำลังโหลด...",
+    "save": "บันทึก",
+    "cancel": "ยกเลิก",
+    "delete": "ลบ",
+    "edit": "แก้ไข",
+    "add": "เพิ่ม",
+    "search": "ค้นหา",
+    "filter": "กรอง",
+    "all": "ทั้งหมด",
+    "yes": "ใช่",
+    "no": "ไม่",
+    "confirm": "ยืนยัน",
+    "back": "กลับ",
+    "next": "ถัดไป",
+    "print": "พิมพ์",
+    "export": "ส่งออก",
+    "logout": "ออกจากระบบ"
+  },
+  "nav": {
+    "dashboard": "แดชบอร์ด",
+    "orders": "ออเดอร์",
+    "purchaseOrders": "ใบสั่งซื้อ",
+    "stock": "สต็อก",
+    "delivery": "ใบส่งของ",
+    "products": "สินค้า",
+    "customers": "ลูกค้า",
+    "vendors": "ผู้ขาย",
+    "margins": "มาร์จิ้น",
+    "prices": "ราคา",
+    "settings": "ตั้งค่า"
+  },
+  "auth": {
+    "login": "เข้าสู่ระบบ",
+    "loginWithGoogle": "เข้าสู่ระบบด้วย Google",
+    "loginDescription": "เข้าสู่ระบบด้วยอีเมลบริษัท",
+    "unauthorized": "ไม่มีสิทธิ์เข้าถึง",
+    "invalidDomain": "โดเมนไม่ได้รับอนุญาต"
+  },
+  "dashboard": {
+    "todayOrders": "ออเดอร์วันนี้",
+    "normal": "ปกติ",
+    "additional": "เพิ่มเติม",
+    "urgent": "เร่งด่วน",
+    "quickMenu": "เมนูด่วน",
+    "timeUntilCutoff": "เวลาที่เหลือ"
+  },
+  "orders": {
+    "title": "สร้างออเดอร์",
+    "selectCustomer": "เลือกลูกค้า",
+    "cutoff": "รอบสั่ง",
+    "cutoff1": "ปกติ (ก่อน 11 โมง)",
+    "cutoff2": "เพิ่มเติม (ระหว่างซื้อของ)",
+    "cutoff3": "เร่งด่วน (หลังซื้อของ)",
+    "qty": "จำนวน",
+    "unit": "หน่วย",
+    "total": "รวม",
+    "items": "รายการ",
+    "saved": "บันทึกแล้ว",
+    "editLocked": "ผู้ใช้อื่นกำลังแก้ไข",
+    "modifyDeadline": "แก้ไขได้ถึง 11 โมงเท่านั้น"
+  },
+  "purchaseOrders": {
+    "title": "ใบสั่งซื้อ",
+    "firstBuy": "ซื้อรอบ 1",
+    "additionalBuy": "ซื้อเพิ่ม (คลองเตย)",
+    "urgentBuy": "เร่งด่วน (ลาลามูฟ)",
+    "stock": "สต็อก",
+    "buyQty": "จำนวนสั่ง",
+    "buyPrice": "ราคาซื้อ",
+    "savePrices": "บันทึกราคา"
+  },
+  "delivery": {
+    "title": "ใบส่งของ",
+    "pattaya": "พัทยา",
+    "bangkok": "กรุงเทพ",
+    "printSelected": "พิมพ์ที่เลือก",
+    "printAll": "พิมพ์ทั้งหมด",
+    "preview": "ดูตัวอย่าง",
+    "totalItems": "รวม {count} รายการ"
+  },
+  "products": {
+    "title": "จัดการสินค้า",
+    "newProduct": "สินค้าใหม่",
+    "code": "รหัส",
+    "nameKo": "ภาษาเกาหลี",
+    "nameTh": "ภาษาไทย",
+    "nameMm": "ภาษาพม่า",
+    "unit": "หน่วย",
+    "color": "สี",
+    "category": "หมวดหมู่",
+    "vendor": "ผู้ขาย",
+    "priceType": "ประเภทราคา",
+    "fresh": "สินค้าสด",
+    "industrial": "สินค้าอุตสาหกรรม"
+  },
+  "customers": {
+    "title": "จัดการลูกค้า",
+    "newCustomer": "ลูกค้าใหม่",
+    "code": "รหัส",
+    "name": "ชื่อร้าน",
+    "grade": "เกรด",
+    "region": "พื้นที่",
+    "deliveryTime": "เวลาส่ง",
+    "productMapping": "สินค้าที่สั่งได้",
+    "adj": "ปรับราคา"
+  },
+  "margins": {
+    "title": "จัดการมาร์จิ้น",
+    "freshMargin": "มาร์จิ้นสินค้าสด",
+    "industrialMargin": "มาร์จิ้นสินค้าอุตสาหกรรม",
+    "currentMargin": "มาร์จิ้นปัจจุบัน",
+    "newMargin": "มาร์จิ้นใหม่",
+    "history": "ประวัติการเปลี่ยน",
+    "changedBy": "ผู้เปลี่ยน",
+    "changedAt": "วันที่เปลี่ยน",
+    "reason": "เหตุผล",
+    "baht": "บาท"
+  },
+  "region": {
+    "pattaya": "พัทยา",
+    "bangkok": "กรุงเทพ"
+  },
+  "grade": {
+    "S": "เกรด S",
+    "A": "เกรด A",
+    "B": "เกรด B",
+    "C": "เกรด C",
+    "D": "เกรด D",
+    "E": "เกรด E"
+  },
+  "errors": {
+    "required": "จำเป็นต้องกรอก",
+    "invalidFormat": "รูปแบบไม่ถูกต้อง",
+    "saveFailed": "บันทึกไม่สำเร็จ",
+    "loadFailed": "โหลดไม่สำเร็จ",
+    "networkError": "เกิดข้อผิดพลาดเครือข่าย",
+    "offline": "ออฟไลน์"
+  }
+}

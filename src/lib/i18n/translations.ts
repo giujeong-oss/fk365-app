@@ -1,0 +1,435 @@
+// FK365 UI Translations
+import type { UILanguage } from '@/types';
+
+export type TranslationKey = keyof typeof translations.ko;
+
+export const translations = {
+  ko: {
+    // Navigation
+    'nav.dashboard': '대시보드',
+    'nav.orders': '주문',
+    'nav.purchaseOrders': '발주서',
+    'nav.stock': '재고',
+    'nav.delivery': '배송장',
+    'nav.products': '제품',
+    'nav.customers': '고객',
+    'nav.vendors': '구매처',
+    'nav.margins': '마진',
+    'nav.prices': '가격',
+    'nav.settings': '설정',
+
+    // Common
+    'common.save': '저장',
+    'common.cancel': '취소',
+    'common.delete': '삭제',
+    'common.edit': '수정',
+    'common.add': '추가',
+    'common.search': '검색',
+    'common.filter': '필터',
+    'common.all': '전체',
+    'common.loading': '로딩 중...',
+    'common.noData': '데이터가 없습니다',
+    'common.confirm': '확인',
+    'common.yes': '예',
+    'common.no': '아니오',
+    'common.back': '뒤로',
+    'common.next': '다음',
+    'common.prev': '이전',
+    'common.close': '닫기',
+    'common.print': '인쇄',
+    'common.export': '내보내기',
+    'common.import': '가져오기',
+    'common.reset': '초기화',
+    'common.required': '필수',
+
+    // Auth
+    'auth.login': '로그인',
+    'auth.logout': '로그아웃',
+    'auth.loginWithGoogle': 'Google로 로그인',
+    'auth.loginRequired': '로그인이 필요합니다',
+    'auth.adminOnly': '관리자만 접근 가능합니다',
+
+    // Products
+    'products.title': '제품 관리',
+    'products.new': '제품 등록',
+    'products.edit': '제품 수정',
+    'products.code': '제품 코드',
+    'products.name': '제품명',
+    'products.name_ko': '한국어명',
+    'products.name_th': '태국어명',
+    'products.name_mm': '미얀마어명',
+    'products.unit': '단위',
+    'products.category': '카테고리',
+    'products.priceType': '가격 유형',
+    'products.fresh': '신선제품',
+    'products.industrial': '공산품',
+    'products.vendor': '구매처',
+    'products.active': '활성',
+    'products.inactive': '비활성',
+
+    // Customers
+    'customers.title': '고객 관리',
+    'customers.new': '고객 등록',
+    'customers.edit': '고객 수정',
+    'customers.code': '고객 코드',
+    'customers.name': '고객명',
+    'customers.grade': '등급',
+    'customers.region': '지역',
+    'customers.pattaya': '파타야',
+    'customers.bangkok': '방콕',
+    'customers.products': '주문 가능 제품',
+    'customers.adj': '가격 조정',
+
+    // Vendors
+    'vendors.title': '구매처 관리',
+    'vendors.new': '구매처 등록',
+    'vendors.edit': '구매처 수정',
+    'vendors.code': '구매처 코드',
+    'vendors.name': '구매처명',
+
+    // Orders
+    'orders.title': '주문 입력',
+    'orders.date': '주문일',
+    'orders.customer': '고객',
+    'orders.cutoff': '마감',
+    'orders.cutoff1': '1차 (정상)',
+    'orders.cutoff2': '2차 (추가)',
+    'orders.cutoff3': '3차 (긴급)',
+    'orders.items': '주문 항목',
+    'orders.qty': '수량',
+    'orders.price': '단가',
+    'orders.amount': '금액',
+    'orders.total': '합계',
+    'orders.adj': '조정',
+    'orders.ordered': '주문 완료',
+    'orders.notOrdered': '미주문',
+
+    // Purchase Orders
+    'po.title': '발주서',
+    'po.buy1': '1차 발주',
+    'po.buy2': '2차 발주',
+    'po.buy3': '3차 발주',
+    'po.generate': '발주서 생성',
+    'po.buyQty': '발주량',
+    'po.stock': '재고',
+
+    // Stock
+    'stock.title': '재고 관리',
+    'stock.qty': '수량',
+    'stock.outOfStock': '품절',
+    'stock.low': '부족',
+    'stock.modified': '수정됨',
+    'stock.saveAll': '모두 저장',
+
+    // Delivery
+    'delivery.title': '배송장',
+    'delivery.invoice': '인보이스',
+    'delivery.qtyOnly': '수량만',
+    'delivery.withPrice': '가격포함',
+
+    // Margins
+    'margins.title': '마진 설정',
+    'margins.fresh': '신선제품 마진',
+    'margins.industrial': '공산품 마진',
+    'margins.history': '변경 히스토리',
+    'margins.marginBaht': '마진 (바트)',
+    'margins.multiplier': '배율',
+    'margins.formula': '계산식',
+
+    // Grades
+    'grade.S': 'S (최우수)',
+    'grade.A': 'A (우수)',
+    'grade.B': 'B (일반우수)',
+    'grade.C': 'C (일반)',
+    'grade.D': 'D (시장가)',
+    'grade.E': 'E (신규/소량)',
+  },
+  th: {
+    // Navigation
+    'nav.dashboard': 'แดชบอร์ด',
+    'nav.orders': 'คำสั่งซื้อ',
+    'nav.purchaseOrders': 'ใบสั่งซื้อ',
+    'nav.stock': 'สต็อก',
+    'nav.delivery': 'ใบส่งของ',
+    'nav.products': 'สินค้า',
+    'nav.customers': 'ลูกค้า',
+    'nav.vendors': 'ผู้ขาย',
+    'nav.margins': 'กำไร',
+    'nav.prices': 'ราคา',
+    'nav.settings': 'ตั้งค่า',
+
+    // Common
+    'common.save': 'บันทึก',
+    'common.cancel': 'ยกเลิก',
+    'common.delete': 'ลบ',
+    'common.edit': 'แก้ไข',
+    'common.add': 'เพิ่ม',
+    'common.search': 'ค้นหา',
+    'common.filter': 'กรอง',
+    'common.all': 'ทั้งหมด',
+    'common.loading': 'กำลังโหลด...',
+    'common.noData': 'ไม่มีข้อมูล',
+    'common.confirm': 'ยืนยัน',
+    'common.yes': 'ใช่',
+    'common.no': 'ไม่',
+    'common.back': 'กลับ',
+    'common.next': 'ถัดไป',
+    'common.prev': 'ก่อนหน้า',
+    'common.close': 'ปิด',
+    'common.print': 'พิมพ์',
+    'common.export': 'ส่งออก',
+    'common.import': 'นำเข้า',
+    'common.reset': 'รีเซ็ต',
+    'common.required': 'จำเป็น',
+
+    // Auth
+    'auth.login': 'เข้าสู่ระบบ',
+    'auth.logout': 'ออกจากระบบ',
+    'auth.loginWithGoogle': 'เข้าสู่ระบบด้วย Google',
+    'auth.loginRequired': 'ต้องเข้าสู่ระบบ',
+    'auth.adminOnly': 'เฉพาะผู้ดูแลระบบ',
+
+    // Products
+    'products.title': 'จัดการสินค้า',
+    'products.new': 'เพิ่มสินค้า',
+    'products.edit': 'แก้ไขสินค้า',
+    'products.code': 'รหัสสินค้า',
+    'products.name': 'ชื่อสินค้า',
+    'products.name_ko': 'ชื่อเกาหลี',
+    'products.name_th': 'ชื่อไทย',
+    'products.name_mm': 'ชื่อพม่า',
+    'products.unit': 'หน่วย',
+    'products.category': 'หมวดหมู่',
+    'products.priceType': 'ประเภทราคา',
+    'products.fresh': 'สินค้าสด',
+    'products.industrial': 'สินค้าอุตสาหกรรม',
+    'products.vendor': 'ผู้ขาย',
+    'products.active': 'ใช้งาน',
+    'products.inactive': 'ไม่ใช้งาน',
+
+    // Customers
+    'customers.title': 'จัดการลูกค้า',
+    'customers.new': 'เพิ่มลูกค้า',
+    'customers.edit': 'แก้ไขลูกค้า',
+    'customers.code': 'รหัสลูกค้า',
+    'customers.name': 'ชื่อลูกค้า',
+    'customers.grade': 'เกรด',
+    'customers.region': 'ภูมิภาค',
+    'customers.pattaya': 'พัทยา',
+    'customers.bangkok': 'กรุงเทพฯ',
+    'customers.products': 'สินค้าที่สั่งได้',
+    'customers.adj': 'ปรับราคา',
+
+    // Vendors
+    'vendors.title': 'จัดการผู้ขาย',
+    'vendors.new': 'เพิ่มผู้ขาย',
+    'vendors.edit': 'แก้ไขผู้ขาย',
+    'vendors.code': 'รหัสผู้ขาย',
+    'vendors.name': 'ชื่อผู้ขาย',
+
+    // Orders
+    'orders.title': 'ป้อนคำสั่งซื้อ',
+    'orders.date': 'วันที่สั่ง',
+    'orders.customer': 'ลูกค้า',
+    'orders.cutoff': 'รอบ',
+    'orders.cutoff1': 'รอบ 1 (ปกติ)',
+    'orders.cutoff2': 'รอบ 2 (เพิ่ม)',
+    'orders.cutoff3': 'รอบ 3 (เร่งด่วน)',
+    'orders.items': 'รายการสั่ง',
+    'orders.qty': 'จำนวน',
+    'orders.price': 'ราคา',
+    'orders.amount': 'ยอด',
+    'orders.total': 'รวม',
+    'orders.adj': 'ปรับ',
+    'orders.ordered': 'สั่งแล้ว',
+    'orders.notOrdered': 'ยังไม่สั่ง',
+
+    // Purchase Orders
+    'po.title': 'ใบสั่งซื้อ',
+    'po.buy1': 'สั่งซื้อรอบ 1',
+    'po.buy2': 'สั่งซื้อรอบ 2',
+    'po.buy3': 'สั่งซื้อรอบ 3',
+    'po.generate': 'สร้างใบสั่งซื้อ',
+    'po.buyQty': 'จำนวนสั่ง',
+    'po.stock': 'สต็อก',
+
+    // Stock
+    'stock.title': 'จัดการสต็อก',
+    'stock.qty': 'จำนวน',
+    'stock.outOfStock': 'หมด',
+    'stock.low': 'น้อย',
+    'stock.modified': 'แก้ไข',
+    'stock.saveAll': 'บันทึกทั้งหมด',
+
+    // Delivery
+    'delivery.title': 'ใบส่งของ',
+    'delivery.invoice': 'ใบแจ้งหนี้',
+    'delivery.qtyOnly': 'จำนวนเท่านั้น',
+    'delivery.withPrice': 'รวมราคา',
+
+    // Margins
+    'margins.title': 'ตั้งค่ากำไร',
+    'margins.fresh': 'กำไรสินค้าสด',
+    'margins.industrial': 'กำไรสินค้าอุตสาหกรรม',
+    'margins.history': 'ประวัติการเปลี่ยนแปลง',
+    'margins.marginBaht': 'กำไร (บาท)',
+    'margins.multiplier': 'ตัวคูณ',
+    'margins.formula': 'สูตร',
+
+    // Grades
+    'grade.S': 'S (ดีเยี่ยม)',
+    'grade.A': 'A (ดี)',
+    'grade.B': 'B (ดีปานกลาง)',
+    'grade.C': 'C (ปกติ)',
+    'grade.D': 'D (ราคาตลาด)',
+    'grade.E': 'E (ใหม่/น้อย)',
+  },
+  en: {
+    // Navigation
+    'nav.dashboard': 'Dashboard',
+    'nav.orders': 'Orders',
+    'nav.purchaseOrders': 'Purchase Orders',
+    'nav.stock': 'Stock',
+    'nav.delivery': 'Delivery',
+    'nav.products': 'Products',
+    'nav.customers': 'Customers',
+    'nav.vendors': 'Vendors',
+    'nav.margins': 'Margins',
+    'nav.prices': 'Prices',
+    'nav.settings': 'Settings',
+
+    // Common
+    'common.save': 'Save',
+    'common.cancel': 'Cancel',
+    'common.delete': 'Delete',
+    'common.edit': 'Edit',
+    'common.add': 'Add',
+    'common.search': 'Search',
+    'common.filter': 'Filter',
+    'common.all': 'All',
+    'common.loading': 'Loading...',
+    'common.noData': 'No data',
+    'common.confirm': 'Confirm',
+    'common.yes': 'Yes',
+    'common.no': 'No',
+    'common.back': 'Back',
+    'common.next': 'Next',
+    'common.prev': 'Previous',
+    'common.close': 'Close',
+    'common.print': 'Print',
+    'common.export': 'Export',
+    'common.import': 'Import',
+    'common.reset': 'Reset',
+    'common.required': 'Required',
+
+    // Auth
+    'auth.login': 'Login',
+    'auth.logout': 'Logout',
+    'auth.loginWithGoogle': 'Login with Google',
+    'auth.loginRequired': 'Login required',
+    'auth.adminOnly': 'Admin only',
+
+    // Products
+    'products.title': 'Product Management',
+    'products.new': 'New Product',
+    'products.edit': 'Edit Product',
+    'products.code': 'Product Code',
+    'products.name': 'Product Name',
+    'products.name_ko': 'Korean Name',
+    'products.name_th': 'Thai Name',
+    'products.name_mm': 'Myanmar Name',
+    'products.unit': 'Unit',
+    'products.category': 'Category',
+    'products.priceType': 'Price Type',
+    'products.fresh': 'Fresh',
+    'products.industrial': 'Industrial',
+    'products.vendor': 'Vendor',
+    'products.active': 'Active',
+    'products.inactive': 'Inactive',
+
+    // Customers
+    'customers.title': 'Customer Management',
+    'customers.new': 'New Customer',
+    'customers.edit': 'Edit Customer',
+    'customers.code': 'Customer Code',
+    'customers.name': 'Customer Name',
+    'customers.grade': 'Grade',
+    'customers.region': 'Region',
+    'customers.pattaya': 'Pattaya',
+    'customers.bangkok': 'Bangkok',
+    'customers.products': 'Available Products',
+    'customers.adj': 'Price Adjustment',
+
+    // Vendors
+    'vendors.title': 'Vendor Management',
+    'vendors.new': 'New Vendor',
+    'vendors.edit': 'Edit Vendor',
+    'vendors.code': 'Vendor Code',
+    'vendors.name': 'Vendor Name',
+
+    // Orders
+    'orders.title': 'Order Entry',
+    'orders.date': 'Order Date',
+    'orders.customer': 'Customer',
+    'orders.cutoff': 'Cutoff',
+    'orders.cutoff1': '1st (Normal)',
+    'orders.cutoff2': '2nd (Additional)',
+    'orders.cutoff3': '3rd (Urgent)',
+    'orders.items': 'Order Items',
+    'orders.qty': 'Quantity',
+    'orders.price': 'Price',
+    'orders.amount': 'Amount',
+    'orders.total': 'Total',
+    'orders.adj': 'Adjustment',
+    'orders.ordered': 'Ordered',
+    'orders.notOrdered': 'Not Ordered',
+
+    // Purchase Orders
+    'po.title': 'Purchase Orders',
+    'po.buy1': '1st PO',
+    'po.buy2': '2nd PO',
+    'po.buy3': '3rd PO',
+    'po.generate': 'Generate PO',
+    'po.buyQty': 'Buy Qty',
+    'po.stock': 'Stock',
+
+    // Stock
+    'stock.title': 'Stock Management',
+    'stock.qty': 'Quantity',
+    'stock.outOfStock': 'Out of Stock',
+    'stock.low': 'Low Stock',
+    'stock.modified': 'Modified',
+    'stock.saveAll': 'Save All',
+
+    // Delivery
+    'delivery.title': 'Delivery Note',
+    'delivery.invoice': 'Invoice',
+    'delivery.qtyOnly': 'Qty Only',
+    'delivery.withPrice': 'With Price',
+
+    // Margins
+    'margins.title': 'Margin Settings',
+    'margins.fresh': 'Fresh Product Margins',
+    'margins.industrial': 'Industrial Product Margins',
+    'margins.history': 'Change History',
+    'margins.marginBaht': 'Margin (Baht)',
+    'margins.multiplier': 'Multiplier',
+    'margins.formula': 'Formula',
+
+    // Grades
+    'grade.S': 'S (Premium)',
+    'grade.A': 'A (Excellent)',
+    'grade.B': 'B (Good)',
+    'grade.C': 'C (Standard)',
+    'grade.D': 'D (Market Price)',
+    'grade.E': 'E (New/Small)',
+  },
+} as const;
+
+export function getTranslation(key: TranslationKey, language: UILanguage): string {
+  return translations[language]?.[key] || translations.ko[key] || key;
+}
+
+export function t(key: TranslationKey, language: UILanguage): string {
+  return getTranslation(key, language);
+}

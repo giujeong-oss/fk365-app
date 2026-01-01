@@ -1,0 +1,143 @@
+{
+  "common": {
+    "appName": "FK365",
+    "appFullName": "Fresh Kitchen 365",
+    "loading": "Loading...",
+    "save": "Save",
+    "cancel": "Cancel",
+    "delete": "Delete",
+    "edit": "Edit",
+    "add": "Add",
+    "search": "Search",
+    "filter": "Filter",
+    "all": "All",
+    "yes": "Yes",
+    "no": "No",
+    "confirm": "Confirm",
+    "back": "Back",
+    "next": "Next",
+    "print": "Print",
+    "export": "Export",
+    "logout": "Logout"
+  },
+  "nav": {
+    "dashboard": "Dashboard",
+    "orders": "Orders",
+    "purchaseOrders": "Purchase Orders",
+    "stock": "Stock",
+    "delivery": "Delivery",
+    "products": "Products",
+    "customers": "Customers",
+    "vendors": "Vendors",
+    "margins": "Margins",
+    "prices": "Prices",
+    "settings": "Settings"
+  },
+  "auth": {
+    "login": "Login",
+    "loginWithGoogle": "Login with Google",
+    "loginDescription": "Login with your company email",
+    "unauthorized": "Unauthorized access",
+    "invalidDomain": "Domain not allowed"
+  },
+  "dashboard": {
+    "todayOrders": "Today's Orders",
+    "normal": "Normal",
+    "additional": "Additional",
+    "urgent": "Urgent",
+    "quickMenu": "Quick Menu",
+    "timeUntilCutoff": "Time until cutoff"
+  },
+  "orders": {
+    "title": "Create Order",
+    "selectCustomer": "Select Customer",
+    "cutoff": "Cutoff",
+    "cutoff1": "Normal (Before 11 AM)",
+    "cutoff2": "Additional (While shopping)",
+    "cutoff3": "Urgent (After shopping)",
+    "qty": "Qty",
+    "unit": "Unit",
+    "total": "Total",
+    "items": "items",
+    "saved": "Saved",
+    "editLocked": "Another user is editing",
+    "modifyDeadline": "Can only modify until 11 AM"
+  },
+  "purchaseOrders": {
+    "title": "Purchase Orders",
+    "firstBuy": "1st Purchase",
+    "additionalBuy": "Klong Toey Additional",
+    "urgentBuy": "Urgent (Lalamove)",
+    "stock": "Stock",
+    "buyQty": "Buy Qty",
+    "buyPrice": "Buy Price",
+    "savePrices": "Save Prices"
+  },
+  "delivery": {
+    "title": "Delivery Notes",
+    "pattaya": "Pattaya",
+    "bangkok": "Bangkok",
+    "printSelected": "Print Selected",
+    "printAll": "Print All",
+    "preview": "Preview",
+    "totalItems": "Total {count} items"
+  },
+  "products": {
+    "title": "Product Management",
+    "newProduct": "New Product",
+    "code": "Code",
+    "nameKo": "Korean",
+    "nameTh": "Thai",
+    "nameMm": "Myanmar",
+    "unit": "Unit",
+    "color": "Color",
+    "category": "Category",
+    "vendor": "Vendor",
+    "priceType": "Price Type",
+    "fresh": "Fresh",
+    "industrial": "Industrial"
+  },
+  "customers": {
+    "title": "Customer Management",
+    "newCustomer": "New Customer",
+    "code": "Code",
+    "name": "Name",
+    "grade": "Grade",
+    "region": "Region",
+    "deliveryTime": "Delivery Time",
+    "productMapping": "Product Mapping",
+    "adj": "Adjustment"
+  },
+  "margins": {
+    "title": "Margin Management",
+    "freshMargin": "Fresh Product Margins",
+    "industrialMargin": "Industrial Product Margins",
+    "currentMargin": "Current Margin",
+    "newMargin": "New Margin",
+    "history": "Change History",
+    "changedBy": "Changed By",
+    "changedAt": "Changed At",
+    "reason": "Reason",
+    "baht": "Baht"
+  },
+  "region": {
+    "pattaya": "Pattaya",
+    "bangkok": "Bangkok"
+  },
+  "grade": {
+    "S": "Grade S",
+    "A": "Grade A",
+    "B": "Grade B",
+    "C": "Grade C",
+    "D": "Grade D",
+    "E": "Grade E"
+  },
+  "errors": {
+    "required": "This field is required",
+    "invalidFormat": "Invalid format",
+    "saveFailed": "Failed to save",
+    "loadFailed": "Failed to load",
+    "networkError": "Network error occurred",
+    "offline": "You are offline"
+  }
+}
