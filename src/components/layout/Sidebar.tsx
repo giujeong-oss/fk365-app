@@ -68,9 +68,9 @@ export default function Sidebar({
   return (
     <aside className="hidden lg:flex lg:flex-col lg:w-64 lg:fixed lg:inset-y-0 bg-gray-900 text-white">
       {/* Logo */}
-      <div className="flex items-center justify-center h-16 px-4 bg-gray-800">
+      <Link href="/" className="flex items-center justify-center h-16 px-4 bg-gray-800 hover:bg-gray-700 transition-colors">
         <h1 className="text-xl font-bold text-green-400">FK365</h1>
-      </div>
+      </Link>
 
       {/* Navigation */}
       <nav className="flex-1 overflow-y-auto py-4">

@@ -1,7 +1,8 @@
 'use client';
 
-import { Menu, Globe, LogOut, ChevronLeft } from 'lucide-react';
+import { Menu, Globe, LogOut, ChevronLeft, Home } from 'lucide-react';
 import { useState } from 'react';
+import { useRouter } from 'next/navigation';
 
 interface MobileHeaderProps {
   title?: string;
@@ -23,6 +24,7 @@ export default function MobileHeader({
   userName,
 }: MobileHeaderProps) {
   const [showMenu, setShowMenu] = useState(false);
+  const router = useRouter();
 
   const languages = [
     { code: 'ko', label: '한국어' },
@@ -43,7 +45,12 @@ export default function MobileHeader({
               <ChevronLeft size={24} />
             </button>
           ) : (
-            <h1 className="text-lg font-bold text-green-600">FK365</h1>
+            <button
+              onClick={() => router.push('/')}
+              className="text-lg font-bold text-green-600 hover:text-green-700"
+            >
+              FK365
+            </button>
           )}
           {showBack && <span className="font-medium">{title}</span>}
         </div>
@@ -73,6 +80,18 @@ export default function MobileHeader({
                     </p>
                   </div>
                 )}
+
+                {/* Home Button */}
+                <button
+                  onClick={() => {
+                    router.push('/');
+                    setShowMenu(false);
+                  }}
+                  className="w-full flex items-center gap-2 px-4 py-3 text-sm text-gray-700 hover:bg-gray-50 border-b border-gray-100"
+                >
+                  <Home size={16} />
+                  <span>홈으로</span>
+                </button>
 
                 {/* Language Selection */}
                 <div className="px-4 py-3 border-b border-gray-100">
