@@ -234,6 +234,17 @@ src/
 - 등록된 이메일로 로그인 시 해당 권한으로 접근 가능
 - 파일: `src/app/settings/page.tsx`, `src/lib/firebase/users.ts`
 
+### 고객 제품 매핑 저장 피드백 추가
+- 저장 성공 시 alert로 **"저장 완료! N개 제품이 고객에게 매핑되었습니다"** 표시
+- 저장 실패 시 에러 메시지 표시
+- 파일: `src/app/customers/[id]/products/page.tsx`
+
+### 주문 페이지 디버깅 정보 추가
+- "주문 가능한 제품이 없습니다" 메시지에 **디버깅 정보 표시**
+- 고객 ID, 고객 코드, 매핑된 제품 수, 제품 코드 샘플 표시
+- 문제 원인 파악 용이
+- 파일: `src/app/orders/entry/[customerCode]/page.tsx`
+
 ### PWA 아이콘 에러 수정
 - `icon-192.png`, `icon-512.png` 404 에러 해결
 - SVG 아이콘 파일 생성 (`public/icon.svg`)

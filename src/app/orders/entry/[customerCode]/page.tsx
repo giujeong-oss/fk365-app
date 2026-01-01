@@ -306,6 +306,15 @@ export default function OrderEntryPage() {
                 이 고객({customer.code})에게 판매 가능한 제품이 설정되지 않았습니다.<br />
                 관리자에게 제품 매핑을 요청하거나, 아래 버튼을 클릭해 설정해주세요.
               </p>
+              {/* 디버깅 정보 */}
+              <div className="mb-4 p-3 bg-gray-100 rounded-lg text-xs text-gray-600 text-left max-w-md mx-auto">
+                <p><strong>고객 ID:</strong> {customer.id}</p>
+                <p><strong>고객 코드:</strong> {customer.code}</p>
+                <p><strong>매핑된 제품 수:</strong> {customer.products?.length || 0}개</p>
+                {customer.products && customer.products.length > 0 && (
+                  <p><strong>제품 코드:</strong> {customer.products.slice(0, 5).join(', ')}{customer.products.length > 5 ? '...' : ''}</p>
+                )}
+              </div>
               <Link
                 href={`/customers/${customer.id}/products`}
                 className="inline-flex items-center gap-2 px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition-colors"

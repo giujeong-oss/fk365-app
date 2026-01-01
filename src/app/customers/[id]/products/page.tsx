@@ -123,10 +123,11 @@ export default function CustomerProductsPage() {
     setSaving(true);
     try {
       // Save product assignments
-      await updateCustomerProducts(customerId, Array.from(selectedProducts));
+      const productCodes = Array.from(selectedProducts);
+      await updateCustomerProducts(customerId, productCodes);
 
       // Save adj values for selected products
-      const adjPromises = Array.from(selectedProducts).map(async (productCode) => {
+      const adjPromises = productCodes.map(async (productCode) => {
         const adjValue = adjs.get(productCode) || 0;
         if (adjValue !== 0) {
           await setCustomerProductAdj(
@@ -146,8 +147,12 @@ export default function CustomerProductsPage() {
         setCustomer(updatedCustomer);
         setSelectedProducts(new Set(updatedCustomer.products || []));
       }
+
+      // 성공 알림
+      alert(`저장 완료! ${productCodes.length}개 제품이 ${customer.code} 고객에게 매핑되었습니다.`);
     } catch (err) {
       console.error('Failed to save:', err);
+      alert('저장 실패: ' + (err instanceof Error ? err.message : '알 수 없는 오류'));
     } finally {
       setSaving(false);
     }
