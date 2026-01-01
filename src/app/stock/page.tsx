@@ -34,6 +34,7 @@ export default function StockPage() {
   const [saving, setSaving] = useState(false);
   const [searchTerm, setSearchTerm] = useState('');
   const [selectedCategory, setSelectedCategory] = useState('');
+  const [selectedLocation, setSelectedLocation] = useState('');
   const [categories, setCategories] = useState<string[]>([]);
 
   // Tab 키 네비게이션을 위한 refs
@@ -194,7 +195,9 @@ export default function StockPage() {
 
     const matchesCategory = !selectedCategory || ps.product.category === selectedCategory;
 
-    return matchesSearch && matchesCategory;
+    const matchesLocation = !selectedLocation || ps.location === selectedLocation;
+
+    return matchesSearch && matchesCategory && matchesLocation;
   });
 
   const modifiedCount = productStocks.filter((ps) => ps.isModified).length;
@@ -254,12 +257,24 @@ export default function StockPage() {
           <select
             value={selectedCategory}
             onChange={(e) => setSelectedCategory(e.target.value)}
-            className="px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500"
+            className="px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 text-gray-900"
           >
             <option value="">전체 카테고리</option>
             {categories.map((cat) => (
               <option key={cat} value={cat}>
                 {cat}
+              </option>
+            ))}
+          </select>
+          <select
+            value={selectedLocation}
+            onChange={(e) => setSelectedLocation(e.target.value)}
+            className="px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 text-gray-900"
+          >
+            <option value="">전체 보관장소</option>
+            {LOCATION_OPTIONS.filter(opt => opt.value).map((opt) => (
+              <option key={opt.value} value={opt.value}>
+                {opt.label}
               </option>
             ))}
           </select>
@@ -281,12 +296,12 @@ export default function StockPage() {
               <table className="w-full">
                 <thead className="bg-gray-50">
                   <tr>
-                    <th className="px-4 py-3 text-left text-sm font-medium text-gray-600">코드</th>
-                    <th className="px-4 py-3 text-left text-sm font-medium text-gray-600">제품명</th>
-                    <th className="px-4 py-3 text-left text-sm font-medium text-gray-600">단위</th>
-                    <th className="px-4 py-3 text-center text-sm font-medium text-gray-600">보관장소</th>
-                    <th className="px-4 py-3 text-center text-sm font-medium text-gray-600">상태</th>
-                    <th className="px-4 py-3 text-center text-sm font-medium text-gray-600">재고 수량</th>
+                    <th className="px-4 py-3 text-left text-sm font-medium text-gray-800">코드</th>
+                    <th className="px-4 py-3 text-left text-sm font-medium text-gray-800">제품명</th>
+                    <th className="px-4 py-3 text-left text-sm font-medium text-gray-800">단위</th>
+                    <th className="px-4 py-3 text-center text-sm font-medium text-gray-800">보관장소</th>
+                    <th className="px-4 py-3 text-center text-sm font-medium text-gray-800">상태</th>
+                    <th className="px-4 py-3 text-center text-sm font-medium text-gray-800">재고 수량</th>
                   </tr>
                 </thead>
                 <tbody className="divide-y">
@@ -306,10 +321,10 @@ export default function StockPage() {
                         <select
                           value={ps.location}
                           onChange={(e) => handleLocationChange(ps.product.code, e.target.value)}
-                          className="px-2 py-1 text-sm border border-gray-300 rounded focus:ring-2 focus:ring-blue-500"
+                          className="px-2 py-1 text-sm border border-gray-300 rounded focus:ring-2 focus:ring-blue-500 text-gray-900 font-medium"
                         >
                           {LOCATION_OPTIONS.map((opt) => (
-                            <option key={opt.value} value={opt.value}>
+                            <option key={opt.value} value={opt.value} className="text-gray-900">
                               {opt.label}
                             </option>
                           ))}
@@ -391,14 +406,14 @@ export default function StockPage() {
 
                   {/* 보관장소 선택 */}
                   <div className="mb-3">
-                    <label className="text-xs text-gray-600 mb-1 block">보관장소</label>
+                    <label className="text-xs text-gray-700 font-medium mb-1 block">보관장소</label>
                     <select
                       value={ps.location}
                       onChange={(e) => handleLocationChange(ps.product.code, e.target.value)}
-                      className="w-full px-3 py-2 text-sm border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500"
+                      className="w-full px-3 py-2 text-sm border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 text-gray-900 font-medium"
                     >
                       {LOCATION_OPTIONS.map((opt) => (
-                        <option key={opt.value} value={opt.value}>
+                        <option key={opt.value} value={opt.value} className="text-gray-900">
                           {opt.label}
                         </option>
                       ))}

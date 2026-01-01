@@ -18,8 +18,18 @@ import {
   Package,
   RefreshCw,
   DollarSign,
+  BarChart2,
+  Calendar,
 } from 'lucide-react';
 import Link from 'next/link';
+
+// 태국 시간대 기준 오늘 날짜 반환
+const getThailandToday = (): string => {
+  const now = new Date();
+  const utc = now.getTime() + (now.getTimezoneOffset() * 60000);
+  const thailandTime = new Date(utc + (7 * 60 * 60 * 1000));
+  return thailandTime.toISOString().split('T')[0];
+};
 
 // 태국 시간대 (UTC+7)
 const THAILAND_OFFSET = 7 * 60 * 60 * 1000;
@@ -27,12 +37,20 @@ const THAILAND_OFFSET = 7 * 60 * 60 * 1000;
 // 마감 시간 설정 (새벽 4시 기준)
 const CUTOFF_HOUR = 4; // 새벽 4시
 
+interface DailySales {
+  date: string;
+  label: string;
+  total: number;
+}
+
 export default function Dashboard() {
   const { user, isAdmin, signOut } = useAuth();
+  const [selectedDate, setSelectedDate] = useState(() => getThailandToday());
   const [orderCounts, setOrderCounts] = useState({ cut1: 0, cut2: 0, cut3: 0, total: 0 });
   const [orderSummary, setOrderSummary] = useState({ cut1: 0, cut2: 0, cut3: 0, total: 0 });
   const [customerCount, setCustomerCount] = useState(0);
   const [productCount, setProductCount] = useState(0);
+  const [weeklySales, setWeeklySales] = useState<DailySales[]>([]);
   const [loading, setLoading] = useState(true);
   const [refreshing, setRefreshing] = useState(false);
   const [lastUpdated, setLastUpdated] = useState<Date | null>(null);
@@ -46,13 +64,13 @@ export default function Dashboard() {
     return () => clearInterval(timer);
   }, []);
 
-  const loadData = useCallback(async (isRefresh = false) => {
+  const loadData = useCallback(async (isRefresh = false, date?: string) => {
     if (isRefresh) setRefreshing(true);
     try {
-      const today = new Date();
+      const targetDate = date ? new Date(date) : new Date(selectedDate);
       const [counts, summary, customers, products] = await Promise.all([
-        getOrderCountByCutoff(today),
-        getCutoffSummary(today),
+        getOrderCountByCutoff(targetDate),
+        getCutoffSummary(targetDate),
         getCustomers(true),
         getProducts(true),
       ]);
@@ -60,6 +78,24 @@ export default function Dashboard() {
       setOrderSummary(summary);
       setCustomerCount(customers.length);
       setProductCount(products.length);
+
+      // 7일간 매출 데이터 로드
+      const weeklyData: DailySales[] = [];
+      const dayLabels = ['일', '월', '화', '수', '목', '금', '토'];
+
+      for (let i = 6; i >= 0; i--) {
+        const d = new Date(targetDate);
+        d.setDate(d.getDate() - i);
+        const dateStr = d.toISOString().split('T')[0];
+        const daySummary = await getCutoffSummary(d);
+        weeklyData.push({
+          date: dateStr,
+          label: dayLabels[d.getDay()],
+          total: daySummary.total,
+        });
+      }
+      setWeeklySales(weeklyData);
+
       setLastUpdated(new Date());
     } catch (error) {
       console.error('Failed to load dashboard data:', error);
@@ -67,14 +103,27 @@ export default function Dashboard() {
       setLoading(false);
       setRefreshing(false);
     }
-  }, []);
+  }, [selectedDate]);
 
   useEffect(() => {
-    loadData();
-    // Auto-refresh every 60 seconds
-    const interval = setInterval(() => loadData(true), 60000);
-    return () => clearInterval(interval);
-  }, [loadData]);
+    loadData(false, selectedDate);
+  }, [selectedDate]);
+
+  // 날짜 변경 핸들러
+  const handleDateChange = (newDate: string) => {
+    setSelectedDate(newDate);
+    setLoading(true);
+  };
+
+  // 오늘로 이동
+  const goToToday = () => {
+    const today = getThailandToday();
+    setSelectedDate(today);
+    setLoading(true);
+  };
+
+  // 선택된 날짜가 오늘인지 확인
+  const isToday = selectedDate === getThailandToday();
 
   // 태국 시간 계산
   const getThailandTime = () => {
@@ -139,9 +188,26 @@ export default function Dashboard() {
           대시보드
         </h1>
 
-        {/* Current Time & Refresh */}
-        <div className="mb-4 flex items-center justify-between">
-          <div className="flex items-center gap-2">
+        {/* Date Selection & Time */}
+        <div className="mb-4 flex flex-col sm:flex-row items-start sm:items-center justify-between gap-3">
+          <div className="flex items-center gap-2 flex-wrap">
+            <div className="flex items-center gap-2">
+              <Calendar size={16} className="text-gray-500" />
+              <input
+                type="date"
+                value={selectedDate}
+                onChange={(e) => handleDateChange(e.target.value)}
+                className="px-3 py-1.5 border border-gray-300 rounded-lg focus:ring-2 focus:ring-green-500 text-gray-900 text-sm"
+              />
+            </div>
+            {!isToday && (
+              <button
+                onClick={goToToday}
+                className="px-3 py-1.5 text-sm bg-green-100 hover:bg-green-200 text-green-700 rounded-lg transition-colors"
+              >
+                오늘로
+              </button>
+            )}
             <button
               onClick={() => loadData(true)}
               disabled={refreshing}
@@ -150,23 +216,27 @@ export default function Dashboard() {
               <RefreshCw size={14} className={refreshing ? 'animate-spin' : ''} />
               새로고침
             </button>
-            {lastUpdated && (
-              <span className="text-xs text-gray-500">
-                마지막 업데이트: {lastUpdated.toLocaleTimeString('ko-KR', { hour: '2-digit', minute: '2-digit' })}
-              </span>
-            )}
           </div>
-          <div className="text-sm text-gray-600">
+          <div className="text-sm text-gray-700">
             <span className="font-mono">{formatTime(thailandTime)}</span>
-            <span className="ml-2 text-gray-500">(태국 시간)</span>
+            <span className="ml-2 text-gray-600">(태국 시간)</span>
           </div>
         </div>
+
+        {/* Selected Date Indicator */}
+        {!isToday && (
+          <div className="mb-4 p-3 bg-amber-50 border border-amber-200 rounded-lg">
+            <p className="text-sm text-amber-800">
+              <strong>{selectedDate}</strong> 날짜의 데이터를 표시 중입니다.
+            </p>
+          </div>
+        )}
 
         {/* Order Summary Cards */}
         <section className="mb-8">
           <h2 className="text-lg font-semibold text-gray-800 mb-4 flex items-center gap-2">
             <TrendingUp size={20} className="text-green-600" />
-            오늘 주문 현황
+            {isToday ? '오늘' : selectedDate} 주문 현황
           </h2>
           <div className="grid grid-cols-3 gap-3 lg:gap-6">
             {/* Cut 1: Normal */}
@@ -226,7 +296,7 @@ export default function Dashboard() {
         <section className="mb-8">
           <h2 className="text-lg font-semibold text-gray-800 mb-4 flex items-center gap-2">
             <DollarSign size={20} className="text-emerald-600" />
-            오늘 매출 현황
+            {isToday ? '오늘' : selectedDate} 매출 현황
           </h2>
           <div className="grid grid-cols-2 lg:grid-cols-4 gap-3 lg:gap-6">
             <div className="bg-gradient-to-br from-emerald-50 to-emerald-100 rounded-xl p-4 lg:p-6 border border-emerald-200">
@@ -256,6 +326,59 @@ export default function Dashboard() {
           </div>
         </section>
 
+        {/* Weekly Sales Chart */}
+        <section className="mb-8">
+          <h2 className="text-lg font-semibold text-gray-800 mb-4 flex items-center gap-2">
+            <BarChart2 size={20} className="text-indigo-600" />
+            7일간 매출 추이
+          </h2>
+          <div className="bg-white rounded-xl shadow-sm border border-gray-100 p-4 lg:p-6">
+            {loading ? (
+              <div className="h-48 flex items-center justify-center text-gray-500">
+                로딩 중...
+              </div>
+            ) : weeklySales.length > 0 ? (
+              <div className="flex items-end justify-between gap-2 h-48">
+                {weeklySales.map((day, idx) => {
+                  const maxSales = Math.max(...weeklySales.map(d => d.total), 1);
+                  const heightPercent = (day.total / maxSales) * 100;
+                  const isSelected = day.date === selectedDate;
+
+                  return (
+                    <div
+                      key={day.date}
+                      className="flex-1 flex flex-col items-center gap-1"
+                    >
+                      <span className="text-xs text-gray-600 font-medium">
+                        {formatCurrency(day.total)}
+                      </span>
+                      <div
+                        className={`w-full rounded-t transition-all ${
+                          isSelected
+                            ? 'bg-green-500'
+                            : 'bg-indigo-400 hover:bg-indigo-500'
+                        }`}
+                        style={{ height: `${Math.max(heightPercent, 5)}%` }}
+                        title={`${day.date}: ${formatCurrency(day.total)}`}
+                      />
+                      <span className={`text-xs font-medium ${isSelected ? 'text-green-700' : 'text-gray-700'}`}>
+                        {day.label}
+                      </span>
+                      <span className={`text-xs ${isSelected ? 'text-green-600' : 'text-gray-500'}`}>
+                        {day.date.slice(5)}
+                      </span>
+                    </div>
+                  );
+                })}
+              </div>
+            ) : (
+              <div className="h-48 flex items-center justify-center text-gray-500">
+                데이터가 없습니다
+              </div>
+            )}
+          </div>
+        </section>
+
         {/* Business Stats */}
         <section className="mb-8">
           <h2 className="text-lg font-semibold text-gray-800 mb-4 flex items-center gap-2">
@@ -268,7 +391,7 @@ export default function Dashboard() {
                 <Users size={24} className="text-blue-600" />
               </div>
               <div>
-                <p className="text-sm text-gray-600">활성 고객</p>
+                <p className="text-sm text-gray-700">활성 고객</p>
                 <p className="text-2xl font-bold text-gray-900">
                   {loading ? '-' : customerCount}
                 </p>
@@ -279,7 +402,7 @@ export default function Dashboard() {
                 <Package size={24} className="text-purple-600" />
               </div>
               <div>
-                <p className="text-sm text-gray-600">활성 제품</p>
+                <p className="text-sm text-gray-700">활성 제품</p>
                 <p className="text-2xl font-bold text-gray-900">
                   {loading ? '-' : productCount}
                 </p>

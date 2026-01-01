@@ -265,26 +265,54 @@ export default function EditCustomerPage() {
                 />
               </div>
 
-              {/* GPS 좌표 */}
-              <div className="grid grid-cols-2 gap-4">
+              {/* GPS 좌표 - 단일 입력 또는 분리 입력 */}
+              <div className="space-y-3">
                 <Input
-                  label="GPS 위도"
-                  name="gpsLat"
-                  type="number"
-                  step="any"
-                  value={formData.gpsLat}
-                  onChange={handleChange}
-                  placeholder="예: 12.9236"
+                  label="GPS 좌표 (한 번에 입력)"
+                  name="gpsCoords"
+                  value={formData.gpsLat && formData.gpsLng ? `${formData.gpsLat}, ${formData.gpsLng}` : ''}
+                  onChange={(e) => {
+                    const value = e.target.value;
+                    // "13.780798, 100.596319" 형식 파싱
+                    const coords = value.split(',').map(s => s.trim());
+                    if (coords.length === 2) {
+                      const lat = parseFloat(coords[0]);
+                      const lng = parseFloat(coords[1]);
+                      if (!isNaN(lat) && !isNaN(lng)) {
+                        setFormData(prev => ({
+                          ...prev,
+                          gpsLat: coords[0],
+                          gpsLng: coords[1]
+                        }));
+                        return;
+                      }
+                    }
+                    // 파싱 실패 시 위도만 업데이트
+                    setFormData(prev => ({ ...prev, gpsLat: value, gpsLng: '' }));
+                  }}
+                  placeholder="예: 13.780798, 100.596319"
+                  helperText="Google Maps에서 복사한 좌표를 그대로 붙여넣기 하세요"
                 />
-                <Input
-                  label="GPS 경도"
-                  name="gpsLng"
-                  type="number"
-                  step="any"
-                  value={formData.gpsLng}
-                  onChange={handleChange}
-                  placeholder="예: 100.8825"
-                />
+                <div className="grid grid-cols-2 gap-4">
+                  <Input
+                    label="위도"
+                    name="gpsLat"
+                    type="number"
+                    step="any"
+                    value={formData.gpsLat}
+                    onChange={handleChange}
+                    placeholder="예: 12.9236"
+                  />
+                  <Input
+                    label="경도"
+                    name="gpsLng"
+                    type="number"
+                    step="any"
+                    value={formData.gpsLng}
+                    onChange={handleChange}
+                    placeholder="예: 100.8825"
+                  />
+                </div>
               </div>
 
               <div className="flex items-center gap-2">

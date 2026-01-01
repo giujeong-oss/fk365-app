@@ -260,7 +260,7 @@ export default function CustomersPage() {
                           {REGION_LABELS[customer.region]}
                         </td>
                         <td className="px-4 py-3 whitespace-nowrap text-sm text-gray-700 font-medium">
-                          {customer.deliveryTime || '-'}
+                          {customer.deliveryTime && customer.deliveryTime !== 'undefined' ? customer.deliveryTime : '-'}
                         </td>
                         <td className="px-4 py-3 whitespace-nowrap text-sm text-gray-700 font-medium">
                           {customer.products?.length || 0}개
@@ -347,7 +347,7 @@ export default function CustomersPage() {
                     <p className="font-semibold text-gray-900">{customer.fullName}</p>
                     <div className="flex items-center gap-4 mt-2 text-sm text-gray-700 font-medium">
                       <span>제품: {customer.products?.length || 0}개</span>
-                      {customer.deliveryTime && <span>배송: {customer.deliveryTime}</span>}
+                      {customer.deliveryTime && customer.deliveryTime !== 'undefined' && <span>배송: {customer.deliveryTime}</span>}
                     </div>
                   </div>
                 ))}

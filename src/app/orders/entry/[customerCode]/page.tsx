@@ -423,7 +423,8 @@ export default function OrderEntryPage() {
                   <div className="flex items-start justify-between mb-2">
                     <div className="flex-1">
                       <div className="flex items-center gap-2 mb-1">
-                        <span className="font-medium">{state.product.name_ko}</span>
+                        <span className="font-mono text-xs text-gray-700 bg-gray-100 px-1.5 py-0.5 rounded">{state.product.code}</span>
+                        <span className="font-medium text-gray-900">{state.product.name_ko}</span>
                         <Badge
                           variant={state.product.priceType === 'fresh' ? 'success' : 'info'}
                           size="sm"
@@ -431,10 +432,10 @@ export default function OrderEntryPage() {
                           {state.product.priceType === 'fresh' ? '신선' : '공산품'}
                         </Badge>
                       </div>
-                      <div className="text-sm text-gray-500">
+                      <div className="text-sm text-gray-700">
                         {state.product.name_th} / {state.product.name_mm}
                       </div>
-                      <div className="text-xs text-gray-500 mt-1">
+                      <div className="text-xs text-gray-600 mt-1">
                         단위: {state.product.unit} | 기본adj: {state.baseAdj >= 0 ? '+' : ''}{state.baseAdj}
                       </div>
                     </div>

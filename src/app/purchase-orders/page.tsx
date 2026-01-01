@@ -50,6 +50,7 @@ export default function PurchaseOrdersPage() {
   const [loading, setLoading] = useState(true);
   const [generating, setGenerating] = useState<POType | null>(null);
   const [selectedVendor, setSelectedVendor] = useState<string>('');
+  const [vendorSearch, setVendorSearch] = useState('');
   const [activeTab, setActiveTab] = useState<POType>('buy1');
   const [printPO, setPrintPO] = useState<PurchaseOrder | null>(null);
   const printRef = useRef<HTMLDivElement>(null);
@@ -420,7 +421,7 @@ export default function PurchaseOrdersPage() {
             className={`px-4 py-2 font-medium ${
               activeTab === 'buy1'
                 ? 'border-b-2 border-blue-500 text-blue-600'
-                : 'text-gray-500 hover:text-gray-700'
+                : 'text-gray-700 hover:text-gray-900'
             }`}
           >
             1차 발주 (buy1)
@@ -430,7 +431,7 @@ export default function PurchaseOrdersPage() {
             className={`px-4 py-2 font-medium ${
               activeTab === 'buy2'
                 ? 'border-b-2 border-yellow-500 text-yellow-600'
-                : 'text-gray-500 hover:text-gray-700'
+                : 'text-gray-700 hover:text-gray-900'
             }`}
           >
             2차 발주 (buy2)
@@ -440,7 +441,7 @@ export default function PurchaseOrdersPage() {
             className={`px-4 py-2 font-medium ${
               activeTab === 'buy3'
                 ? 'border-b-2 border-red-500 text-red-600'
-                : 'text-gray-500 hover:text-gray-700'
+                : 'text-gray-700 hover:text-gray-900'
             }`}
           >
             3차 발주 (buy3)
@@ -455,14 +456,29 @@ export default function PurchaseOrdersPage() {
           <div className="space-y-6">
             {/* buy1 전용: 구매처 선택 */}
             {activeTab === 'buy1' && (
-              <div className="flex items-center gap-4 mb-4">
+              <div className="flex flex-col sm:flex-row items-start sm:items-center gap-4 mb-4">
+                <div className="relative flex-1 max-w-md">
+                  <input
+                    type="text"
+                    placeholder="구매처 검색..."
+                    value={vendorSearch}
+                    onChange={(e) => setVendorSearch(e.target.value)}
+                    className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 text-gray-900"
+                  />
+                </div>
                 <select
                   value={selectedVendor}
                   onChange={(e) => setSelectedVendor(e.target.value)}
-                  className="px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500"
+                  className="px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 text-gray-900 min-w-48"
                 >
                   <option value="">전체 구매처</option>
-                  {vendors.map((vendor) => (
+                  {vendors
+                    .filter(v =>
+                      !vendorSearch ||
+                      v.name.toLowerCase().includes(vendorSearch.toLowerCase()) ||
+                      v.code.toLowerCase().includes(vendorSearch.toLowerCase())
+                    )
+                    .map((vendor) => (
                     <option key={vendor.id} value={vendor.code}>
                       {vendor.name} ({vendor.code})
                     </option>
@@ -504,7 +520,7 @@ export default function PurchaseOrdersPage() {
                         <span className="font-medium">
                           {po.vendorCode ? getVendorName(po.vendorCode) : po.note}
                         </span>
-                        <span className="text-sm text-gray-500 ml-2">
+                        <span className="text-sm text-gray-700 ml-2">
                           {po.items.length}개 품목
                         </span>
                       </div>
@@ -521,7 +537,7 @@ export default function PurchaseOrdersPage() {
                           <div className="font-medium">
                             {po.totalAmount ? formatCurrency(po.totalAmount) : '-'}
                           </div>
-                          <div className="text-xs text-gray-500">
+                          <div className="text-xs text-gray-600">
                             {po.createdAt.toLocaleTimeString()}
                           </div>
                         </div>
@@ -537,16 +553,16 @@ export default function PurchaseOrdersPage() {
               <table className="w-full">
                 <thead className="bg-gray-50">
                   <tr>
-                    <th className="px-4 py-3 text-left text-sm font-medium text-gray-600">제품</th>
-                    <th className="px-4 py-3 text-center text-sm font-medium text-gray-600">유형</th>
+                    <th className="px-4 py-3 text-left text-sm font-medium text-gray-800">제품</th>
+                    <th className="px-4 py-3 text-center text-sm font-medium text-gray-800">유형</th>
                     {activeTab === 'buy1' && (
                       <>
-                        <th className="px-4 py-3 text-right text-sm font-medium text-gray-600">1차 주문</th>
-                        <th className="px-4 py-3 text-right text-sm font-medium text-gray-600">재고</th>
+                        <th className="px-4 py-3 text-right text-sm font-medium text-gray-800">1차 주문</th>
+                        <th className="px-4 py-3 text-right text-sm font-medium text-gray-800">재고</th>
                       </>
                     )}
-                    <th className="px-4 py-3 text-right text-sm font-medium text-gray-600">발주량</th>
-                    <th className="px-4 py-3 text-left text-sm font-medium text-gray-600">구매처</th>
+                    <th className="px-4 py-3 text-right text-sm font-medium text-gray-800">발주량</th>
+                    <th className="px-4 py-3 text-left text-sm font-medium text-gray-800">구매처</th>
                   </tr>
                 </thead>
                 <tbody className="divide-y">
@@ -557,8 +573,8 @@ export default function PurchaseOrdersPage() {
                     return (
                       <tr key={summary.product.code} className={`hover:bg-gray-50 ${isOverridden ? 'bg-yellow-50' : ''}`}>
                         <td className="px-4 py-3">
-                          <div className="font-medium">{summary.product.name_ko}</div>
-                          <div className="text-sm text-gray-500">{summary.product.code}</div>
+                          <div className="font-medium text-gray-900">{summary.product.name_ko}</div>
+                          <div className="text-sm text-gray-700 font-mono">{summary.product.code}</div>
                         </td>
                         <td className="px-4 py-3 text-center">
                           <Badge
@@ -606,7 +622,7 @@ export default function PurchaseOrdersPage() {
                               )}
                             </div>
                           ) : (
-                            <span className="text-sm text-gray-700">
+                            <span className="text-sm text-gray-900 font-medium">
                               {getVendorName(summary.product.vendorCode)}
                             </span>
                           )}

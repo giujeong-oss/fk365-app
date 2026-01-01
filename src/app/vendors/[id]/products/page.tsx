@@ -259,7 +259,7 @@ export default function VendorProductsPage() {
                     key={product.id}
                     className="inline-flex items-center gap-2 px-3 py-1.5 bg-white border border-green-300 rounded-full text-sm"
                   >
-                    <span className="font-mono text-xs text-gray-600">{product.code}</span>
+                    <span className="font-mono text-xs text-gray-800">{product.code}</span>
                     <span className="text-gray-900">{product.name_ko}</span>
                     <button
                       onClick={() => toggleProduct(product.id)}
@@ -285,22 +285,22 @@ export default function VendorProductsPage() {
               <table className="w-full">
                 <thead className="bg-gray-50">
                   <tr>
-                    <th className="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase w-12">
+                    <th className="px-4 py-3 text-left text-xs font-medium text-gray-700 uppercase w-12">
                       선택
                     </th>
-                    <th className="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase">
+                    <th className="px-4 py-3 text-left text-xs font-medium text-gray-700 uppercase">
                       코드
                     </th>
-                    <th className="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase">
+                    <th className="px-4 py-3 text-left text-xs font-medium text-gray-700 uppercase">
                       제품명
                     </th>
-                    <th className="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase">
+                    <th className="px-4 py-3 text-left text-xs font-medium text-gray-700 uppercase">
                       유형
                     </th>
-                    <th className="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase">
+                    <th className="px-4 py-3 text-left text-xs font-medium text-gray-700 uppercase">
                       카테고리
                     </th>
-                    <th className="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase">
+                    <th className="px-4 py-3 text-left text-xs font-medium text-gray-700 uppercase">
                       현재 구매처
                     </th>
                   </tr>
@@ -332,8 +332,8 @@ export default function VendorProductsPage() {
                         <td className="px-4 py-3">
                           <div className="space-y-0.5">
                             <p className="text-sm font-semibold text-gray-900">{product.name_ko}</p>
-                            <p className="text-xs text-gray-600">{product.name_th}</p>
-                            <p className="text-xs text-gray-500">{product.name_mm}</p>
+                            <p className="text-xs text-gray-700">{product.name_th}</p>
+                            <p className="text-xs text-gray-600">{product.name_mm}</p>
                           </div>
                         </td>
                         <td className="px-4 py-3">
@@ -344,10 +344,10 @@ export default function VendorProductsPage() {
                             {product.priceType === 'fresh' ? '신선' : '공산품'}
                           </Badge>
                         </td>
-                        <td className="px-4 py-3 text-sm text-gray-700">
+                        <td className="px-4 py-3 text-sm text-gray-900 font-medium">
                           {product.category || '-'}
                         </td>
-                        <td className="px-4 py-3 text-sm text-gray-700">
+                        <td className="px-4 py-3 text-sm text-gray-900 font-medium">
                           {product.vendorCode || '-'}
                         </td>
                       </tr>
@@ -393,10 +393,10 @@ export default function VendorProductsPage() {
                         {/* 제품명 통합 표시 */}
                         <div className="bg-gray-100 rounded p-2 mb-2">
                           <p className="text-sm font-semibold text-gray-900">{product.name_ko}</p>
-                          <p className="text-xs text-gray-600">{product.name_th}</p>
-                          <p className="text-xs text-gray-500">{product.name_mm}</p>
+                          <p className="text-xs text-gray-700">{product.name_th}</p>
+                          <p className="text-xs text-gray-600">{product.name_mm}</p>
                         </div>
-                        <div className="flex items-center gap-4 text-xs text-gray-600">
+                        <div className="flex items-center gap-4 text-xs text-gray-700 font-medium">
                           <span>카테고리: {product.category || '-'}</span>
                           <span>현재: {product.vendorCode || '-'}</span>
                         </div>

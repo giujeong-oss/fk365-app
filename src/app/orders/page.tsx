@@ -17,13 +17,18 @@ const CUTOFF_OPTIONS = [
   { value: '3', label: '3차 (긴급 - 장본 후)' },
 ];
 
+// 태국 시간대 (UTC+7) 기준 오늘 날짜 반환
+const getThailandToday = (): string => {
+  const now = new Date();
+  const utc = now.getTime() + (now.getTimezoneOffset() * 60000);
+  const thailandTime = new Date(utc + (7 * 60 * 60 * 1000));
+  return thailandTime.toISOString().split('T')[0];
+};
+
 export default function OrdersPage() {
   const { user, isAdmin, signOut } = useAuth();
   const { showSuccess, showError, showWarning } = useToast();
-  const [date, setDate] = useState(() => {
-    const today = new Date();
-    return today.toISOString().split('T')[0];
-  });
+  const [date, setDate] = useState(() => getThailandToday());
   const [customers, setCustomers] = useState<Customer[]>([]);
   const [orders, setOrders] = useState<Order[]>([]);
   const [cutoffSummary, setCutoffSummary] = useState({ cut1: 0, cut2: 0, cut3: 0, total: 0 });

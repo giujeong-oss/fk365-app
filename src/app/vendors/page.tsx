@@ -30,6 +30,7 @@ export default function VendorsPage() {
 
   // Products modal
   const [selectedVendorProducts, setSelectedVendorProducts] = useState<{vendor: Vendor, products: Product[]} | null>(null);
+  const [productModalSearch, setProductModalSearch] = useState('');
 
   // 구매처 목록 불러오기
   const loadVendors = async () => {
@@ -61,7 +62,19 @@ export default function VendorsPage() {
   const showVendorProducts = (vendor: Vendor) => {
     const vendorProducts = products.filter(p => p.vendorCode === vendor.code);
     setSelectedVendorProducts({ vendor, products: vendorProducts });
+    setProductModalSearch('');
   };
+
+  // 모달 내 제품 필터링
+  const filteredModalProducts = selectedVendorProducts?.products.filter(p => {
+    if (!productModalSearch) return true;
+    const term = productModalSearch.toLowerCase();
+    return (
+      p.code.toLowerCase().includes(term) ||
+      p.name_ko.toLowerCase().includes(term) ||
+      p.name_th.toLowerCase().includes(term)
+    );
+  }) || [];
 
   // 구매처에서 제품 제거
   const removeProductFromVendor = async (productId: string) => {
@@ -423,32 +436,48 @@ export default function VendorsPage() {
           size="lg"
         >
           <div className="space-y-4">
+            {/* 제품 검색 */}
+            <div className="relative">
+              <Search
+                size={18}
+                className="absolute left-3 top-1/2 -translate-y-1/2 text-gray-400"
+              />
+              <input
+                type="text"
+                placeholder="제품 코드 또는 이름으로 검색..."
+                value={productModalSearch}
+                onChange={(e) => setProductModalSearch(e.target.value)}
+                className="w-full pl-10 pr-4 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-green-500 text-gray-900"
+              />
+            </div>
             {selectedVendorProducts?.products.length === 0 ? (
-              <p className="text-center text-gray-600 py-8">등록된 제품이 없습니다.</p>
+              <p className="text-center text-gray-700 py-8">등록된 제품이 없습니다.</p>
+            ) : filteredModalProducts.length === 0 ? (
+              <p className="text-center text-gray-700 py-8">검색 결과가 없습니다.</p>
             ) : (
               <div className="max-h-96 overflow-y-auto">
                 <table className="w-full text-sm">
                   <thead className="bg-gray-50 sticky top-0">
                     <tr>
-                      <th className="px-3 py-2 text-left font-medium text-gray-700">코드</th>
-                      <th className="px-3 py-2 text-left font-medium text-gray-700">제품명</th>
-                      <th className="px-3 py-2 text-left font-medium text-gray-700">분류</th>
-                      <th className="px-3 py-2 text-right font-medium text-gray-700">매입가</th>
-                      <th className="px-3 py-2 text-center font-medium text-gray-700">제거</th>
+                      <th className="px-3 py-2 text-left font-medium text-gray-800">코드</th>
+                      <th className="px-3 py-2 text-left font-medium text-gray-800">제품명</th>
+                      <th className="px-3 py-2 text-left font-medium text-gray-800">분류</th>
+                      <th className="px-3 py-2 text-right font-medium text-gray-800">매입가</th>
+                      <th className="px-3 py-2 text-center font-medium text-gray-800">제거</th>
                     </tr>
                   </thead>
                   <tbody className="divide-y">
-                    {selectedVendorProducts?.products.map((product) => (
+                    {filteredModalProducts.map((product) => (
                       <tr key={product.code} className="hover:bg-gray-50">
-                        <td className="px-3 py-2 font-mono text-gray-800">{product.code}</td>
+                        <td className="px-3 py-2 font-mono text-gray-900">{product.code}</td>
                         <td className="px-3 py-2">
                           <div className="font-medium text-gray-900">{product.name_ko}</div>
-                          <div className="text-xs text-gray-600">{product.name_th}</div>
+                          <div className="text-xs text-gray-700">{product.name_th}</div>
                         </td>
-                        <td className="px-3 py-2 text-gray-700">
+                        <td className="px-3 py-2 text-gray-900 font-medium">
                           {product.priceType === 'fresh' ? '신선' : '공산품'}
                         </td>
-                        <td className="px-3 py-2 text-right text-gray-800">
+                        <td className="px-3 py-2 text-right text-gray-900 font-medium">
                           {product.pur ? `฿${product.pur}` : '-'}
                         </td>
                         <td className="px-3 py-2 text-center">
@@ -466,7 +495,10 @@ export default function VendorsPage() {
                 </table>
               </div>
             )}
-            <div className="flex justify-end pt-4 border-t">
+            <div className="flex justify-between items-center pt-4 border-t">
+              <span className="text-sm text-gray-700">
+                {filteredModalProducts.length}개 제품
+              </span>
               <Button variant="secondary" onClick={() => setSelectedVendorProducts(null)}>
                 닫기
               </Button>
