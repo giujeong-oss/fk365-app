@@ -150,21 +150,28 @@ export default function NewProductPage() {
 
     setLoading(true);
     try {
-      await createProduct({
+      // Build product data without undefined values
+      const productData: Parameters<typeof createProduct>[0] = {
         code: formData.code.trim().toUpperCase(),
         name_ko: formData.name_ko.trim(),
         name_th: formData.name_th.trim(),
-        name_mm: formData.name_mm.trim(),
+        name_mm: formData.name_mm.trim() || '',
         unit: formData.unit,
-        color: formData.color || undefined,
-        category: formData.category.trim() || undefined,
         priceType: formData.priceType,
-        pur: formData.pur ? Number(formData.pur) : undefined,
-        min: formData.min ? Number(formData.min) : undefined,
-        mid: formData.mid ? Number(formData.mid) : undefined,
         vendorCode: formData.vendorCode,
         isActive: true,
-      });
+      };
+
+      // Add optional fields only if they have values
+      if (formData.color) productData.color = formData.color;
+      if (formData.category.trim()) productData.category = formData.category.trim();
+      if (formData.priceType === 'industrial') {
+        productData.pur = Number(formData.pur);
+        productData.min = Number(formData.min);
+        productData.mid = Number(formData.mid);
+      }
+
+      await createProduct(productData);
 
       router.push('/products');
     } catch (err) {
