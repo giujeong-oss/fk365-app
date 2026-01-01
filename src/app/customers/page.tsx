@@ -7,8 +7,9 @@ import { useAuth } from '@/lib/context';
 import { Button, EmptyState, LoadingState, Badge } from '@/components/ui';
 import { getCustomers, deleteCustomer } from '@/lib/firebase';
 import type { Customer, Region } from '@/types';
-import { Plus, Pencil, Trash2, Users, Search, Package } from 'lucide-react';
+import { Plus, Pencil, Trash2, Users, Search, Package, Download } from 'lucide-react';
 import Link from 'next/link';
+import { exportToCsv, getDateForFilename, type CsvColumn } from '@/lib/utils';
 
 const GRADE_COLORS: Record<string, 'success' | 'info' | 'warning' | 'danger' | 'default'> = {
   S: 'success',
@@ -85,6 +86,26 @@ export default function CustomersPage() {
     }
   };
 
+  // CSV Export handler
+  const handleExportCsv = () => {
+    const columns: CsvColumn<Customer>[] = [
+      { header: '코드', accessor: 'code' },
+      { header: '이름', accessor: 'fullName' },
+      { header: '등급', accessor: 'grade' },
+      { header: '지역', accessor: (c) => REGION_LABELS[c.region] },
+      { header: '배송시간', accessor: (c) => c.deliveryTime || '' },
+      { header: '연락처1', accessor: (c) => c.contact1 || '' },
+      { header: '연락처2', accessor: (c) => c.contact2 || '' },
+      { header: 'GPS위도', accessor: (c) => c.gpsLat?.toString() || '' },
+      { header: 'GPS경도', accessor: (c) => c.gpsLng?.toString() || '' },
+      { header: '제품수', accessor: (c) => c.products?.length || 0 },
+      { header: '상태', accessor: (c) => c.isActive ? '활성' : '비활성' },
+    ];
+
+    const filename = `customers_${getDateForFilename()}.csv`;
+    exportToCsv(sortedCustomers, columns, filename);
+  };
+
   return (
     <ProtectedRoute adminOnly>
       <MainLayout
@@ -97,12 +118,18 @@ export default function CustomersPage() {
           {/* Header */}
           <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4 mb-6">
             <h1 className="text-2xl font-bold text-gray-900">고객 관리</h1>
-            <Link href="/customers/new">
-              <Button>
-                <Plus size={18} className="mr-2" />
-                고객 추가
+            <div className="flex items-center gap-2">
+              <Button variant="secondary" onClick={handleExportCsv}>
+                <Download size={18} className="mr-2" />
+                CSV
               </Button>
-            </Link>
+              <Link href="/customers/new">
+                <Button>
+                  <Plus size={18} className="mr-2" />
+                  고객 추가
+                </Button>
+              </Link>
+            </div>
           </div>
 
           {/* Search & Filter */}

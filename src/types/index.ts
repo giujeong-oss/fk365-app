@@ -48,6 +48,10 @@ export interface Customer {
   prevGrade?: Grade;  // 등급 변경 감지용
   region: Region;
   deliveryTime?: string;
+  gpsLat?: number;    // GPS 위도
+  gpsLng?: number;    // GPS 경도
+  contact1?: string;  // 연락처 1
+  contact2?: string;  // 연락처 2
   products: string[];  // 주문 가능 제품 코드 목록
   isActive: boolean;
   createdAt: Date;
@@ -140,6 +144,7 @@ export interface Stock {
   id: string;
   code: string;
   qty: number;
+  location?: string;  // 보관장소 (freezer, fridge, zone-a, zone-b 등)
   updatedAt: Date;
 }
 

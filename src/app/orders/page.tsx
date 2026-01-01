@@ -7,7 +7,7 @@ import { MainLayout } from '@/components/layout';
 import { Button, Select, Spinner, EmptyState, Badge, Modal, useToast } from '@/components/ui';
 import { getCustomers, getOrdersByDate, getCutoffSummary, confirmOrder, updateOrder } from '@/lib/firebase';
 import type { Customer, Order, Cutoff } from '@/types';
-import { Home, CheckCircle, Lock, Unlock, AlertCircle } from 'lucide-react';
+import { Home, CheckCircle, Lock, Unlock, AlertCircle, Search } from 'lucide-react';
 import Link from 'next/link';
 import { formatCurrency } from '@/lib/constants';
 
@@ -31,6 +31,7 @@ export default function OrdersPage() {
   const [selectedCutoff, setSelectedCutoff] = useState<string>('');
   const [confirmModal, setConfirmModal] = useState<{ open: boolean; type: 'single' | 'bulk'; orderId?: string; cutoff?: Cutoff }>({ open: false, type: 'single' });
   const [processing, setProcessing] = useState(false);
+  const [searchTerm, setSearchTerm] = useState('');
 
   useEffect(() => {
     loadData();
@@ -139,9 +140,16 @@ export default function OrdersPage() {
     ? orders.filter((o) => o.cutoff === Number(selectedCutoff))
     : orders;
 
+  // 검색어로 고객 필터링
+  const filteredCustomers = customers.filter((c) => {
+    if (!searchTerm) return true;
+    const term = searchTerm.toLowerCase();
+    return c.code.toLowerCase().includes(term) || c.fullName.toLowerCase().includes(term);
+  });
+
   const orderedCustomerCodes = [...new Set(filteredOrders.map((o) => o.customerCode))];
-  const orderedCustomers = customers.filter((c) => orderedCustomerCodes.includes(c.code));
-  const unorderedCustomers = customers.filter((c) => !orderedCustomerCodes.includes(c.code));
+  const orderedCustomers = filteredCustomers.filter((c) => orderedCustomerCodes.includes(c.code));
+  const unorderedCustomers = filteredCustomers.filter((c) => !orderedCustomerCodes.includes(c.code));
 
   return (
     <ProtectedRoute>
@@ -225,20 +233,33 @@ export default function OrdersPage() {
           </div>
         </div>
 
-        {/* 필터 */}
-        <div className="flex items-center gap-4 mb-6">
-          <Select
-            value={selectedCutoff}
-            onChange={(e) => setSelectedCutoff(e.target.value)}
-            className="w-48"
-            options={[
-              { value: '', label: '전체 마감' },
-              ...CUTOFF_OPTIONS.map((opt) => ({ value: opt.value, label: opt.label }))
-            ]}
-          />
-          <span className="text-sm text-gray-700">
-            주문: {orderedCustomers.length}개 업체 / 미주문: {unorderedCustomers.length}개 업체
-          </span>
+        {/* 검색 및 필터 */}
+        <div className="flex flex-col md:flex-row gap-4 mb-6">
+          {/* 고객 코드/이름 검색 */}
+          <div className="relative flex-1">
+            <Search size={18} className="absolute left-3 top-1/2 -translate-y-1/2 text-gray-400" />
+            <input
+              type="text"
+              placeholder="고객 코드 또는 이름으로 검색..."
+              value={searchTerm}
+              onChange={(e) => setSearchTerm(e.target.value)}
+              className="w-full pl-10 pr-4 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-green-500"
+            />
+          </div>
+          <div className="flex items-center gap-4">
+            <Select
+              value={selectedCutoff}
+              onChange={(e) => setSelectedCutoff(e.target.value)}
+              className="w-48"
+              options={[
+                { value: '', label: '전체 마감' },
+                ...CUTOFF_OPTIONS.map((opt) => ({ value: opt.value, label: opt.label }))
+              ]}
+            />
+            <span className="text-sm text-gray-700">
+              주문: {orderedCustomers.length}개 / 미주문: {unorderedCustomers.length}개
+            </span>
+          </div>
         </div>
 
         {loading ? (

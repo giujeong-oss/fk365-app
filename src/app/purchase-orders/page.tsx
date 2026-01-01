@@ -18,9 +18,10 @@ import {
   getOrdersByCutoff,
 } from '@/lib/firebase';
 import type { Product, Vendor, PurchaseOrder, Cutoff } from '@/types';
-import { Home, Printer, X } from 'lucide-react';
+import { Home, Printer, X, Download, FileDown } from 'lucide-react';
 import Link from 'next/link';
 import { useRef } from 'react';
+import { exportToCsv, getDateForFilename, type CsvColumn } from '@/lib/utils';
 
 type POType = 'buy1' | 'buy2' | 'buy3';
 
@@ -289,6 +290,75 @@ export default function PurchaseOrdersPage() {
     }).format(amount);
   };
 
+  // 업체별 CSV 다운로드 (buy1 전용)
+  const handleExportByVendor = () => {
+    const buy1Products = productSummaries.filter((s) => s.buy1 > 0);
+    if (buy1Products.length === 0) {
+      alert('내보낼 제품이 없습니다.');
+      return;
+    }
+
+    // 구매처별로 그룹화
+    const vendorGroups = new Map<string, ProductSummary[]>();
+    buy1Products.forEach((summary) => {
+      const vendorCode = getEffectiveVendorCode(summary);
+      if (!vendorCode) return;
+      if (!vendorGroups.has(vendorCode)) {
+        vendorGroups.set(vendorCode, []);
+      }
+      vendorGroups.get(vendorCode)!.push(summary);
+    });
+
+    if (vendorGroups.size === 0) {
+      alert('구매처가 지정된 제품이 없습니다.');
+      return;
+    }
+
+    // 각 구매처별로 CSV 생성
+    vendorGroups.forEach((summaries, vendorCode) => {
+      const vendorName = getVendorName(vendorCode);
+      const columns: CsvColumn<ProductSummary>[] = [
+        { header: '코드', accessor: (s) => s.product.code },
+        { header: '제품명(한국어)', accessor: (s) => s.product.name_ko },
+        { header: '제품명(태국어)', accessor: (s) => s.product.name_th },
+        { header: '단위', accessor: (s) => s.product.unit },
+        { header: '1차주문', accessor: (s) => s.cut1 },
+        { header: '재고', accessor: (s) => s.stock },
+        { header: '발주량', accessor: (s) => s.buy1 },
+      ];
+
+      const filename = `발주서_${vendorName}_${getDateForFilename()}.csv`;
+      exportToCsv(summaries, columns, filename);
+    });
+
+    alert(`${vendorGroups.size}개 업체의 발주서가 다운로드되었습니다.`);
+  };
+
+  // 현재 탭의 전체 발주 목록 CSV 다운로드
+  const handleExportCurrentTab = () => {
+    const summaries = getFilteredSummaries();
+    if (summaries.length === 0) {
+      alert('내보낼 제품이 없습니다.');
+      return;
+    }
+
+    const buyKey = activeTab === 'buy1' ? 'buy1' : activeTab === 'buy2' ? 'buy2' : 'buy3';
+    const typeLabel = activeTab === 'buy1' ? '1차발주' : activeTab === 'buy2' ? '2차발주' : '3차발주';
+
+    const columns: CsvColumn<ProductSummary>[] = [
+      { header: '코드', accessor: (s) => s.product.code },
+      { header: '제품명(한국어)', accessor: (s) => s.product.name_ko },
+      { header: '제품명(태국어)', accessor: (s) => s.product.name_th },
+      { header: '단위', accessor: (s) => s.product.unit },
+      { header: '유형', accessor: (s) => s.product.priceType === 'fresh' ? '신선' : '공산품' },
+      { header: '구매처', accessor: (s) => getVendorName(getEffectiveVendorCode(s)) },
+      { header: '발주량', accessor: (s) => s[buyKey as 'buy1' | 'buy2' | 'buy3'] },
+    ];
+
+    const filename = `발주서_${typeLabel}_${getDateForFilename()}.csv`;
+    exportToCsv(summaries, columns, filename);
+  };
+
   // 탭별 데이터 필터링
   const getFilteredSummaries = () => {
     if (activeTab === 'buy1') {
@@ -330,6 +400,16 @@ export default function PurchaseOrdersPage() {
               onChange={(e) => setDate(e.target.value)}
               className="px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
             />
+            <Button variant="secondary" size="sm" onClick={handleExportCurrentTab}>
+              <Download size={16} className="mr-1" />
+              CSV
+            </Button>
+            {activeTab === 'buy1' && (
+              <Button variant="secondary" size="sm" onClick={handleExportByVendor}>
+                <FileDown size={16} className="mr-1" />
+                업체별
+              </Button>
+            )}
           </div>
         </div>
 

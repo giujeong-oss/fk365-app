@@ -1,18 +1,28 @@
 'use client';
 
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useRef } from 'react';
 import { useAuth } from '@/lib/context';
 import { ProtectedRoute } from '@/components/auth';
 import { MainLayout } from '@/components/layout';
 import { Button, Input, Spinner, Badge, EmptyState } from '@/components/ui';
 import { getProducts, getAllStock, setStock, batchUpdateStock } from '@/lib/firebase';
 import type { Product, Stock } from '@/types';
-import { Home } from 'lucide-react';
+import { Home, Download } from 'lucide-react';
 import Link from 'next/link';
+import { exportToCsv, getDateForFilename, type CsvColumn } from '@/lib/utils';
+
+const LOCATION_OPTIONS = [
+  { value: '', label: '선택 안함' },
+  { value: 'freezer', label: '냉동창고' },
+  { value: 'fridge', label: '냉장창고' },
+  { value: 'zone-a', label: 'A zone' },
+  { value: 'zone-b', label: 'B zone' },
+];
 
 interface ProductStock {
   product: Product;
   qty: number;
+  location: string;
   isModified: boolean;
 }
 
@@ -25,6 +35,30 @@ export default function StockPage() {
   const [searchTerm, setSearchTerm] = useState('');
   const [selectedCategory, setSelectedCategory] = useState('');
   const [categories, setCategories] = useState<string[]>([]);
+
+  // Tab 키 네비게이션을 위한 refs
+  const qtyInputRefs = useRef<Map<string, HTMLInputElement>>(new Map());
+
+  // Tab 키로 다음 행 이동
+  const handleKeyDown = (e: React.KeyboardEvent, productCode: string) => {
+    if (e.key === 'Tab' && !e.shiftKey) {
+      e.preventDefault();
+      const codes = filteredStocks.map(ps => ps.product.code);
+      const currentIndex = codes.indexOf(productCode);
+      const nextIndex = currentIndex + 1;
+      if (nextIndex < codes.length) {
+        qtyInputRefs.current.get(codes[nextIndex])?.focus();
+      }
+    } else if (e.key === 'Tab' && e.shiftKey) {
+      e.preventDefault();
+      const codes = filteredStocks.map(ps => ps.product.code);
+      const currentIndex = codes.indexOf(productCode);
+      const prevIndex = currentIndex - 1;
+      if (prevIndex >= 0) {
+        qtyInputRefs.current.get(codes[prevIndex])?.focus();
+      }
+    }
+  };
 
   useEffect(() => {
     loadData();
@@ -47,18 +81,22 @@ export default function StockPage() {
       });
       setCategories(Array.from(cats).sort());
 
-      // 재고 맵 생성
-      const stockMap = new Map<string, number>();
+      // 재고 맵 생성 (qty와 location 포함)
+      const stockMap = new Map<string, { qty: number; location: string }>();
       stockData.forEach((s) => {
-        stockMap.set(s.code, s.qty);
+        stockMap.set(s.code, { qty: s.qty, location: s.location || '' });
       });
 
       // 제품별 재고 상태 생성
-      const stocks: ProductStock[] = productsData.map((product) => ({
-        product,
-        qty: stockMap.get(product.code) || 0,
-        isModified: false,
-      }));
+      const stocks: ProductStock[] = productsData.map((product) => {
+        const stockInfo = stockMap.get(product.code);
+        return {
+          product,
+          qty: stockInfo?.qty || 0,
+          location: stockInfo?.location || '',
+          isModified: false,
+        };
+      });
 
       setProductStocks(stocks);
     } catch (error) {
@@ -78,6 +116,16 @@ export default function StockPage() {
     );
   };
 
+  const handleLocationChange = (productCode: string, newLocation: string) => {
+    setProductStocks((prev) =>
+      prev.map((ps) =>
+        ps.product.code === productCode
+          ? { ...ps, location: newLocation, isModified: true }
+          : ps
+      )
+    );
+  };
+
   const handleSaveAll = async () => {
     setSaving(true);
     try {
@@ -86,6 +134,7 @@ export default function StockPage() {
         .map((ps) => ({
           productCode: ps.product.code,
           qty: ps.qty,
+          location: ps.location,
         }));
 
       if (modifiedItems.length === 0) {
@@ -111,6 +160,28 @@ export default function StockPage() {
 
   const handleResetAll = () => {
     loadData();
+  };
+
+  // CSV Export handler
+  const handleExportCsv = () => {
+    const getLocationLabel = (loc: string) => {
+      const option = LOCATION_OPTIONS.find(o => o.value === loc);
+      return option?.label || loc || '';
+    };
+
+    const columns: CsvColumn<ProductStock>[] = [
+      { header: '코드', accessor: (ps) => ps.product.code },
+      { header: '한국어명', accessor: (ps) => ps.product.name_ko },
+      { header: '태국어명', accessor: (ps) => ps.product.name_th },
+      { header: '미얀마어명', accessor: (ps) => ps.product.name_mm },
+      { header: '단위', accessor: (ps) => ps.product.unit },
+      { header: '카테고리', accessor: (ps) => ps.product.category || '' },
+      { header: '보관장소', accessor: (ps) => getLocationLabel(ps.location) },
+      { header: '재고수량', accessor: (ps) => ps.qty },
+    ];
+
+    const filename = `stock_${getDateForFilename()}.csv`;
+    exportToCsv(filteredStocks, columns, filename);
   };
 
   // 필터링
@@ -157,6 +228,10 @@ export default function StockPage() {
             {modifiedCount > 0 && (
               <Badge variant="warning">{modifiedCount}개 변경됨</Badge>
             )}
+            <Button variant="secondary" onClick={handleExportCsv}>
+              <Download size={18} className="mr-1" />
+              CSV
+            </Button>
             <Button variant="secondary" onClick={handleResetAll} disabled={modifiedCount === 0}>
               초기화
             </Button>
@@ -208,10 +283,10 @@ export default function StockPage() {
                   <tr>
                     <th className="px-4 py-3 text-left text-sm font-medium text-gray-600">코드</th>
                     <th className="px-4 py-3 text-left text-sm font-medium text-gray-600">제품명</th>
-                    <th className="px-4 py-3 text-left text-sm font-medium text-gray-600">카테고리</th>
                     <th className="px-4 py-3 text-left text-sm font-medium text-gray-600">단위</th>
-                    <th className="px-4 py-3 text-center text-sm font-medium text-gray-600">재고 수량</th>
+                    <th className="px-4 py-3 text-center text-sm font-medium text-gray-600">보관장소</th>
                     <th className="px-4 py-3 text-center text-sm font-medium text-gray-600">상태</th>
+                    <th className="px-4 py-3 text-center text-sm font-medium text-gray-600">재고 수량</th>
                   </tr>
                 </thead>
                 <tbody className="divide-y">
@@ -226,33 +301,19 @@ export default function StockPage() {
                         <div className="text-sm text-gray-700">{ps.product.name_th}</div>
                         <div className="text-sm text-gray-600">{ps.product.name_mm}</div>
                       </td>
-                      <td className="px-4 py-3 text-sm text-gray-700 font-medium">
-                        {ps.product.category || '-'}
-                      </td>
                       <td className="px-4 py-3 text-sm text-gray-700 font-medium">{ps.product.unit}</td>
-                      <td className="px-4 py-3">
-                        <div className="flex items-center justify-center">
-                          <button
-                            onClick={() => handleQtyChange(ps.product.code, ps.qty - 1)}
-                            className="w-8 h-8 bg-gray-200 rounded-l border border-gray-400 hover:bg-gray-300 text-gray-700 font-bold"
-                          >
-                            -
-                          </button>
-                          <input
-                            type="number"
-                            value={ps.qty}
-                            onChange={(e) =>
-                              handleQtyChange(ps.product.code, parseInt(e.target.value) || 0)
-                            }
-                            className="w-20 h-8 text-center border-t border-b border-gray-400 focus:outline-none text-gray-900 font-bold"
-                          />
-                          <button
-                            onClick={() => handleQtyChange(ps.product.code, ps.qty + 1)}
-                            className="w-8 h-8 bg-gray-200 rounded-r border border-gray-400 hover:bg-gray-300 text-gray-700 font-bold"
-                          >
-                            +
-                          </button>
-                        </div>
+                      <td className="px-4 py-3 text-center">
+                        <select
+                          value={ps.location}
+                          onChange={(e) => handleLocationChange(ps.product.code, e.target.value)}
+                          className="px-2 py-1 text-sm border border-gray-300 rounded focus:ring-2 focus:ring-blue-500"
+                        >
+                          {LOCATION_OPTIONS.map((opt) => (
+                            <option key={opt.value} value={opt.value}>
+                              {opt.label}
+                            </option>
+                          ))}
+                        </select>
                       </td>
                       <td className="px-4 py-3 text-center">
                         {ps.isModified && (
@@ -264,6 +325,36 @@ export default function StockPage() {
                         {!ps.isModified && ps.qty > 0 && ps.qty <= 5 && (
                           <Badge variant="warning" size="sm">부족</Badge>
                         )}
+                      </td>
+                      <td className="px-4 py-3">
+                        <div className="flex items-center justify-center">
+                          <button
+                            type="button"
+                            onClick={() => handleQtyChange(ps.product.code, ps.qty - 1)}
+                            className="w-8 h-8 bg-gray-200 rounded-l border border-gray-400 hover:bg-gray-300 text-gray-700 font-bold"
+                          >
+                            -
+                          </button>
+                          <input
+                            ref={(el) => {
+                              if (el) qtyInputRefs.current.set(ps.product.code, el);
+                            }}
+                            type="number"
+                            value={ps.qty}
+                            onChange={(e) =>
+                              handleQtyChange(ps.product.code, parseInt(e.target.value) || 0)
+                            }
+                            onKeyDown={(e) => handleKeyDown(e, ps.product.code)}
+                            className="w-20 h-8 text-center border-t border-b border-gray-400 focus:outline-none focus:ring-2 focus:ring-blue-500 text-gray-900 font-bold"
+                          />
+                          <button
+                            type="button"
+                            onClick={() => handleQtyChange(ps.product.code, ps.qty + 1)}
+                            className="w-8 h-8 bg-gray-200 rounded-r border border-gray-400 hover:bg-gray-300 text-gray-700 font-bold"
+                          >
+                            +
+                          </button>
+                        </div>
                       </td>
                     </tr>
                   ))}
@@ -296,6 +387,22 @@ export default function StockPage() {
                     {!ps.isModified && ps.qty > 0 && ps.qty <= 5 && (
                       <Badge variant="warning" size="sm">부족</Badge>
                     )}
+                  </div>
+
+                  {/* 보관장소 선택 */}
+                  <div className="mb-3">
+                    <label className="text-xs text-gray-600 mb-1 block">보관장소</label>
+                    <select
+                      value={ps.location}
+                      onChange={(e) => handleLocationChange(ps.product.code, e.target.value)}
+                      className="w-full px-3 py-2 text-sm border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500"
+                    >
+                      {LOCATION_OPTIONS.map((opt) => (
+                        <option key={opt.value} value={opt.value}>
+                          {opt.label}
+                        </option>
+                      ))}
+                    </select>
                   </div>
 
                   <div className="flex items-center justify-center">

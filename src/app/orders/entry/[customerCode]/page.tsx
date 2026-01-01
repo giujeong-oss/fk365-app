@@ -1,6 +1,6 @@
 'use client';
 
-import { useState, useEffect, useCallback } from 'react';
+import { useState, useEffect, useCallback, useRef } from 'react';
 import { useParams, useSearchParams, useRouter } from 'next/navigation';
 import { useAuth } from '@/lib/context';
 import { ProtectedRoute } from '@/components/auth';
@@ -48,6 +48,33 @@ export default function OrderEntryPage() {
   const [freshMarginMap, setFreshMarginMap] = useState<Map<Grade, number>>(new Map());
   const [industrialMarginMap, setIndustrialMarginMap] = useState<Map<Grade, IndustrialMargin>>(new Map());
   const [showingAllProducts, setShowingAllProducts] = useState(false);
+  const [loadError, setLoadError] = useState<string | null>(null);
+
+  // Tab 키 네비게이션을 위한 refs
+  const qtyInputRefs = useRef<Map<string, HTMLInputElement>>(new Map());
+
+  // Tab 키로 다음 행 이동
+  const handleKeyDown = (e: React.KeyboardEvent, productCode: string) => {
+    if (e.key === 'Tab' && !e.shiftKey) {
+      e.preventDefault();
+      const productCodes = productStates.map(s => s.product.code);
+      const currentIndex = productCodes.indexOf(productCode);
+      const nextIndex = currentIndex + 1;
+      if (nextIndex < productCodes.length) {
+        const nextCode = productCodes[nextIndex];
+        qtyInputRefs.current.get(nextCode)?.focus();
+      }
+    } else if (e.key === 'Tab' && e.shiftKey) {
+      e.preventDefault();
+      const productCodes = productStates.map(s => s.product.code);
+      const currentIndex = productCodes.indexOf(productCode);
+      const prevIndex = currentIndex - 1;
+      if (prevIndex >= 0) {
+        const prevCode = productCodes[prevIndex];
+        qtyInputRefs.current.get(prevCode)?.focus();
+      }
+    }
+  };
 
   useEffect(() => {
     loadData();
@@ -55,17 +82,22 @@ export default function OrderEntryPage() {
 
   const loadData = async () => {
     setLoading(true);
+    setLoadError(null);
     try {
+      // 고객 코드 정규화 (공백 제거)
+      const normalizedCode = decodeURIComponent(customerCode).trim();
+
       // 병렬로 모든 기본 데이터 로드
       const [customerData, allProducts, freshMap, industrialMap] = await Promise.all([
-        getCustomerByCode(customerCode),
+        getCustomerByCode(normalizedCode),
         getProducts(true),
         getFreshMarginMap(),
         getIndustrialMarginMap(),
       ]);
 
       if (!customerData) {
-        router.push('/orders');
+        setLoadError(`고객 코드 "${normalizedCode}"를 찾을 수 없습니다. 고객이 등록되어 있는지 확인해주세요.`);
+        setLoading(false);
         return;
       }
 
@@ -136,6 +168,7 @@ export default function OrderEntryPage() {
       setProductStates(states);
     } catch (error) {
       console.error('Failed to load data:', error);
+      setLoadError('데이터를 불러오는 중 오류가 발생했습니다. 다시 시도해주세요.');
     } finally {
       setLoading(false);
     }
@@ -262,8 +295,37 @@ export default function OrderEntryPage() {
     );
   }
 
-  if (!customer) {
-    return null;
+  // 에러 또는 고객을 찾을 수 없는 경우
+  if (loadError || !customer) {
+    return (
+      <ProtectedRoute>
+        <div className="min-h-screen bg-gray-50 flex items-center justify-center p-4">
+          <div className="bg-white rounded-xl shadow-lg p-8 max-w-md w-full text-center">
+            <div className="w-16 h-16 mx-auto mb-4 bg-red-100 rounded-full flex items-center justify-center">
+              <svg className="w-8 h-8 text-red-500" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-3L13.732 4c-.77-1.333-2.694-1.333-3.464 0L3.34 16c-.77 1.333.192 3 1.732 3z" />
+              </svg>
+            </div>
+            <h2 className="text-xl font-bold text-gray-900 mb-2">고객을 찾을 수 없습니다</h2>
+            <p className="text-gray-600 mb-6">
+              {loadError || `고객 코드 "${customerCode}"가 존재하지 않습니다.`}
+            </p>
+            <div className="space-y-3">
+              <Link href="/orders" className="block">
+                <Button variant="primary" className="w-full">
+                  주문 목록으로 돌아가기
+                </Button>
+              </Link>
+              <Link href="/customers/new" className="block">
+                <Button variant="secondary" className="w-full">
+                  새 고객 등록하기
+                </Button>
+              </Link>
+            </div>
+          </div>
+        </div>
+      </ProtectedRoute>
+    );
   }
 
   return (
@@ -396,12 +458,16 @@ export default function OrderEntryPage() {
                           -
                         </button>
                         <input
+                          ref={(el) => {
+                            if (el) qtyInputRefs.current.set(state.product.code, el);
+                          }}
                           type="number"
                           value={state.qty}
                           onChange={(e) =>
                             handleQtyChange(state.product.code, parseInt(e.target.value) || 0)
                           }
-                          className="w-16 h-8 text-center border-t border-b border-gray-300 focus:outline-none"
+                          onKeyDown={(e) => handleKeyDown(e, state.product.code)}
+                          className="w-16 h-8 text-center border-t border-b border-gray-300 focus:outline-none focus:ring-2 focus:ring-blue-500"
                         />
                         <button
                           type="button"

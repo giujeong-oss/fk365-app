@@ -25,6 +25,22 @@ const REGION_OPTIONS = [
   { value: 'bangkok', label: '방콕' },
 ];
 
+const DELIVERY_TIME_OPTIONS = [
+  { value: '', label: '선택 안함' },
+  { value: '06:00', label: '~06:00 전까지' },
+  { value: '07:00', label: '~07:00 전까지' },
+  { value: '08:00', label: '~08:00 전까지' },
+  { value: '09:00', label: '~09:00 전까지' },
+  { value: '10:00', label: '~10:00 전까지' },
+  { value: '11:00', label: '~11:00 전까지' },
+  { value: '12:00', label: '~12:00 전까지' },
+  { value: '13:00', label: '~13:00 전까지' },
+  { value: '14:00', label: '~14:00 전까지' },
+  { value: '15:00', label: '~15:00 전까지' },
+  { value: '16:00', label: '~16:00 전까지' },
+  { value: '17:00', label: '~17:00 전까지' },
+];
+
 export default function NewCustomerPage() {
   const router = useRouter();
   const { user, isAdmin, signOut } = useAuth();
@@ -37,6 +53,10 @@ export default function NewCustomerPage() {
     grade: 'C' as Grade,
     region: '' as Region | '',
     deliveryTime: '',
+    gpsLat: '',
+    gpsLng: '',
+    contact1: '',
+    contact2: '',
   });
 
   const handleChange = (
@@ -70,7 +90,11 @@ export default function NewCustomerPage() {
         fullName: formData.fullName.trim(),
         grade: formData.grade,
         region: formData.region as Region,
-        deliveryTime: formData.deliveryTime.trim() || undefined,
+        deliveryTime: formData.deliveryTime || undefined,
+        gpsLat: formData.gpsLat ? parseFloat(formData.gpsLat) : undefined,
+        gpsLng: formData.gpsLng ? parseFloat(formData.gpsLng) : undefined,
+        contact1: formData.contact1.trim() || undefined,
+        contact2: formData.contact2.trim() || undefined,
         products: [],
         isActive: true,
       });
@@ -143,14 +167,53 @@ export default function NewCustomerPage() {
                 />
               </div>
 
-              <Input
+              <Select
                 label="배송 시간"
                 name="deliveryTime"
                 value={formData.deliveryTime}
                 onChange={handleChange}
-                placeholder="예: 오전 10시, 오후 2시"
-                helperText="선택 사항"
+                options={DELIVERY_TIME_OPTIONS}
               />
+
+              {/* 연락처 */}
+              <div className="grid grid-cols-2 gap-4">
+                <Input
+                  label="연락처 1"
+                  name="contact1"
+                  value={formData.contact1}
+                  onChange={handleChange}
+                  placeholder="예: 081-234-5678"
+                />
+                <Input
+                  label="연락처 2"
+                  name="contact2"
+                  value={formData.contact2}
+                  onChange={handleChange}
+                  placeholder="예: 081-234-5678"
+                />
+              </div>
+
+              {/* GPS 좌표 */}
+              <div className="grid grid-cols-2 gap-4">
+                <Input
+                  label="GPS 위도"
+                  name="gpsLat"
+                  type="number"
+                  step="any"
+                  value={formData.gpsLat}
+                  onChange={handleChange}
+                  placeholder="예: 12.9236"
+                />
+                <Input
+                  label="GPS 경도"
+                  name="gpsLng"
+                  type="number"
+                  step="any"
+                  value={formData.gpsLng}
+                  onChange={handleChange}
+                  placeholder="예: 100.8825"
+                />
+              </div>
 
               {error && (
                 <div className="p-4 bg-red-50 border border-red-200 rounded-lg text-sm text-red-600">

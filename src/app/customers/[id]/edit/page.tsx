@@ -6,7 +6,8 @@ import { MainLayout } from '@/components/layout';
 import { ProtectedRoute } from '@/components/auth';
 import { useAuth } from '@/lib/context';
 import { Button, Input, Select, LoadingState, Badge } from '@/components/ui';
-import { getCustomer, updateCustomer } from '@/lib/firebase';
+import { getCustomer, updateCustomer, getProducts } from '@/lib/firebase';
+import type { Product } from '@/types';
 import type { Grade, Region } from '@/types';
 import { ArrowLeft, AlertTriangle } from 'lucide-react';
 import Link from 'next/link';
@@ -25,6 +26,22 @@ const REGION_OPTIONS = [
   { value: 'bangkok', label: '방콕' },
 ];
 
+const DELIVERY_TIME_OPTIONS = [
+  { value: '', label: '선택 안함' },
+  { value: '06:00', label: '~06:00 전까지' },
+  { value: '07:00', label: '~07:00 전까지' },
+  { value: '08:00', label: '~08:00 전까지' },
+  { value: '09:00', label: '~09:00 전까지' },
+  { value: '10:00', label: '~10:00 전까지' },
+  { value: '11:00', label: '~11:00 전까지' },
+  { value: '12:00', label: '~12:00 전까지' },
+  { value: '13:00', label: '~13:00 전까지' },
+  { value: '14:00', label: '~14:00 전까지' },
+  { value: '15:00', label: '~15:00 전까지' },
+  { value: '16:00', label: '~16:00 전까지' },
+  { value: '17:00', label: '~17:00 전까지' },
+];
+
 export default function EditCustomerPage() {
   const router = useRouter();
   const params = useParams();
@@ -34,6 +51,8 @@ export default function EditCustomerPage() {
   const [loading, setLoading] = useState(true);
   const [saving, setSaving] = useState(false);
   const [error, setError] = useState('');
+  const [customerProductCodes, setCustomerProductCodes] = useState<string[]>([]);
+  const [allProducts, setAllProducts] = useState<Product[]>([]);
 
   const [originalGrade, setOriginalGrade] = useState<Grade>('C');
   const [formData, setFormData] = useState({
@@ -42,6 +61,10 @@ export default function EditCustomerPage() {
     grade: 'C' as Grade,
     region: '' as Region | '',
     deliveryTime: '',
+    gpsLat: '',
+    gpsLng: '',
+    contact1: '',
+    contact2: '',
     isActive: true,
   });
 
@@ -49,7 +72,10 @@ export default function EditCustomerPage() {
   useEffect(() => {
     const loadData = async () => {
       try {
-        const customer = await getCustomer(customerId);
+        const [customer, products] = await Promise.all([
+          getCustomer(customerId),
+          getProducts(true),
+        ]);
 
         if (!customer) {
           router.push('/customers');
@@ -57,12 +83,18 @@ export default function EditCustomerPage() {
         }
 
         setOriginalGrade(customer.grade);
+        setCustomerProductCodes(customer.products || []);
+        setAllProducts(products);
         setFormData({
           code: customer.code,
           fullName: customer.fullName,
           grade: customer.grade,
           region: customer.region,
           deliveryTime: customer.deliveryTime || '',
+          gpsLat: customer.gpsLat?.toString() || '',
+          gpsLng: customer.gpsLng?.toString() || '',
+          contact1: customer.contact1 || '',
+          contact2: customer.contact2 || '',
           isActive: customer.isActive,
         });
       } catch (err) {
@@ -102,7 +134,11 @@ export default function EditCustomerPage() {
         fullName: formData.fullName.trim(),
         grade: formData.grade,
         region: formData.region as Region,
-        deliveryTime: formData.deliveryTime.trim() || undefined,
+        deliveryTime: formData.deliveryTime || undefined,
+        gpsLat: formData.gpsLat ? parseFloat(formData.gpsLat) : undefined,
+        gpsLng: formData.gpsLng ? parseFloat(formData.gpsLng) : undefined,
+        contact1: formData.contact1.trim() || undefined,
+        contact2: formData.contact2.trim() || undefined,
         isActive: formData.isActive,
       });
 
@@ -203,13 +239,53 @@ export default function EditCustomerPage() {
                 />
               </div>
 
-              <Input
+              <Select
                 label="배송 시간"
                 name="deliveryTime"
                 value={formData.deliveryTime}
                 onChange={handleChange}
-                placeholder="예: 오전 10시, 오후 2시"
+                options={DELIVERY_TIME_OPTIONS}
               />
+
+              {/* 연락처 */}
+              <div className="grid grid-cols-2 gap-4">
+                <Input
+                  label="연락처 1"
+                  name="contact1"
+                  value={formData.contact1}
+                  onChange={handleChange}
+                  placeholder="예: 081-234-5678"
+                />
+                <Input
+                  label="연락처 2"
+                  name="contact2"
+                  value={formData.contact2}
+                  onChange={handleChange}
+                  placeholder="예: 081-234-5678"
+                />
+              </div>
+
+              {/* GPS 좌표 */}
+              <div className="grid grid-cols-2 gap-4">
+                <Input
+                  label="GPS 위도"
+                  name="gpsLat"
+                  type="number"
+                  step="any"
+                  value={formData.gpsLat}
+                  onChange={handleChange}
+                  placeholder="예: 12.9236"
+                />
+                <Input
+                  label="GPS 경도"
+                  name="gpsLng"
+                  type="number"
+                  step="any"
+                  value={formData.gpsLng}
+                  onChange={handleChange}
+                  placeholder="예: 100.8825"
+                />
+              </div>
 
               <div className="flex items-center gap-2">
                 <input
@@ -246,16 +322,44 @@ export default function EditCustomerPage() {
           </form>
 
           {/* Products Link */}
-          <div className="mt-6 p-4 bg-gray-50 rounded-lg flex items-center justify-between">
-            <div>
-              <h3 className="font-medium text-gray-900">제품 매핑</h3>
-              <p className="text-sm text-gray-500">이 고객이 주문할 수 있는 제품을 설정합니다.</p>
+          <div className="mt-6 bg-gray-50 rounded-lg overflow-hidden">
+            <div className="p-4 flex items-center justify-between border-b border-gray-200">
+              <div>
+                <h3 className="font-medium text-gray-900">제품 매핑</h3>
+                <p className="text-sm text-gray-600">
+                  {customerProductCodes.length > 0
+                    ? `${customerProductCodes.length}개 제품이 매핑되어 있습니다`
+                    : '매핑된 제품이 없습니다'}
+                </p>
+              </div>
+              <Link href={`/customers/${customerId}/products`}>
+                <Button variant="secondary" size="sm">
+                  제품 관리
+                </Button>
+              </Link>
             </div>
-            <Link href={`/customers/${customerId}/products`}>
-              <Button variant="secondary" size="sm">
-                제품 관리
-              </Button>
-            </Link>
+            {/* 현재 매핑된 제품 목록 */}
+            {customerProductCodes.length > 0 && (
+              <div className="p-4 max-h-48 overflow-y-auto">
+                <div className="flex flex-wrap gap-2">
+                  {customerProductCodes.map((code) => {
+                    const product = allProducts.find(p => p.code === code);
+                    return (
+                      <span
+                        key={code}
+                        className="inline-flex items-center gap-1 px-2 py-1 bg-white border border-gray-200 rounded text-xs"
+                        title={product ? `${product.name_ko} / ${product.name_th}` : code}
+                      >
+                        <span className="font-mono text-gray-700">{code}</span>
+                        {product && (
+                          <span className="text-gray-500">- {product.name_ko}</span>
+                        )}
+                      </span>
+                    );
+                  })}
+                </div>
+              </div>
+            )}
           </div>
         </div>
       </MainLayout>

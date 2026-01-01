@@ -7,8 +7,9 @@ import { useAuth } from '@/lib/context';
 import { Button, EmptyState, LoadingState, Badge } from '@/components/ui';
 import { getProducts, deleteProduct, getVendors, updateProduct } from '@/lib/firebase';
 import type { Product, Vendor, PriceType } from '@/types';
-import { Plus, Pencil, Trash2, Apple, Search } from 'lucide-react';
+import { Plus, Pencil, Trash2, Apple, Search, CheckSquare, Download } from 'lucide-react';
 import Link from 'next/link';
+import { exportToCsv, getDateForFilename, type CsvColumn } from '@/lib/utils';
 
 export default function ProductsPage() {
   const { user, isAdmin, signOut } = useAuth();
@@ -19,8 +20,12 @@ export default function ProductsPage() {
   const [showInactive, setShowInactive] = useState(false);
   const [filterType, setFilterType] = useState<'all' | 'fresh' | 'industrial'>('all');
 
+  // Selection for bulk delete
+  const [selectedIds, setSelectedIds] = useState<Set<string>>(new Set());
+
   // Delete confirmation
   const [deleteTarget, setDeleteTarget] = useState<Product | null>(null);
+  const [bulkDeleteMode, setBulkDeleteMode] = useState(false);
 
   // Load data
   const loadData = async () => {
@@ -89,6 +94,68 @@ export default function ProductsPage() {
     }
   };
 
+  // Toggle single selection
+  const toggleSelection = (productId: string) => {
+    setSelectedIds(prev => {
+      const newSet = new Set(prev);
+      if (newSet.has(productId)) {
+        newSet.delete(productId);
+      } else {
+        newSet.add(productId);
+      }
+      return newSet;
+    });
+  };
+
+  // Toggle all selection (only filtered products)
+  const toggleSelectAll = () => {
+    if (selectedIds.size === filteredProducts.length) {
+      setSelectedIds(new Set());
+    } else {
+      setSelectedIds(new Set(filteredProducts.map(p => p.id)));
+    }
+  };
+
+  // Clear selection
+  const clearSelection = () => {
+    setSelectedIds(new Set());
+  };
+
+  // Bulk delete handler
+  const handleBulkDelete = async () => {
+    if (selectedIds.size === 0) return;
+
+    try {
+      // Delete all selected products
+      await Promise.all(
+        Array.from(selectedIds).map(id => deleteProduct(id))
+      );
+      setBulkDeleteMode(false);
+      setSelectedIds(new Set());
+      loadData();
+    } catch (error) {
+      console.error('Failed to bulk delete products:', error);
+    }
+  };
+
+  // CSV Export handler
+  const handleExportCsv = () => {
+    const columns: CsvColumn<Product>[] = [
+      { header: '코드', accessor: 'code' },
+      { header: '한국어명', accessor: 'name_ko' },
+      { header: '태국어명', accessor: 'name_th' },
+      { header: '미얀마어명', accessor: 'name_mm' },
+      { header: '유형', accessor: (p) => p.priceType === 'fresh' ? '신선' : '공산품' },
+      { header: '단위', accessor: 'unit' },
+      { header: '카테고리', accessor: (p) => p.category || '' },
+      { header: '구매처', accessor: (p) => getVendorName(p.vendorCode) },
+      { header: '상태', accessor: (p) => p.isActive ? '활성' : '비활성' },
+    ];
+
+    const filename = `products_${getDateForFilename()}.csv`;
+    exportToCsv(filteredProducts, columns, filename);
+  };
+
   return (
     <ProtectedRoute adminOnly>
       <MainLayout
@@ -100,13 +167,38 @@ export default function ProductsPage() {
         <div className="p-4 lg:p-8 max-w-7xl mx-auto">
           {/* Header */}
           <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4 mb-6">
-            <h1 className="text-2xl font-bold text-gray-900">제품 관리</h1>
-            <Link href="/products/new">
-              <Button>
-                <Plus size={18} className="mr-2" />
-                제품 추가
-              </Button>
-            </Link>
+            <div className="flex items-center gap-4">
+              <h1 className="text-2xl font-bold text-gray-900">제품 관리</h1>
+              {selectedIds.size > 0 && (
+                <Badge variant="primary">{selectedIds.size}개 선택</Badge>
+              )}
+            </div>
+            <div className="flex items-center gap-2">
+              {selectedIds.size > 0 ? (
+                <>
+                  <Button variant="secondary" onClick={clearSelection}>
+                    선택 해제
+                  </Button>
+                  <Button variant="danger" onClick={() => setBulkDeleteMode(true)}>
+                    <Trash2 size={18} className="mr-2" />
+                    일괄 삭제
+                  </Button>
+                </>
+              ) : (
+                <>
+                  <Button variant="secondary" onClick={handleExportCsv}>
+                    <Download size={18} className="mr-2" />
+                    CSV
+                  </Button>
+                  <Link href="/products/new">
+                    <Button>
+                      <Plus size={18} className="mr-2" />
+                      제품 추가
+                    </Button>
+                  </Link>
+                </>
+              )}
+            </div>
           </div>
 
           {/* Search & Filter */}
@@ -194,6 +286,14 @@ export default function ProductsPage() {
                   <table className="w-full">
                     <thead className="bg-gray-50">
                       <tr>
+                        <th className="px-4 py-3 text-center w-12">
+                          <input
+                            type="checkbox"
+                            checked={selectedIds.size === filteredProducts.length && filteredProducts.length > 0}
+                            onChange={toggleSelectAll}
+                            className="rounded border-gray-300 text-green-600 focus:ring-green-500"
+                          />
+                        </th>
                         <th className="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase">
                           코드
                         </th>
@@ -219,7 +319,15 @@ export default function ProductsPage() {
                     </thead>
                     <tbody className="divide-y divide-gray-200">
                       {filteredProducts.map((product) => (
-                        <tr key={product.id} className="hover:bg-gray-50">
+                        <tr key={product.id} className={`hover:bg-gray-50 ${selectedIds.has(product.id) ? 'bg-green-50' : ''}`}>
+                          <td className="px-4 py-3 text-center">
+                            <input
+                              type="checkbox"
+                              checked={selectedIds.has(product.id)}
+                              onChange={() => toggleSelection(product.id)}
+                              className="rounded border-gray-300 text-green-600 focus:ring-green-500"
+                            />
+                          </td>
                           <td className="px-4 py-3 whitespace-nowrap font-mono text-sm text-gray-800 font-semibold">
                             {product.code}
                           </td>
@@ -286,10 +394,18 @@ export default function ProductsPage() {
                 {filteredProducts.map((product) => (
                   <div
                     key={product.id}
-                    className="bg-white rounded-xl shadow-sm border border-gray-200 p-4"
+                    className={`bg-white rounded-xl shadow-sm border p-4 ${
+                      selectedIds.has(product.id) ? 'border-green-500 bg-green-50' : 'border-gray-200'
+                    }`}
                   >
                     <div className="flex items-start justify-between mb-2">
-                      <div className="flex items-center gap-2">
+                      <div className="flex items-center gap-3">
+                        <input
+                          type="checkbox"
+                          checked={selectedIds.has(product.id)}
+                          onChange={() => toggleSelection(product.id)}
+                          className="rounded border-gray-300 text-green-600 focus:ring-green-500"
+                        />
                         <span className="font-mono text-sm font-medium text-gray-900">
                           {product.code}
                         </span>
@@ -361,6 +477,51 @@ export default function ProductsPage() {
                   </Button>
                   <Button variant="danger" onClick={handleDelete}>
                     삭제
+                  </Button>
+                </div>
+              </div>
+            </div>
+          </div>
+        )}
+
+        {/* Bulk Delete Confirmation Modal */}
+        {bulkDeleteMode && (
+          <div className="fixed inset-0 z-50 overflow-y-auto">
+            <div
+              className="fixed inset-0 bg-black/50"
+              onClick={() => setBulkDeleteMode(false)}
+            />
+            <div className="flex min-h-full items-center justify-center p-4">
+              <div className="relative bg-white rounded-xl shadow-xl max-w-md w-full p-6">
+                <h3 className="text-lg font-semibold text-gray-900 mb-2">
+                  일괄 삭제 확인
+                </h3>
+                <p className="text-gray-600 mb-4">
+                  선택한 <span className="font-bold text-red-600">{selectedIds.size}개</span> 제품을 삭제하시겠습니까?
+                  <br />
+                  <span className="text-sm text-red-500">이 작업은 되돌릴 수 없습니다.</span>
+                </p>
+                <div className="max-h-40 overflow-y-auto mb-4 p-3 bg-gray-50 rounded-lg">
+                  <div className="flex flex-wrap gap-2">
+                    {Array.from(selectedIds).map((id) => {
+                      const product = products.find(p => p.id === id);
+                      return product ? (
+                        <span
+                          key={id}
+                          className="inline-flex items-center px-2 py-1 bg-red-100 text-red-800 rounded text-xs"
+                        >
+                          {product.code} - {product.name_ko}
+                        </span>
+                      ) : null;
+                    })}
+                  </div>
+                </div>
+                <div className="flex justify-end gap-3">
+                  <Button variant="secondary" onClick={() => setBulkDeleteMode(false)}>
+                    취소
+                  </Button>
+                  <Button variant="danger" onClick={handleBulkDelete}>
+                    {selectedIds.size}개 삭제
                   </Button>
                 </div>
               </div>
