@@ -547,6 +547,27 @@ dashboard.thailandTime, dashboard.closed, dashboard.before04
 - 발주서 페이지 신선 제품 구매처 변경 기능
 - 설정 페이지 사용자 추가 기능
 
+### 2026-01-02 (UI/UX 및 다국어 개선)
+- **주문 페이지**
+  - 캘린더 날짜 색상 검은색으로 변경 (가독성 개선)
+  - 고객 코드, 수량, 가격 초록색 적용
+- **주문 입력 페이지**
+  - 제품명, 수량, adj, 판매가에 초록색 적용
+  - 하단 저장 바 다국어 지원 (선택 항목, 주문 저장)
+- **발주서 페이지**
+  - 테이블 헤더 다국어 지원 (제품, 유형, 1차 주문량, 재고, 발주 수량, 매입가, 구매처)
+  - 연한 회색 → 검은색, 재고 → 초록색으로 가독성 개선
+- **재고 페이지**
+  - 카테고리 필터를 유형(신선/공산품)으로 변경
+- **가격 페이지**
+  - 탭 순서 변경: 신선제품이 먼저, 공산품이 두 번째로
+- **번역 키 추가** (translations.ts)
+  - `common.count`, `common.saving`
+  - `products.product`, `products.type`
+  - `vendors.vendor`
+  - `orders.baseAdj`, `orders.orderAdj`, `orders.sellPrice`, `orders.selectedItems`, `orders.totalAmount`, `orders.saveOrder`
+  - `purchaseOrders.cut1Order`, `purchaseOrders.orderQty`, `purchaseOrders.buyPrice`
+
 ### 2026-01-01
 - Firebase 로그인 에러 수정 (환경변수 trim 처리)
 - 제품/구매처/고객 페이지 UI 개선

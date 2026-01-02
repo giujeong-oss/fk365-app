@@ -2,6 +2,7 @@
 
 import { useState, useEffect } from 'react';
 import { useAuth } from '@/lib/context';
+import { useI18n } from '@/lib/i18n/I18nContext';
 import { ProtectedRoute } from '@/components/auth';
 import { MainLayout } from '@/components/layout';
 import { Button, Spinner, Badge, EmptyState } from '@/components/ui';
@@ -41,6 +42,7 @@ interface ProductSummary {
 
 export default function PurchaseOrdersPage() {
   const { user, isAdmin, signOut } = useAuth();
+  const { t } = useI18n();
   const [date, setDate] = useState(() => {
     const today = new Date();
     return today.toISOString().split('T')[0];
@@ -605,17 +607,17 @@ export default function PurchaseOrdersPage() {
               <table className="w-full">
                 <thead className="bg-gray-50">
                   <tr>
-                    <th className="px-4 py-3 text-left text-sm font-medium text-gray-800">제품</th>
-                    <th className="px-4 py-3 text-center text-sm font-medium text-gray-800">유형</th>
+                    <th className="px-4 py-3 text-left text-sm font-medium text-gray-900">{t('products.product')}</th>
+                    <th className="px-4 py-3 text-center text-sm font-medium text-gray-900">{t('products.type')}</th>
                     {activeTab === 'buy1' && (
                       <>
-                        <th className="px-4 py-3 text-right text-sm font-medium text-gray-800">1차 주문</th>
-                        <th className="px-4 py-3 text-right text-sm font-medium text-gray-800">재고</th>
+                        <th className="px-4 py-3 text-right text-sm font-medium text-gray-900">{t('purchaseOrders.cut1Order')}</th>
+                        <th className="px-4 py-3 text-right text-sm font-medium text-gray-900">{t('nav.stock')}</th>
                       </>
                     )}
-                    <th className="px-4 py-3 text-right text-sm font-medium text-gray-800">발주량</th>
-                    <th className="px-4 py-3 text-center text-sm font-medium text-gray-800">매입가</th>
-                    <th className="px-4 py-3 text-left text-sm font-medium text-gray-800">구매처</th>
+                    <th className="px-4 py-3 text-right text-sm font-medium text-gray-900">{t('purchaseOrders.orderQty')}</th>
+                    <th className="px-4 py-3 text-center text-sm font-medium text-gray-900">{t('purchaseOrders.buyPrice')}</th>
+                    <th className="px-4 py-3 text-left text-sm font-medium text-gray-900">{t('vendors.vendor')}</th>
                   </tr>
                 </thead>
                 <tbody className="divide-y">
@@ -639,11 +641,11 @@ export default function PurchaseOrdersPage() {
                         </td>
                         {activeTab === 'buy1' && (
                           <>
-                            <td className="px-4 py-3 text-right">{summary.cut1}</td>
-                            <td className="px-4 py-3 text-right">{summary.stock}</td>
+                            <td className="px-4 py-3 text-right text-gray-900 font-medium">{summary.cut1}</td>
+                            <td className="px-4 py-3 text-right text-green-600 font-semibold">{summary.stock}</td>
                           </>
                         )}
-                        <td className="px-4 py-3 text-right font-bold text-blue-600">
+                        <td className="px-4 py-3 text-right font-bold text-green-600">
                           {activeTab === 'buy1' ? summary.buy1 : activeTab === 'buy2' ? summary.buy2 : summary.buy3}
                         </td>
                         <td className="px-4 py-3 text-center">
@@ -684,7 +686,7 @@ export default function PurchaseOrdersPage() {
                               )}
                             </div>
                           ) : (
-                            <span className="text-sm text-gray-900 font-medium">
+                            <span className="text-sm text-gray-900 font-semibold">
                               {getVendorName(summary.product.vendorCode)}
                             </span>
                           )}

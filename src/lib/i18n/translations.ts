@@ -41,6 +41,8 @@ export const translations = {
     'common.import': '가져오기',
     'common.reset': '초기화',
     'common.required': '필수',
+    'common.count': '개',
+    'common.saving': '저장 중...',
 
     // Auth
     'auth.login': '로그인',
@@ -97,6 +99,8 @@ export const translations = {
     'products.vendor': '구매처',
     'products.active': '활성',
     'products.inactive': '비활성',
+    'products.product': '제품',
+    'products.type': '유형',
 
     // Customers
     'customers.title': '고객 관리',
@@ -117,6 +121,7 @@ export const translations = {
     'vendors.edit': '구매처 수정',
     'vendors.code': '구매처 코드',
     'vendors.name': '구매처명',
+    'vendors.vendor': '구매처',
 
     // Orders
     'orders.title': '주문 입력',
@@ -134,6 +139,12 @@ export const translations = {
     'orders.adj': '조정',
     'orders.ordered': '주문 완료',
     'orders.notOrdered': '미주문',
+    'orders.baseAdj': '기본 adj',
+    'orders.orderAdj': '주문 adj',
+    'orders.sellPrice': '판매가',
+    'orders.selectedItems': '선택 항목',
+    'orders.totalAmount': '총 금액',
+    'orders.saveOrder': '주문 저장',
 
     // Purchase Orders
     'po.title': '발주서',
@@ -143,6 +154,9 @@ export const translations = {
     'po.generate': '발주서 생성',
     'po.buyQty': '발주량',
     'po.stock': '재고',
+    'purchaseOrders.cut1Order': '1차 주문량',
+    'purchaseOrders.orderQty': '발주 수량',
+    'purchaseOrders.buyPrice': '매입가',
 
     // Stock
     'stock.title': '재고 관리',
@@ -212,6 +226,8 @@ export const translations = {
     'common.import': 'นำเข้า',
     'common.reset': 'รีเซ็ต',
     'common.required': 'จำเป็น',
+    'common.count': 'รายการ',
+    'common.saving': 'กำลังบันทึก...',
 
     // Auth
     'auth.login': 'เข้าสู่ระบบ',
@@ -268,6 +284,8 @@ export const translations = {
     'products.vendor': 'ผู้ขาย',
     'products.active': 'ใช้งาน',
     'products.inactive': 'ไม่ใช้งาน',
+    'products.product': 'สินค้า',
+    'products.type': 'ประเภท',
 
     // Customers
     'customers.title': 'จัดการลูกค้า',
@@ -288,6 +306,7 @@ export const translations = {
     'vendors.edit': 'แก้ไขผู้ขาย',
     'vendors.code': 'รหัสผู้ขาย',
     'vendors.name': 'ชื่อผู้ขาย',
+    'vendors.vendor': 'ผู้ขาย',
 
     // Orders
     'orders.title': 'ป้อนคำสั่งซื้อ',
@@ -305,6 +324,12 @@ export const translations = {
     'orders.adj': 'ปรับ',
     'orders.ordered': 'สั่งแล้ว',
     'orders.notOrdered': 'ยังไม่สั่ง',
+    'orders.baseAdj': 'adj พื้นฐาน',
+    'orders.orderAdj': 'adj คำสั่ง',
+    'orders.sellPrice': 'ราคาขาย',
+    'orders.selectedItems': 'รายการที่เลือก',
+    'orders.totalAmount': 'ยอดรวม',
+    'orders.saveOrder': 'บันทึกคำสั่ง',
 
     // Purchase Orders
     'po.title': 'ใบสั่งซื้อ',
@@ -314,6 +339,9 @@ export const translations = {
     'po.generate': 'สร้างใบสั่งซื้อ',
     'po.buyQty': 'จำนวนสั่ง',
     'po.stock': 'สต็อก',
+    'purchaseOrders.cut1Order': 'ออเดอร์รอบ 1',
+    'purchaseOrders.orderQty': 'จำนวนสั่งซื้อ',
+    'purchaseOrders.buyPrice': 'ราคาซื้อ',
 
     // Stock
     'stock.title': 'จัดการสต็อก',
@@ -383,6 +411,8 @@ export const translations = {
     'common.import': 'Import',
     'common.reset': 'Reset',
     'common.required': 'Required',
+    'common.count': 'items',
+    'common.saving': 'Saving...',
 
     // Auth
     'auth.login': 'Login',
@@ -439,6 +469,8 @@ export const translations = {
     'products.vendor': 'Vendor',
     'products.active': 'Active',
     'products.inactive': 'Inactive',
+    'products.product': 'Product',
+    'products.type': 'Type',
 
     // Customers
     'customers.title': 'Customer Management',
@@ -459,6 +491,7 @@ export const translations = {
     'vendors.edit': 'Edit Vendor',
     'vendors.code': 'Vendor Code',
     'vendors.name': 'Vendor Name',
+    'vendors.vendor': 'Vendor',
 
     // Orders
     'orders.title': 'Order Entry',
@@ -476,6 +509,12 @@ export const translations = {
     'orders.adj': 'Adjustment',
     'orders.ordered': 'Ordered',
     'orders.notOrdered': 'Not Ordered',
+    'orders.baseAdj': 'Base Adj',
+    'orders.orderAdj': 'Order Adj',
+    'orders.sellPrice': 'Sell Price',
+    'orders.selectedItems': 'Selected Items',
+    'orders.totalAmount': 'Total Amount',
+    'orders.saveOrder': 'Save Order',
 
     // Purchase Orders
     'po.title': 'Purchase Orders',
@@ -485,6 +524,9 @@ export const translations = {
     'po.generate': 'Generate PO',
     'po.buyQty': 'Buy Qty',
     'po.stock': 'Stock',
+    'purchaseOrders.cut1Order': '1st Round Order',
+    'purchaseOrders.orderQty': 'Order Qty',
+    'purchaseOrders.buyPrice': 'Buy Price',
 
     // Stock
     'stock.title': 'Stock Management',

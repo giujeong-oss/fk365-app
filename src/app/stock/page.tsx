@@ -33,9 +33,8 @@ export default function StockPage() {
   const [loading, setLoading] = useState(true);
   const [saving, setSaving] = useState(false);
   const [searchTerm, setSearchTerm] = useState('');
-  const [selectedCategory, setSelectedCategory] = useState('');
+  const [selectedPriceType, setSelectedPriceType] = useState('');
   const [selectedLocation, setSelectedLocation] = useState('');
-  const [categories, setCategories] = useState<string[]>([]);
 
   // Tab 키 네비게이션을 위한 refs
   const qtyInputRefs = useRef<Map<string, HTMLInputElement>>(new Map());
@@ -75,12 +74,7 @@ export default function StockPage() {
 
       setProducts(productsData);
 
-      // 카테고리 추출
-      const cats = new Set<string>();
-      productsData.forEach((p) => {
-        if (p.category) cats.add(p.category);
-      });
-      setCategories(Array.from(cats).sort());
+      // 카테고리 추출 삭제 - priceType 필터로 변경됨
 
       // 재고 맵 생성 (qty와 location 포함)
       const stockMap = new Map<string, { qty: number; location: string }>();
@@ -193,11 +187,11 @@ export default function StockPage() {
       ps.product.name_ko.toLowerCase().includes(searchTerm.toLowerCase()) ||
       ps.product.name_th.toLowerCase().includes(searchTerm.toLowerCase());
 
-    const matchesCategory = !selectedCategory || ps.product.category === selectedCategory;
+    const matchesPriceType = !selectedPriceType || ps.product.priceType === selectedPriceType;
 
     const matchesLocation = !selectedLocation || ps.location === selectedLocation;
 
-    return matchesSearch && matchesCategory && matchesLocation;
+    return matchesSearch && matchesPriceType && matchesLocation;
   });
 
   const modifiedCount = productStocks.filter((ps) => ps.isModified).length;
@@ -255,16 +249,13 @@ export default function StockPage() {
             />
           </div>
           <select
-            value={selectedCategory}
-            onChange={(e) => setSelectedCategory(e.target.value)}
+            value={selectedPriceType}
+            onChange={(e) => setSelectedPriceType(e.target.value)}
             className="px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 text-gray-900"
           >
-            <option value="">전체 카테고리</option>
-            {categories.map((cat) => (
-              <option key={cat} value={cat}>
-                {cat}
-              </option>
-            ))}
+            <option value="">전체 유형</option>
+            <option value="fresh">신선</option>
+            <option value="industrial">공산품</option>
           </select>
           <select
             value={selectedLocation}
@@ -287,7 +278,7 @@ export default function StockPage() {
         ) : filteredStocks.length === 0 ? (
           <EmptyState
             title="제품이 없습니다"
-            description={searchTerm || selectedCategory ? '검색 조건을 변경해보세요.' : '먼저 제품을 등록해주세요.'}
+            description={searchTerm || selectedPriceType ? '검색 조건을 변경해보세요.' : '먼저 제품을 등록해주세요.'}
           />
         ) : (
           <div className="bg-white border rounded-lg overflow-hidden">

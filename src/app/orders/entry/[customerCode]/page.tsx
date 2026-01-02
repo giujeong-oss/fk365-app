@@ -3,6 +3,7 @@
 import { useState, useEffect, useCallback, useRef } from 'react';
 import { useParams, useSearchParams, useRouter } from 'next/navigation';
 import { useAuth } from '@/lib/context';
+import { useI18n } from '@/lib/i18n/I18nContext';
 import { ProtectedRoute } from '@/components/auth';
 import { Button, Select, Spinner, Badge, Input } from '@/components/ui';
 import {
@@ -35,6 +36,7 @@ export default function OrderEntryPage() {
   const searchParams = useSearchParams();
   const router = useRouter();
   const { user } = useAuth();
+  const { t } = useI18n();
 
   const customerCode = params.customerCode as string;
   const dateParam = searchParams.get('date') || new Date().toISOString().split('T')[0];
@@ -452,44 +454,44 @@ export default function OrderEntryPage() {
                 <div
                   key={state.product.code}
                   className={`bg-white rounded-lg border p-4 ${
-                    state.qty > 0 ? 'border-blue-300 bg-blue-50' : 'border-gray-200'
+                    state.qty > 0 ? 'border-green-300 bg-green-50' : 'border-gray-200'
                   }`}
                 >
                   <div className="flex items-start justify-between mb-2">
                     <div className="flex-1">
                       <div className="flex items-center gap-2 mb-1">
-                        <span className="font-mono text-xs text-gray-700 bg-gray-100 px-1.5 py-0.5 rounded">{state.product.code}</span>
-                        <span className="font-medium text-gray-900">{state.product.name_ko}</span>
+                        <span className="font-mono text-xs text-green-700 bg-green-100 px-1.5 py-0.5 rounded font-semibold">{state.product.code}</span>
+                        <span className="font-medium text-green-700">{state.product.name_ko}</span>
                         <Badge
                           variant={state.product.priceType === 'fresh' ? 'success' : 'info'}
                           size="sm"
                         >
-                          {state.product.priceType === 'fresh' ? '신선' : '공산품'}
+                          {state.product.priceType === 'fresh' ? t('products.fresh') : t('products.industrial')}
                         </Badge>
                       </div>
-                      <div className="text-sm text-gray-700">
+                      <div className="text-sm text-gray-800">
                         {state.product.name_th} / {state.product.name_mm}
                       </div>
-                      <div className="text-xs text-gray-600 mt-1">
-                        단위: {state.product.unit} | 기본adj: {state.baseAdj >= 0 ? '+' : ''}{state.baseAdj}
+                      <div className="text-xs text-gray-700 mt-1">
+                        {t('products.unit')}: {state.product.unit} | {t('orders.baseAdj')}: <span className="text-green-600 font-medium">{state.baseAdj >= 0 ? '+' : ''}{state.baseAdj}</span>
                       </div>
                     </div>
                     <div className="text-right">
-                      <div className="text-lg font-bold">
+                      <div className="text-lg font-bold text-green-600">
                         {formatCurrency(state.sellPrice)}
                       </div>
-                      <div className="text-xs text-gray-700">판매가</div>
+                      <div className="text-xs text-gray-700">{t('orders.sellPrice')}</div>
                     </div>
                   </div>
 
                   <div className="flex items-center gap-4 mt-3">
                     <div className="flex items-center gap-2">
-                      <label className="text-sm text-gray-600">수량:</label>
+                      <label className="text-sm text-gray-800 font-medium">{t('orders.qty')}:</label>
                       <div className="flex items-center">
                         <button
                           type="button"
                           onClick={() => handleQtyChange(state.product.code, state.qty - 1)}
-                          className="w-8 h-8 bg-gray-100 rounded-l border border-gray-300 hover:bg-gray-200"
+                          className="w-8 h-8 bg-gray-100 rounded-l border border-gray-300 hover:bg-gray-200 text-gray-800 font-bold"
                         >
                           -
                         </button>
@@ -503,12 +505,12 @@ export default function OrderEntryPage() {
                             handleQtyChange(state.product.code, parseInt(e.target.value) || 0)
                           }
                           onKeyDown={(e) => handleKeyDown(e, state.product.code)}
-                          className="w-16 h-8 text-center border-t border-b border-gray-300 focus:outline-none focus:ring-2 focus:ring-blue-500"
+                          className="w-16 h-8 text-center border-t border-b border-gray-300 focus:outline-none focus:ring-2 focus:ring-green-500 text-green-700 font-bold"
                         />
                         <button
                           type="button"
                           onClick={() => handleQtyChange(state.product.code, state.qty + 1)}
-                          className="w-8 h-8 bg-gray-100 rounded-r border border-gray-300 hover:bg-gray-200"
+                          className="w-8 h-8 bg-gray-100 rounded-r border border-gray-300 hover:bg-gray-200 text-gray-800 font-bold"
                         >
                           +
                         </button>
@@ -516,20 +518,20 @@ export default function OrderEntryPage() {
                     </div>
 
                     <div className="flex items-center gap-2">
-                      <label className="text-sm text-gray-600">추가adj:</label>
+                      <label className="text-sm text-gray-800 font-medium">{t('orders.orderAdj')}:</label>
                       <input
                         type="number"
                         value={state.orderAdj}
                         onChange={(e) =>
                           handleOrderAdjChange(state.product.code, parseInt(e.target.value) || 0)
                         }
-                        className="w-20 h-8 px-2 text-center border border-gray-300 rounded focus:outline-none focus:ring-1 focus:ring-blue-500"
+                        className="w-20 h-8 px-2 text-center border border-gray-300 rounded focus:outline-none focus:ring-1 focus:ring-green-500 text-green-600 font-medium"
                       />
                     </div>
 
                     {state.qty > 0 && (
                       <div className="ml-auto text-right">
-                        <div className="text-sm font-medium text-blue-600">
+                        <div className="text-sm font-bold text-green-600">
                           {formatCurrency(state.qty * state.sellPrice)}
                         </div>
                       </div>
@@ -546,12 +548,12 @@ export default function OrderEntryPage() {
           <div className="p-4 max-w-4xl mx-auto">
             <div className="flex items-center justify-between mb-3">
               <div>
-                <span className="text-gray-600">선택 품목: </span>
-                <span className="font-bold">{totalItems}개</span>
+                <span className="text-gray-800">{t('orders.selectedItems')}: </span>
+                <span className="font-bold text-green-600">{totalItems}{t('common.count')}</span>
               </div>
               <div>
-                <span className="text-gray-600">총 금액: </span>
-                <span className="text-xl font-bold text-blue-600">
+                <span className="text-gray-800">{t('orders.totalAmount')}: </span>
+                <span className="text-xl font-bold text-green-600">
                   {formatCurrency(totalAmount)}
                 </span>
               </div>
@@ -562,7 +564,7 @@ export default function OrderEntryPage() {
               className="w-full"
               size="lg"
             >
-              {saving ? '저장 중...' : '주문 저장'}
+              {saving ? t('common.saving') : t('orders.saveOrder')}
             </Button>
           </div>
         </div>

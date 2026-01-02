@@ -37,7 +37,7 @@ export default function PricesPage() {
   const [saving, setSaving] = useState(false);
   const [searchTerm, setSearchTerm] = useState('');
   const [selectedVendor, setSelectedVendor] = useState('');
-  const [activeTab, setActiveTab] = useState<'industrial' | 'fresh'>('industrial');
+  const [activeTab, setActiveTab] = useState<'industrial' | 'fresh'>('fresh');
 
   // 일괄 수정 관련 상태
   const [selectedProducts, setSelectedProducts] = useState<Set<string>>(new Set());
@@ -348,16 +348,6 @@ export default function PricesPage() {
           {/* 탭 */}
           <div className="flex border-b border-gray-200 mb-6">
             <button
-              onClick={() => setActiveTab('industrial')}
-              className={`px-6 py-3 text-sm font-medium border-b-2 transition-colors ${
-                activeTab === 'industrial'
-                  ? 'border-green-500 text-green-600'
-                  : 'border-transparent text-gray-500 hover:text-gray-700'
-              }`}
-            >
-              공산품 ({productPrices.length})
-            </button>
-            <button
               onClick={() => setActiveTab('fresh')}
               className={`px-6 py-3 text-sm font-medium border-b-2 transition-colors ${
                 activeTab === 'fresh'
@@ -366,6 +356,16 @@ export default function PricesPage() {
               }`}
             >
               신선제품 ({freshPrices.length})
+            </button>
+            <button
+              onClick={() => setActiveTab('industrial')}
+              className={`px-6 py-3 text-sm font-medium border-b-2 transition-colors ${
+                activeTab === 'industrial'
+                  ? 'border-green-500 text-green-600'
+                  : 'border-transparent text-gray-500 hover:text-gray-700'
+              }`}
+            >
+              공산품 ({productPrices.length})
             </button>
           </div>
 
