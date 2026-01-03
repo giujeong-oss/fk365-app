@@ -375,6 +375,20 @@ node scripts/seed-data.mjs
 
 ## 업데이트 이력
 
+### 2026-01-03 (주문 할인 금액 반영 수정)
+
+**주문 목록 페이지 할인 정보 표시**
+- 고객별 할인 금액(`-₿xxx`) 빨간색으로 표시
+- 할인 사유 배지로 표시 (품질/단골/대량/프로모션 등)
+- `getOrderTotal()` 수정: `finalAmount` 우선 사용
+- `getTotalDiscount()`, `getDiscountReasons()` 함수 추가
+- 파일: `src/app/orders/page.tsx`
+
+**요약 카드 금액 할인 반영**
+- `getCutoffSummary()` 수정: `finalAmount ?? totalAmount` 사용
+- 1차/2차/3차/총합계 모두 할인 적용된 최종 금액으로 표시
+- 파일: `src/lib/firebase/orders.ts`
+
 ### 2026-01-03 (주문 입력 - 제품 추가 기능)
 
 **주문 입력 페이지 제품 추가 기능**

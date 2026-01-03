@@ -205,7 +205,7 @@ export async function getOrderSummaryByProduct(
   return summary;
 }
 
-// cutoff별 주문 합계 조회
+// cutoff별 주문 합계 조회 (할인 적용된 최종 금액 사용)
 export async function getCutoffSummary(date: Date): Promise<{
   cut1: number;
   cut2: number;
@@ -217,10 +217,12 @@ export async function getCutoffSummary(date: Date): Promise<{
   const summary = { cut1: 0, cut2: 0, cut3: 0, total: 0 };
 
   orders.forEach((order) => {
-    if (order.cutoff === 1) summary.cut1 += order.totalAmount;
-    else if (order.cutoff === 2) summary.cut2 += order.totalAmount;
-    else if (order.cutoff === 3) summary.cut3 += order.totalAmount;
-    summary.total += order.totalAmount;
+    // finalAmount가 있으면 사용 (할인 적용), 없으면 totalAmount 사용
+    const amount = order.finalAmount ?? order.totalAmount;
+    if (order.cutoff === 1) summary.cut1 += amount;
+    else if (order.cutoff === 2) summary.cut2 += amount;
+    else if (order.cutoff === 3) summary.cut3 += amount;
+    summary.total += amount;
   });
 
   return summary;

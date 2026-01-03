@@ -68,8 +68,35 @@ export default function OrdersPage() {
     return orders.filter((o) => o.customerCode === customerCode);
   };
 
+  // 할인 적용된 최종 금액 합계
   const getOrderTotal = (customerCode: string): number => {
-    return getCustomerOrders(customerCode).reduce((sum, o) => sum + o.totalAmount, 0);
+    return getCustomerOrders(customerCode).reduce((sum, o) => sum + (o.finalAmount ?? o.totalAmount), 0);
+  };
+
+  // 총 할인 금액
+  const getTotalDiscount = (customerCode: string): number => {
+    return getCustomerOrders(customerCode).reduce((sum, o) => sum + (o.totalDiscount || 0), 0);
+  };
+
+  // 할인 사유 목록
+  const getDiscountReasons = (customerCode: string): string[] => {
+    const reasons: string[] = [];
+    getCustomerOrders(customerCode).forEach(o => {
+      if (o.discountReason) {
+        const reasonLabels: Record<string, string> = {
+          quality: '품질',
+          loyal: '단골',
+          bulk: '대량',
+          promotion: '프로모션',
+          negotiation: '협상',
+          damage: '파손',
+          expiring: '유통기한',
+          other: '기타',
+        };
+        reasons.push(reasonLabels[o.discountReason] || o.discountReason);
+      }
+    });
+    return [...new Set(reasons)];
   };
 
   // 주문 상태 확인
@@ -345,6 +372,17 @@ export default function OrdersPage() {
                             <div className="font-bold text-green-600 text-lg">
                               {formatCurrency(getOrderTotal(customer.code))}
                             </div>
+                            {/* 할인 정보 표시 */}
+                            {getTotalDiscount(customer.code) > 0 && (
+                              <div className="flex items-center gap-1 text-xs">
+                                <span className="text-red-500">-{formatCurrency(getTotalDiscount(customer.code))}</span>
+                                {getDiscountReasons(customer.code).map((reason, idx) => (
+                                  <span key={idx} className="px-1.5 py-0.5 bg-orange-100 text-orange-700 rounded">
+                                    {reason}
+                                  </span>
+                                ))}
+                              </div>
+                            )}
                           </div>
                           {isAdmin && (
                             <button
