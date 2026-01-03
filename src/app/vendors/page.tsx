@@ -4,6 +4,7 @@ import { useState, useEffect } from 'react';
 import { MainLayout } from '@/components/layout';
 import { ProtectedRoute } from '@/components/auth';
 import { useAuth } from '@/lib/context';
+import { useI18n } from '@/lib/i18n';
 import { Button, Modal, Input, EmptyState, LoadingState, Badge } from '@/components/ui';
 import { getVendors, createVendor, updateVendor, deleteVendor, getProducts, updateProduct } from '@/lib/firebase';
 import type { Vendor, Product } from '@/types';
@@ -12,6 +13,7 @@ import Link from 'next/link';
 
 export default function VendorsPage() {
   const { user, isAdmin, signOut } = useAuth();
+  const { t } = useI18n();
   const [vendors, setVendors] = useState<Vendor[]>([]);
   const [products, setProducts] = useState<Product[]>([]);
   const [loading, setLoading] = useState(true);
@@ -133,8 +135,12 @@ export default function VendorsPage() {
 
   // 저장
   const handleSave = async () => {
-    if (!formData.code.trim() || !formData.name.trim()) {
-      setFormError('코드와 이름을 모두 입력해주세요.');
+    if (!formData.code.trim()) {
+      setFormError(t('vendors.errCode'));
+      return;
+    }
+    if (!formData.name.trim()) {
+      setFormError(t('vendors.errName'));
       return;
     }
 
@@ -158,7 +164,7 @@ export default function VendorsPage() {
       setIsModalOpen(false);
       loadVendors();
     } catch (error) {
-      setFormError(error instanceof Error ? error.message : '저장에 실패했습니다.');
+      setFormError(error instanceof Error ? error.message : t('common.saveFailed'));
     } finally {
       setSaving(false);
     }
@@ -182,16 +188,16 @@ export default function VendorsPage() {
       <MainLayout
         isAdmin={isAdmin}
         userName={user?.email || ''}
-        pageTitle="구매처 관리"
+        pageTitle={t('vendors.title')}
         onLogout={signOut}
       >
         <div className="p-4 lg:p-8 max-w-7xl mx-auto">
           {/* Header */}
           <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4 mb-6">
-            <h1 className="text-2xl font-bold text-gray-900">구매처 관리</h1>
+            <h1 className="text-2xl font-bold text-gray-900">{t('vendors.title')}</h1>
             <Button onClick={openAddModal}>
               <Plus size={18} className="mr-2" />
-              구매처 추가
+              {t('vendors.new')}
             </Button>
           </div>
 
@@ -204,7 +210,7 @@ export default function VendorsPage() {
               />
               <input
                 type="text"
-                placeholder="구매처 또는 제품코드로 검색..."
+                placeholder={t('vendors.searchPlaceholder')}
                 value={searchTerm}
                 onChange={(e) => setSearchTerm(e.target.value)}
                 className="w-full pl-10 pr-4 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-green-500"
@@ -217,22 +223,22 @@ export default function VendorsPage() {
                 onChange={(e) => setShowInactive(e.target.checked)}
                 className="rounded border-gray-300 text-green-600 focus:ring-green-500"
               />
-              비활성 포함
+              {t('common.includeInactive')}
             </label>
           </div>
 
           {/* Content */}
           {loading ? (
-            <LoadingState message="구매처 목록을 불러오는 중..." />
+            <LoadingState message={t('common.loadingData')} />
           ) : filteredVendors.length === 0 ? (
             <EmptyState
               icon={<Store className="w-8 h-8 text-gray-500" />}
-              title="등록된 구매처가 없습니다"
-              description="새 구매처를 추가하여 시작하세요."
+              title={t('vendors.noVendors')}
+              description={t('vendors.addFirst')}
               action={
                 <Button onClick={openAddModal}>
                   <Plus size={18} className="mr-2" />
-                  구매처 추가
+                  {t('vendors.new')}
                 </Button>
               }
             />
@@ -244,22 +250,22 @@ export default function VendorsPage() {
                   <thead className="bg-gray-50">
                     <tr>
                       <th className="px-6 py-3 text-left text-xs font-medium text-gray-600 uppercase">
-                        코드
+                        {t('table.code')}
                       </th>
                       <th className="px-6 py-3 text-center text-xs font-medium text-gray-600 uppercase">
-                        제품 매핑
+                        {t('vendors.productMapping')}
                       </th>
                       <th className="px-6 py-3 text-left text-xs font-medium text-gray-600 uppercase">
-                        이름
+                        {t('table.name')}
                       </th>
                       <th className="px-6 py-3 text-center text-xs font-medium text-gray-600 uppercase">
-                        제품 수
+                        {t('customers.productCount')}
                       </th>
                       <th className="px-6 py-3 text-left text-xs font-medium text-gray-600 uppercase">
-                        상태
+                        {t('table.status')}
                       </th>
                       <th className="px-6 py-3 text-right text-xs font-medium text-gray-600 uppercase">
-                        작업
+                        {t('table.action')}
                       </th>
                     </tr>
                   </thead>
@@ -273,7 +279,7 @@ export default function VendorsPage() {
                           <Link href={`/vendors/${vendor.id}/products`}>
                             <button className="inline-flex items-center gap-1 px-3 py-1.5 bg-green-50 text-green-700 rounded-lg text-sm font-medium hover:bg-green-100 transition-colors">
                               <LinkIcon size={14} />
-                              매핑
+                              {t('vendors.productMapping')}
                             </button>
                           </Link>
                         </td>
@@ -286,12 +292,12 @@ export default function VendorsPage() {
                             className="inline-flex items-center gap-1 px-3 py-1 bg-blue-50 text-blue-700 rounded-full text-sm font-medium hover:bg-blue-100 transition-colors"
                           >
                             <Package size={14} />
-                            {getProductCount(vendor.code)}개
+                            {getProductCount(vendor.code)}{t('common.count')}
                           </button>
                         </td>
                         <td className="px-6 py-4 whitespace-nowrap">
                           <Badge variant={vendor.isActive ? 'success' : 'default'}>
-                            {vendor.isActive ? '활성' : '비활성'}
+                            {vendor.isActive ? t('products.active') : t('products.inactive')}
                           </Badge>
                         </td>
                         <td className="px-6 py-4 whitespace-nowrap text-right">
@@ -299,14 +305,14 @@ export default function VendorsPage() {
                             <button
                               onClick={() => openEditModal(vendor)}
                               className="p-2 text-gray-500 hover:text-green-600 hover:bg-green-50 rounded-lg transition-colors"
-                              title="수정"
+                              title={t('common.edit')}
                             >
                               <Pencil size={16} />
                             </button>
                             <button
                               onClick={() => setDeleteTarget(vendor)}
                               className="p-2 text-gray-500 hover:text-red-600 hover:bg-red-50 rounded-lg transition-colors"
-                              title="삭제"
+                              title={t('common.delete')}
                             >
                               <Trash2 size={16} />
                             </button>
@@ -335,7 +341,7 @@ export default function VendorsPage() {
                             variant={vendor.isActive ? 'success' : 'default'}
                             size="sm"
                           >
-                            {vendor.isActive ? '활성' : '비활성'}
+                            {vendor.isActive ? t('products.active') : t('products.inactive')}
                           </Badge>
                         </div>
                         <p className="text-gray-800 font-medium">{vendor.name}</p>
@@ -343,7 +349,7 @@ export default function VendorsPage() {
                           <Link href={`/vendors/${vendor.id}/products`}>
                             <button className="inline-flex items-center gap-1 px-2 py-1 bg-green-50 text-green-700 rounded text-xs font-medium">
                               <LinkIcon size={12} />
-                              제품 매핑
+                              {t('vendors.productMapping')}
                             </button>
                           </Link>
                           <button
@@ -351,7 +357,7 @@ export default function VendorsPage() {
                             className="inline-flex items-center gap-1 px-2 py-1 bg-blue-50 text-blue-700 rounded text-xs font-medium"
                           >
                             <Package size={12} />
-                            {getProductCount(vendor.code)}개
+                            {getProductCount(vendor.code)}{t('common.count')}
                           </button>
                         </div>
                       </div>
@@ -381,11 +387,11 @@ export default function VendorsPage() {
         <Modal
           isOpen={isModalOpen}
           onClose={() => setIsModalOpen(false)}
-          title={editingVendor ? '구매처 수정' : '구매처 추가'}
+          title={editingVendor ? t('vendors.edit') : t('vendors.new')}
         >
           <div className="space-y-4">
             <Input
-              label="구매처 코드"
+              label={t('vendors.code')}
               placeholder="예: ML1"
               value={formData.code}
               onChange={(e) => setFormData({ ...formData, code: e.target.value })}
@@ -393,7 +399,7 @@ export default function VendorsPage() {
               disabled={!!editingVendor}
             />
             <Input
-              label="구매처 이름"
+              label={t('vendors.name')}
               placeholder="예: 멜론가게"
               value={formData.name}
               onChange={(e) => setFormData({ ...formData, name: e.target.value })}
@@ -404,10 +410,10 @@ export default function VendorsPage() {
             )}
             <div className="flex justify-end gap-3 pt-4">
               <Button variant="secondary" onClick={() => setIsModalOpen(false)}>
-                취소
+                {t('common.cancel')}
               </Button>
               <Button onClick={handleSave} loading={saving}>
-                {editingVendor ? '저장' : '추가'}
+                {editingVendor ? t('common.save') : t('common.add')}
               </Button>
             </div>
           </div>
@@ -417,23 +423,23 @@ export default function VendorsPage() {
         <Modal
           isOpen={!!deleteTarget}
           onClose={() => setDeleteTarget(null)}
-          title="구매처 삭제"
+          title={t('vendors.deleteVendor')}
           size="sm"
         >
           <div className="space-y-4">
             <p className="text-gray-700">
               <span className="font-medium text-gray-900">{deleteTarget?.name}</span>
-              {' '}구매처를 삭제하시겠습니까?
+              {' '}{t('vendors.deleteConfirm')}
             </p>
             <p className="text-sm text-gray-600">
-              삭제된 구매처는 비활성 상태로 변경됩니다.
+              {t('common.deleteWarning')}
             </p>
             <div className="flex justify-end gap-3 pt-4">
               <Button variant="secondary" onClick={() => setDeleteTarget(null)}>
-                취소
+                {t('common.cancel')}
               </Button>
               <Button variant="danger" onClick={handleDelete}>
-                삭제
+                {t('common.delete')}
               </Button>
             </div>
           </div>
@@ -443,7 +449,7 @@ export default function VendorsPage() {
         <Modal
           isOpen={!!selectedVendorProducts}
           onClose={() => setSelectedVendorProducts(null)}
-          title={`${selectedVendorProducts?.vendor.name} 제품 목록`}
+          title={`${selectedVendorProducts?.vendor.name} ${t('vendors.products')}`}
           size="lg"
         >
           <div className="space-y-4">
@@ -455,26 +461,26 @@ export default function VendorsPage() {
               />
               <input
                 type="text"
-                placeholder="제품 코드 또는 이름으로 검색..."
+                placeholder={t('products.searchPlaceholder')}
                 value={productModalSearch}
                 onChange={(e) => setProductModalSearch(e.target.value)}
                 className="w-full pl-10 pr-4 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-green-500 text-gray-900"
               />
             </div>
             {selectedVendorProducts?.products.length === 0 ? (
-              <p className="text-center text-gray-700 py-8">등록된 제품이 없습니다.</p>
+              <p className="text-center text-gray-700 py-8">{t('products.noProducts')}</p>
             ) : filteredModalProducts.length === 0 ? (
-              <p className="text-center text-gray-700 py-8">검색 결과가 없습니다.</p>
+              <p className="text-center text-gray-700 py-8">{t('common.noSearchResults')}</p>
             ) : (
               <div className="max-h-96 overflow-y-auto">
                 <table className="w-full text-sm">
                   <thead className="bg-gray-50 sticky top-0">
                     <tr>
-                      <th className="px-3 py-2 text-left font-medium text-gray-800">코드</th>
-                      <th className="px-3 py-2 text-left font-medium text-gray-800">제품명</th>
-                      <th className="px-3 py-2 text-left font-medium text-gray-800">분류</th>
-                      <th className="px-3 py-2 text-right font-medium text-gray-800">매입가</th>
-                      <th className="px-3 py-2 text-center font-medium text-gray-800">제거</th>
+                      <th className="px-3 py-2 text-left font-medium text-gray-800">{t('table.code')}</th>
+                      <th className="px-3 py-2 text-left font-medium text-gray-800">{t('products.name')}</th>
+                      <th className="px-3 py-2 text-left font-medium text-gray-800">{t('table.type')}</th>
+                      <th className="px-3 py-2 text-right font-medium text-gray-800">{t('purchaseOrders.buyPrice')}</th>
+                      <th className="px-3 py-2 text-center font-medium text-gray-800">{t('common.remove')}</th>
                     </tr>
                   </thead>
                   <tbody className="divide-y">
@@ -486,7 +492,7 @@ export default function VendorsPage() {
                           <div className="text-xs text-gray-700">{product.name_th}</div>
                         </td>
                         <td className="px-3 py-2 text-gray-900 font-medium">
-                          {product.priceType === 'fresh' ? '신선' : '공산품'}
+                          {product.priceType === 'fresh' ? t('products.fresh') : t('products.industrial')}
                         </td>
                         <td className="px-3 py-2 text-right text-gray-900 font-medium">
                           {product.pur ? `฿${product.pur}` : '-'}
@@ -495,7 +501,7 @@ export default function VendorsPage() {
                           <button
                             onClick={() => removeProductFromVendor(product.id)}
                             className="p-1.5 text-gray-500 hover:text-red-600 hover:bg-red-50 rounded-lg transition-colors"
-                            title="이 구매처에서 제거"
+                            title={t('common.remove')}
                           >
                             <X size={16} />
                           </button>
@@ -508,10 +514,10 @@ export default function VendorsPage() {
             )}
             <div className="flex justify-between items-center pt-4 border-t">
               <span className="text-sm text-gray-700">
-                {filteredModalProducts.length}개 제품
+                {filteredModalProducts.length}{t('common.count')} {t('products.product')}
               </span>
               <Button variant="secondary" onClick={() => setSelectedVendorProducts(null)}>
-                닫기
+                {t('common.close')}
               </Button>
             </div>
           </div>

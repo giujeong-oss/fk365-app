@@ -4,6 +4,7 @@ import { useState, useEffect } from 'react';
 import { MainLayout } from '@/components/layout';
 import { ProtectedRoute } from '@/components/auth';
 import { useAuth } from '@/lib/context';
+import { useI18n } from '@/lib/i18n';
 import { Button, EmptyState, LoadingState, Badge } from '@/components/ui';
 import { getCustomers, deleteCustomer } from '@/lib/firebase';
 import type { Customer, Region } from '@/types';
@@ -20,14 +21,15 @@ const GRADE_COLORS: Record<string, 'success' | 'info' | 'warning' | 'danger' | '
   E: 'danger',
 };
 
-const REGION_LABELS: Record<Region, string> = {
-  pattaya: '파타야',
-  bangkok: '방콕',
-};
-
 export default function CustomersPage() {
   const { user, isAdmin, signOut } = useAuth();
+  const { t } = useI18n();
   const [customers, setCustomers] = useState<Customer[]>([]);
+
+  // Region labels using i18n
+  const getRegionLabel = (region: Region) => {
+    return region === 'pattaya' ? t('customers.pattaya') : t('customers.bangkok');
+  };
   const [loading, setLoading] = useState(true);
   const [searchTerm, setSearchTerm] = useState('');
   const [showInactive, setShowInactive] = useState(false);
@@ -89,17 +91,17 @@ export default function CustomersPage() {
   // CSV Export handler
   const handleExportCsv = () => {
     const columns: CsvColumn<Customer>[] = [
-      { header: '코드', accessor: 'code' },
-      { header: '이름', accessor: 'fullName' },
-      { header: '등급', accessor: 'grade' },
-      { header: '지역', accessor: (c) => REGION_LABELS[c.region] },
-      { header: '배송시간', accessor: (c) => c.deliveryTime || '' },
-      { header: '연락처1', accessor: (c) => c.contact1 || '' },
-      { header: '연락처2', accessor: (c) => c.contact2 || '' },
-      { header: 'GPS위도', accessor: (c) => c.gpsLat?.toString() || '' },
-      { header: 'GPS경도', accessor: (c) => c.gpsLng?.toString() || '' },
-      { header: '제품수', accessor: (c) => c.products?.length || 0 },
-      { header: '상태', accessor: (c) => c.isActive ? '활성' : '비활성' },
+      { header: t('customers.code'), accessor: 'code' },
+      { header: t('customers.name'), accessor: 'fullName' },
+      { header: t('customers.grade'), accessor: 'grade' },
+      { header: t('customers.region'), accessor: (c) => getRegionLabel(c.region) },
+      { header: t('customers.deliveryTime'), accessor: (c) => c.deliveryTime || '' },
+      { header: t('customers.contact1'), accessor: (c) => c.contact1 || '' },
+      { header: t('customers.contact2'), accessor: (c) => c.contact2 || '' },
+      { header: t('customers.gpsLat'), accessor: (c) => c.gpsLat?.toString() || '' },
+      { header: t('customers.gpsLng'), accessor: (c) => c.gpsLng?.toString() || '' },
+      { header: t('customers.productCount'), accessor: (c) => c.products?.length || 0 },
+      { header: t('common.status'), accessor: (c) => c.isActive ? t('products.active') : t('products.inactive') },
     ];
 
     const filename = `customers_${getDateForFilename()}.csv`;
@@ -111,13 +113,13 @@ export default function CustomersPage() {
       <MainLayout
         isAdmin={isAdmin}
         userName={user?.email || ''}
-        pageTitle="고객 관리"
+        pageTitle={t('customers.title')}
         onLogout={signOut}
       >
         <div className="p-4 lg:p-8 max-w-7xl mx-auto">
           {/* Header */}
           <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4 mb-6">
-            <h1 className="text-2xl font-bold text-gray-900">고객 관리</h1>
+            <h1 className="text-2xl font-bold text-gray-900">{t('customers.title')}</h1>
             <div className="flex items-center gap-2">
               <Button variant="secondary" onClick={handleExportCsv}>
                 <Download size={18} className="mr-2" />
@@ -126,7 +128,7 @@ export default function CustomersPage() {
               <Link href="/customers/new">
                 <Button>
                   <Plus size={18} className="mr-2" />
-                  고객 추가
+                  {t('customers.new')}
                 </Button>
               </Link>
             </div>
@@ -141,7 +143,7 @@ export default function CustomersPage() {
               />
               <input
                 type="text"
-                placeholder="코드 또는 이름으로 검색..."
+                placeholder={t('customers.searchPlaceholder')}
                 value={searchTerm}
                 onChange={(e) => setSearchTerm(e.target.value)}
                 className="w-full pl-10 pr-4 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-green-500"
@@ -157,7 +159,7 @@ export default function CustomersPage() {
                       : 'text-gray-600 hover:text-gray-900'
                   }`}
                 >
-                  전체
+                  {t('common.all')}
                 </button>
                 <button
                   onClick={() => setFilterRegion('pattaya')}
@@ -167,7 +169,7 @@ export default function CustomersPage() {
                       : 'text-gray-600 hover:text-gray-900'
                   }`}
                 >
-                  파타야
+                  {t('customers.pattaya')}
                 </button>
                 <button
                   onClick={() => setFilterRegion('bangkok')}
@@ -177,7 +179,7 @@ export default function CustomersPage() {
                       : 'text-gray-600 hover:text-gray-900'
                   }`}
                 >
-                  방콕
+                  {t('customers.bangkok')}
                 </button>
               </div>
               <label className="flex items-center gap-2 text-sm text-gray-600">
@@ -187,24 +189,24 @@ export default function CustomersPage() {
                   onChange={(e) => setShowInactive(e.target.checked)}
                   className="rounded border-gray-300 text-green-600 focus:ring-green-500"
                 />
-                비활성 포함
+                {t('common.includeInactive')}
               </label>
             </div>
           </div>
 
           {/* Content */}
           {loading ? (
-            <LoadingState message="고객 목록을 불러오는 중..." />
+            <LoadingState message={t('common.loadingData')} />
           ) : sortedCustomers.length === 0 ? (
             <EmptyState
               icon={<Users className="w-8 h-8 text-gray-500" />}
-              title="등록된 고객이 없습니다"
-              description="새 고객을 추가하여 시작하세요."
+              title={t('customers.noCustomers')}
+              description={t('customers.addFirst')}
               action={
                 <Link href="/customers/new">
                   <Button>
                     <Plus size={18} className="mr-2" />
-                    고객 추가
+                    {t('customers.new')}
                   </Button>
                 </Link>
               }
@@ -217,28 +219,28 @@ export default function CustomersPage() {
                   <thead className="bg-gray-50">
                     <tr>
                       <th className="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase">
-                        코드
+                        {t('table.code')}
                       </th>
                       <th className="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase">
-                        이름
+                        {t('table.name')}
                       </th>
                       <th className="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase">
-                        등급
+                        {t('table.grade')}
                       </th>
                       <th className="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase">
-                        지역
+                        {t('table.region')}
                       </th>
                       <th className="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase">
-                        배송시간
+                        {t('customers.deliveryTime')}
                       </th>
                       <th className="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase">
-                        제품 수
+                        {t('customers.productCount')}
                       </th>
                       <th className="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase">
-                        상태
+                        {t('table.status')}
                       </th>
                       <th className="px-4 py-3 text-right text-xs font-medium text-gray-500 uppercase">
-                        작업
+                        {t('table.action')}
                       </th>
                     </tr>
                   </thead>
@@ -257,17 +259,17 @@ export default function CustomersPage() {
                           </Badge>
                         </td>
                         <td className="px-4 py-3 whitespace-nowrap text-sm text-gray-700 font-medium">
-                          {REGION_LABELS[customer.region]}
+                          {getRegionLabel(customer.region)}
                         </td>
                         <td className="px-4 py-3 whitespace-nowrap text-sm text-gray-700 font-medium">
                           {customer.deliveryTime && customer.deliveryTime !== 'undefined' ? customer.deliveryTime : '-'}
                         </td>
                         <td className="px-4 py-3 whitespace-nowrap text-sm text-gray-700 font-medium">
-                          {customer.products?.length || 0}개
+                          {customer.products?.length || 0}{t('common.count')}
                         </td>
                         <td className="px-4 py-3 whitespace-nowrap">
                           <Badge variant={customer.isActive ? 'success' : 'default'} size="sm">
-                            {customer.isActive ? '활성' : '비활성'}
+                            {customer.isActive ? t('products.active') : t('products.inactive')}
                           </Badge>
                         </td>
                         <td className="px-4 py-3 whitespace-nowrap text-right">
@@ -275,7 +277,7 @@ export default function CustomersPage() {
                             <Link href={`/customers/${customer.id}/products`}>
                               <button
                                 className="p-2 text-gray-500 hover:text-blue-600 hover:bg-blue-50 rounded-lg transition-colors"
-                                title="제품 매핑"
+                                title={t('customers.productMapping')}
                               >
                                 <Package size={16} />
                               </button>
@@ -283,7 +285,7 @@ export default function CustomersPage() {
                             <Link href={`/customers/${customer.id}/edit`}>
                               <button
                                 className="p-2 text-gray-500 hover:text-green-600 hover:bg-green-50 rounded-lg transition-colors"
-                                title="수정"
+                                title={t('common.edit')}
                               >
                                 <Pencil size={16} />
                               </button>
@@ -291,7 +293,7 @@ export default function CustomersPage() {
                             <button
                               onClick={() => setDeleteTarget(customer)}
                               className="p-2 text-gray-500 hover:text-red-600 hover:bg-red-50 rounded-lg transition-colors"
-                              title="삭제"
+                              title={t('common.delete')}
                             >
                               <Trash2 size={16} />
                             </button>
@@ -322,7 +324,7 @@ export default function CustomersPage() {
                           variant={customer.region === 'pattaya' ? 'info' : 'warning'}
                           size="sm"
                         >
-                          {REGION_LABELS[customer.region]}
+                          {getRegionLabel(customer.region)}
                         </Badge>
                       </div>
                       <div className="flex items-center gap-1">
@@ -346,8 +348,8 @@ export default function CustomersPage() {
                     </div>
                     <p className="font-semibold text-gray-900">{customer.fullName}</p>
                     <div className="flex items-center gap-4 mt-2 text-sm text-gray-700 font-medium">
-                      <span>제품: {customer.products?.length || 0}개</span>
-                      {customer.deliveryTime && customer.deliveryTime !== 'undefined' && <span>배송: {customer.deliveryTime}</span>}
+                      <span>{t('products.product')}: {customer.products?.length || 0}{t('common.count')}</span>
+                      {customer.deliveryTime && customer.deliveryTime !== 'undefined' && <span>{t('customers.deliveryTime')}: {customer.deliveryTime}</span>}
                     </div>
                   </div>
                 ))}
@@ -366,20 +368,20 @@ export default function CustomersPage() {
             <div className="flex min-h-full items-center justify-center p-4">
               <div className="relative bg-white rounded-xl shadow-xl max-w-sm w-full p-6">
                 <h3 className="text-lg font-semibold text-gray-900 mb-2">
-                  고객 삭제
+                  {t('customers.deleteCustomer')}
                 </h3>
                 <p className="text-gray-600 mb-4">
                   <span className="font-medium text-gray-900">
                     {deleteTarget.fullName}
                   </span>
-                  {' '}고객을 삭제하시겠습니까?
+                  {' '}{t('customers.deleteConfirm')}
                 </p>
                 <div className="flex justify-end gap-3">
                   <Button variant="secondary" onClick={() => setDeleteTarget(null)}>
-                    취소
+                    {t('common.cancel')}
                   </Button>
                   <Button variant="danger" onClick={handleDelete}>
-                    삭제
+                    {t('common.delete')}
                   </Button>
                 </div>
               </div>

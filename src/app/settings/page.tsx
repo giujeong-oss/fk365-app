@@ -2,6 +2,7 @@
 
 import { useState, useEffect } from 'react';
 import { useAuth } from '@/lib/context';
+import { useI18n } from '@/lib/i18n';
 import { ProtectedRoute } from '@/components/auth';
 import { MainLayout } from '@/components/layout';
 import { Button, Spinner, Badge, Modal } from '@/components/ui';
@@ -28,6 +29,7 @@ import Link from 'next/link';
 
 export default function SettingsPage() {
   const { user, isAdmin, signOut } = useAuth();
+  const { t } = useI18n();
   const [users, setUsers] = useState<User[]>([]);
   const [loading, setLoading] = useState(true);
   const [updating, setUpdating] = useState<string | null>(null);
@@ -167,20 +169,20 @@ export default function SettingsPage() {
       <MainLayout
         isAdmin={isAdmin}
         userName={user?.email || ''}
-        pageTitle="설정"
+        pageTitle={t('settings.title')}
         onLogout={signOut}
       >
         <div className="p-4 lg:p-8 max-w-5xl mx-auto">
           {/* Header with Home Button */}
           <div className="flex items-center justify-between mb-6">
             <div>
-              <h1 className="text-2xl font-bold text-gray-900">설정</h1>
-              <p className="text-sm text-gray-600 mt-1">시스템 설정 및 사용자 권한 관리</p>
+              <h1 className="text-2xl font-bold text-gray-900">{t('settings.title')}</h1>
+              <p className="text-sm text-gray-600 mt-1">{t('settings.userManagement')}</p>
             </div>
             <Link href="/">
               <Button variant="secondary" size="sm">
                 <Home size={18} className="mr-2" />
-                홈으로
+                {t('common.home')}
               </Button>
             </Link>
           </div>
@@ -194,7 +196,7 @@ export default function SettingsPage() {
                 </div>
                 <div>
                   <p className="text-2xl font-bold text-gray-900">{users.length}</p>
-                  <p className="text-xs text-gray-500">전체 사용자</p>
+                  <p className="text-xs text-gray-500">{t('settings.totalUsers')}</p>
                 </div>
               </div>
             </div>
@@ -205,7 +207,7 @@ export default function SettingsPage() {
                 </div>
                 <div>
                   <p className="text-2xl font-bold text-gray-900">{adminCount}</p>
-                  <p className="text-xs text-gray-500">관리자</p>
+                  <p className="text-xs text-gray-500">{t('settings.adminUsers')}</p>
                 </div>
               </div>
             </div>
@@ -216,7 +218,7 @@ export default function SettingsPage() {
                 </div>
                 <div>
                   <p className="text-2xl font-bold text-gray-900">{activeCount}</p>
-                  <p className="text-xs text-gray-500">활성 사용자</p>
+                  <p className="text-xs text-gray-500">{t('settings.activeUsers')}</p>
                 </div>
               </div>
             </div>
@@ -227,7 +229,7 @@ export default function SettingsPage() {
                 </div>
                 <div>
                   <p className="text-2xl font-bold text-gray-900">{users.length - activeCount}</p>
-                  <p className="text-xs text-gray-500">비활성 사용자</p>
+                  <p className="text-xs text-gray-500">{t('products.inactive')}</p>
                 </div>
               </div>
             </div>
@@ -244,8 +246,8 @@ export default function SettingsPage() {
                   <Settings size={24} className="text-purple-600" />
                 </div>
                 <div>
-                  <h3 className="font-semibold text-gray-900">세부 권한 관리</h3>
-                  <p className="text-sm text-gray-500">일반 사용자의 개별 메뉴 접근 권한 설정</p>
+                  <h3 className="font-semibold text-gray-900">{t('permissions.title')}</h3>
+                  <p className="text-sm text-gray-500">{t('permissions.settingsDesc')}</p>
                 </div>
               </div>
               <ChevronRight size={20} className="text-gray-500" />
@@ -288,20 +290,20 @@ export default function SettingsPage() {
               <div>
                 <h2 className="text-lg font-semibold text-gray-800 flex items-center gap-2">
                   <Shield size={20} className="text-green-600" />
-                  사용자 권한 관리
+                  {t('settings.userManagement')}
                 </h2>
                 <p className="text-sm text-gray-600 mt-1">
-                  등록된 사용자의 권한과 상태를 관리합니다.
+                  {t('settings.userStats')}
                 </p>
               </div>
               <div className="flex items-center gap-2">
                 <Button variant="primary" size="sm" onClick={() => setAddUserModal(true)}>
                   <Plus size={16} className="mr-1" />
-                  사용자 추가
+                  {t('settings.addUser')}
                 </Button>
                 <Button variant="secondary" size="sm" onClick={loadUsers}>
                   <RefreshCw size={16} className="mr-1" />
-                  새로고침
+                  {t('dashboard.refresh')}
                 </Button>
               </div>
             </div>
@@ -312,7 +314,7 @@ export default function SettingsPage() {
               </div>
             ) : users.length === 0 ? (
               <div className="p-8 text-center text-gray-500">
-                등록된 사용자가 없습니다.
+                {t('settings.noUsers')}
               </div>
             ) : (
               <>
@@ -321,12 +323,12 @@ export default function SettingsPage() {
                   <table className="w-full">
                     <thead className="bg-gray-50">
                       <tr>
-                        <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase">사용자</th>
-                        <th className="px-6 py-3 text-center text-xs font-medium text-gray-500 uppercase">권한</th>
-                        <th className="px-6 py-3 text-center text-xs font-medium text-gray-500 uppercase">상태</th>
-                        <th className="px-6 py-3 text-center text-xs font-medium text-gray-500 uppercase">언어</th>
-                        <th className="px-6 py-3 text-center text-xs font-medium text-gray-500 uppercase">마지막 로그인</th>
-                        <th className="px-6 py-3 text-center text-xs font-medium text-gray-500 uppercase">작업</th>
+                        <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase">{t('settings.email')}</th>
+                        <th className="px-6 py-3 text-center text-xs font-medium text-gray-500 uppercase">{t('settings.role')}</th>
+                        <th className="px-6 py-3 text-center text-xs font-medium text-gray-500 uppercase">{t('table.status')}</th>
+                        <th className="px-6 py-3 text-center text-xs font-medium text-gray-500 uppercase">Language</th>
+                        <th className="px-6 py-3 text-center text-xs font-medium text-gray-500 uppercase">{t('settings.lastLogin')}</th>
+                        <th className="px-6 py-3 text-center text-xs font-medium text-gray-500 uppercase">{t('table.action')}</th>
                       </tr>
                     </thead>
                     <tbody className="divide-y divide-gray-200">
@@ -345,7 +347,7 @@ export default function SettingsPage() {
                               </div>
                               <div>
                                 <p className="font-medium text-gray-900">{u.email}</p>
-                                <p className="text-sm text-gray-500">{u.name || '이름 없음'}</p>
+                                <p className="text-sm text-gray-500">{u.name || '-'}</p>
                               </div>
                               {u.id === user?.id && (
                                 <Badge variant="info" size="sm">나</Badge>
@@ -354,12 +356,12 @@ export default function SettingsPage() {
                           </td>
                           <td className="px-6 py-4 text-center">
                             <Badge variant={u.role === 'admin' ? 'success' : 'default'} size="sm">
-                              {u.role === 'admin' ? '관리자' : '일반'}
+                              {u.role === 'admin' ? t('settings.roleAdmin') : t('settings.roleUser')}
                             </Badge>
                           </td>
                           <td className="px-6 py-4 text-center">
                             <Badge variant={u.isActive !== false ? 'success' : 'danger'} size="sm">
-                              {u.isActive !== false ? '활성' : '비활성'}
+                              {u.isActive !== false ? t('products.active') : t('products.inactive')}
                             </Badge>
                           </td>
                           <td className="px-6 py-4 text-center">
@@ -381,8 +383,8 @@ export default function SettingsPage() {
                                   disabled={updating === u.id}
                                   className="px-2 py-1 text-sm border border-gray-300 rounded focus:ring-2 focus:ring-green-500 disabled:opacity-50"
                                 >
-                                  <option value="user">일반</option>
-                                  <option value="admin">관리자</option>
+                                  <option value="user">{t('settings.roleUser')}</option>
+                                  <option value="admin">{t('settings.roleAdmin')}</option>
                                 </select>
                                 <button
                                   onClick={() => handleStatusChange(u.id, u.isActive === false)}
@@ -392,7 +394,7 @@ export default function SettingsPage() {
                                       ? 'text-red-600 hover:bg-red-50'
                                       : 'text-green-600 hover:bg-green-50'
                                   } disabled:opacity-50`}
-                                  title={u.isActive !== false ? '비활성화' : '활성화'}
+                                  title={u.isActive !== false ? t('settings.deactivate') : t('settings.activate')}
                                 >
                                   {u.isActive !== false ? <UserX size={18} /> : <UserCheck size={18} />}
                                 </button>
@@ -427,15 +429,15 @@ export default function SettingsPage() {
                               <p className="font-medium text-gray-900">{u.email}</p>
                               {u.id === user?.id && <Badge variant="info" size="sm">나</Badge>}
                             </div>
-                            <p className="text-sm text-gray-500">{u.name || '이름 없음'}</p>
+                            <p className="text-sm text-gray-500">{u.name || '-'}</p>
                           </div>
                         </div>
                         <div className="flex flex-col gap-1">
                           <Badge variant={u.role === 'admin' ? 'success' : 'default'} size="sm">
-                            {u.role === 'admin' ? '관리자' : '일반'}
+                            {u.role === 'admin' ? t('settings.roleAdmin') : t('settings.roleUser')}
                           </Badge>
                           <Badge variant={u.isActive !== false ? 'success' : 'danger'} size="sm">
-                            {u.isActive !== false ? '활성' : '비활성'}
+                            {u.isActive !== false ? t('products.active') : t('products.inactive')}
                           </Badge>
                         </div>
                       </div>
@@ -459,8 +461,8 @@ export default function SettingsPage() {
                             disabled={updating === u.id}
                             className="flex-1 px-3 py-2 text-sm border border-gray-300 rounded-lg disabled:opacity-50"
                           >
-                            <option value="user">일반 사용자</option>
-                            <option value="admin">관리자</option>
+                            <option value="user">{t('settings.roleUser')}</option>
+                            <option value="admin">{t('settings.roleAdmin')}</option>
                           </select>
                           <button
                             onClick={() => handleStatusChange(u.id, u.isActive === false)}
@@ -471,7 +473,7 @@ export default function SettingsPage() {
                                 : 'bg-green-50 text-green-600'
                             } disabled:opacity-50`}
                           >
-                            {u.isActive !== false ? '비활성화' : '활성화'}
+                            {u.isActive !== false ? t('settings.deactivate') : t('settings.activate')}
                           </button>
                         </div>
                       )}
@@ -518,38 +520,31 @@ export default function SettingsPage() {
         <Modal
           isOpen={confirmModal.open}
           onClose={() => setConfirmModal(null)}
-          title={confirmModal.action === 'role' ? '권한 변경 확인' : '상태 변경 확인'}
+          title={confirmModal.action === 'role' ? t('settings.role') : t('settings.accountStatus')}
         >
           <div className="p-4">
             <p className="text-gray-700 mb-4">
               {confirmModal.action === 'role' ? (
                 <>
-                  <strong>{confirmModal.userName}</strong> 사용자의 권한을{' '}
-                  <strong>{confirmModal.newValue === 'admin' ? '관리자' : '일반 사용자'}</strong>로
-                  변경하시겠습니까?
+                  <strong>{confirmModal.userName}</strong> → {' '}
+                  <strong>{confirmModal.newValue === 'admin' ? t('settings.roleAdmin') : t('settings.roleUser')}</strong>?
                 </>
               ) : (
                 <>
-                  <strong>{confirmModal.userName}</strong> 사용자를{' '}
-                  <strong>{confirmModal.newValue ? '활성화' : '비활성화'}</strong>
-                  하시겠습니까?
-                  {!confirmModal.newValue && (
-                    <span className="block mt-2 text-sm text-red-600">
-                      비활성화된 사용자는 로그인할 수 없습니다.
-                    </span>
-                  )}
+                  <strong>{confirmModal.userName}</strong> → {' '}
+                  <strong>{confirmModal.newValue ? t('settings.activate') : t('settings.deactivate')}</strong>?
                 </>
               )}
             </p>
             <div className="flex justify-end gap-2">
               <Button variant="secondary" onClick={() => setConfirmModal(null)}>
-                취소
+                {t('common.cancel')}
               </Button>
               <Button
                 onClick={confirmChange}
                 variant={confirmModal.action === 'status' && !confirmModal.newValue ? 'danger' : 'primary'}
               >
-                확인
+                {t('common.confirm')}
               </Button>
             </div>
           </div>
@@ -566,7 +561,7 @@ export default function SettingsPage() {
           setNewUserRole('user');
           setAddUserError('');
         }}
-        title="사용자 추가"
+        title={t('settings.addUser')}
       >
         <div className="p-4">
           <p className="text-sm text-gray-600 mb-4">
@@ -577,7 +572,7 @@ export default function SettingsPage() {
           <div className="space-y-4">
             <div>
               <label className="block text-sm font-medium text-gray-700 mb-1">
-                이메일 주소 <span className="text-red-500">*</span>
+                {t('settings.email')} <span className="text-red-500">*</span>
               </label>
               <div className="relative">
                 <Mail size={18} className="absolute left-3 top-1/2 -translate-y-1/2 text-gray-500" />
@@ -593,7 +588,7 @@ export default function SettingsPage() {
 
             <div>
               <label className="block text-sm font-medium text-gray-700 mb-1">
-                이름 (선택)
+                {t('settings.name')}
               </label>
               <input
                 type="text"
@@ -606,15 +601,15 @@ export default function SettingsPage() {
 
             <div>
               <label className="block text-sm font-medium text-gray-700 mb-1">
-                역할
+                {t('settings.role')}
               </label>
               <select
                 value={newUserRole}
                 onChange={(e) => setNewUserRole(e.target.value as UserRole)}
                 className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-green-500"
               >
-                <option value="user">일반 사용자</option>
-                <option value="admin">관리자</option>
+                <option value="user">{t('settings.roleUser')}</option>
+                <option value="admin">{t('settings.roleAdmin')}</option>
               </select>
             </div>
 
@@ -633,11 +628,11 @@ export default function SettingsPage() {
               setNewUserRole('user');
               setAddUserError('');
             }}>
-              취소
+              {t('common.cancel')}
             </Button>
             <Button onClick={handleAddUser} loading={addingUser}>
               <Plus size={16} className="mr-1" />
-              추가
+              {t('common.add')}
             </Button>
           </div>
         </div>

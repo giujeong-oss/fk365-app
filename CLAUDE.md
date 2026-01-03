@@ -375,6 +375,29 @@ node scripts/seed-data.mjs
 
 ## 업데이트 이력
 
+### 2026-01-03 (전체 페이지 다국어(i18n) 완전 적용)
+
+**모든 주요 페이지 i18n 완료**
+- `products/page.tsx`: 제품 관리 페이지 다국어 적용
+- `customers/page.tsx`: 고객 관리 페이지 다국어 적용
+- `vendors/page.tsx`: 구매처 관리 페이지 다국어 적용
+- `margins/page.tsx`: 마진 설정 페이지 다국어 적용
+- `prices/page.tsx`: 가격 관리 페이지 다국어 적용
+- `delivery/page.tsx`: 배송장 페이지 다국어 적용
+- `settings/page.tsx`: 설정 페이지 다국어 적용
+
+**translations.ts 확장**
+- 마진 관련 키 추가: description, freshMargin, industrialMargin, freshFormula, freshFormulaDesc, industrialFormula, industrialFormulaDesc1/2, dateTime, oldValue, newValue
+- 가격 관련 키 추가: purPrice, minPrice, midPrice, noIndustrial, noFresh, bulkEditTitle, adjustTarget, adjustMethod, adjustValue 등
+- 배송 관련 키 추가: totalCustomers, totalItems, noDelivery, noOrderForDate, product, thai, myanmar, subtotal, places
+- 설정 관련 키 추가: totalUsers, adminUsers, activeUsers, email, role, roleAdmin, roleUser, loginInfo, activate, deactivate 등
+- 공통 키 추가: modified, noSearchResults, description, remove
+
+**지원 언어**
+- 한국어 (ko)
+- 태국어 (th)
+- 영어 (en)
+
 ### 2026-01-03 (주문/발주 페이지 개선)
 
 **주문 페이지 - 검색에 제품명 포함**

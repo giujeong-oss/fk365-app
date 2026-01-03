@@ -2,6 +2,7 @@
 
 import { useState, useEffect, useRef } from 'react';
 import { useAuth } from '@/lib/context';
+import { useI18n } from '@/lib/i18n';
 import { ProtectedRoute } from '@/components/auth';
 import { MainLayout } from '@/components/layout';
 import { Button, Spinner, Badge, EmptyState } from '@/components/ui';
@@ -29,6 +30,7 @@ interface DeliveryNote {
 
 export default function DeliveryPage() {
   const { user, isAdmin, signOut } = useAuth();
+  const { t } = useI18n();
   const [date, setDate] = useState(() => {
     const today = new Date();
     return today.toISOString().split('T')[0];
@@ -150,7 +152,7 @@ export default function DeliveryPage() {
       <div className="flex items-center justify-between mb-4 pb-2 border-b">
         <div className="flex items-center gap-3">
           <Badge variant={note.customer.region === 'pattaya' ? 'info' : 'warning'}>
-            {note.customer.region === 'pattaya' ? '파타야' : '방콕'}
+            {note.customer.region === 'pattaya' ? t('customers.pattaya') : t('customers.bangkok')}
           </Badge>
           <span className="font-bold text-lg">{note.customer.fullName}</span>
           <span className="text-sm text-gray-500">({note.customer.code})</span>
@@ -164,14 +166,14 @@ export default function DeliveryPage() {
       <table className="w-full text-sm">
         <thead className="bg-gray-50">
           <tr>
-            <th className="px-2 py-1 text-left">제품</th>
-            <th className="px-2 py-1 text-left text-gray-600">태국어</th>
-            <th className="px-2 py-1 text-left text-gray-600">미얀마어</th>
-            <th className="px-2 py-1 text-center">수량</th>
+            <th className="px-2 py-1 text-left">{t('delivery.product')}</th>
+            <th className="px-2 py-1 text-left text-gray-600">{t('delivery.thai')}</th>
+            <th className="px-2 py-1 text-left text-gray-600">{t('delivery.myanmar')}</th>
+            <th className="px-2 py-1 text-center">{t('orders.qty')}</th>
             {showPrice && (
               <>
-                <th className="px-2 py-1 text-right">단가</th>
-                <th className="px-2 py-1 text-right">금액</th>
+                <th className="px-2 py-1 text-right">{t('orders.price')}</th>
+                <th className="px-2 py-1 text-right">{t('orders.amount')}</th>
               </>
             )}
           </tr>
@@ -197,7 +199,7 @@ export default function DeliveryPage() {
         {showPrice && (
           <tfoot className="bg-gray-50 font-bold">
             <tr>
-              <td colSpan={5} className="px-2 py-2 text-right">합계</td>
+              <td colSpan={5} className="px-2 py-2 text-right">{t('delivery.subtotal')}</td>
               <td className="px-2 py-2 text-right text-blue-600">
                 {formatCurrency(note.totalAmount)}
               </td>
@@ -213,7 +215,7 @@ export default function DeliveryPage() {
       <MainLayout
         isAdmin={isAdmin}
         userName={user?.email || ''}
-        pageTitle="배송장"
+        pageTitle={t('delivery.title')}
         onLogout={signOut}
       >
       <div className="p-4 md:p-6 max-w-6xl mx-auto">
@@ -222,10 +224,10 @@ export default function DeliveryPage() {
             <Link href="/">
               <Button variant="secondary" size="sm">
                 <Home size={18} className="mr-1" />
-                홈
+                {t('common.home')}
               </Button>
             </Link>
-            <h1 className="text-2xl font-bold">배송장</h1>
+            <h1 className="text-2xl font-bold">{t('delivery.title')}</h1>
           </div>
           <div className="flex items-center gap-2">
             <input
@@ -235,7 +237,7 @@ export default function DeliveryPage() {
               className="px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500"
             />
             <Button onClick={handlePrint} variant="secondary">
-              인쇄
+              {t('common.print')}
             </Button>
           </div>
         </div>
@@ -251,7 +253,7 @@ export default function DeliveryPage() {
                   : 'bg-gray-100 text-gray-600 hover:bg-gray-200'
               }`}
             >
-              전체
+              {t('common.all')}
             </button>
             <button
               onClick={() => setSelectedRegion('pattaya')}
@@ -261,7 +263,7 @@ export default function DeliveryPage() {
                   : 'bg-blue-50 text-blue-600 hover:bg-blue-100'
               }`}
             >
-              파타야 ({pattayaNotes.length})
+              {t('customers.pattaya')} ({pattayaNotes.length})
             </button>
             <button
               onClick={() => setSelectedRegion('bangkok')}
@@ -271,7 +273,7 @@ export default function DeliveryPage() {
                   : 'bg-yellow-50 text-yellow-600 hover:bg-yellow-100'
               }`}
             >
-              방콕 ({bangkokNotes.length})
+              {t('customers.bangkok')} ({bangkokNotes.length})
             </button>
           </div>
 
@@ -284,7 +286,7 @@ export default function DeliveryPage() {
                   : 'bg-gray-100 text-gray-600 hover:bg-gray-200'
               }`}
             >
-              배송장 (수량만)
+              {t('delivery.title')} ({t('delivery.qtyOnly')})
             </button>
             <button
               onClick={() => setViewMode('invoice')}
@@ -294,7 +296,7 @@ export default function DeliveryPage() {
                   : 'bg-gray-100 text-gray-600 hover:bg-gray-200'
               }`}
             >
-              인보이스 (가격포함)
+              {t('delivery.invoice')} ({t('delivery.withPrice')})
             </button>
           </div>
         </div>
@@ -302,17 +304,17 @@ export default function DeliveryPage() {
         {/* 요약 */}
         <div className="grid grid-cols-3 gap-4 mb-6 print:hidden">
           <div className="bg-gray-50 p-4 rounded-lg">
-            <div className="text-sm text-gray-700 font-medium mb-1">총 고객</div>
-            <div className="text-xl font-bold">{filteredNotes.length}곳</div>
+            <div className="text-sm text-gray-700 font-medium mb-1">{t('delivery.totalCustomers')}</div>
+            <div className="text-xl font-bold">{filteredNotes.length}{t('delivery.places')}</div>
           </div>
           <div className="bg-gray-50 p-4 rounded-lg">
-            <div className="text-sm text-gray-700 font-medium mb-1">총 품목</div>
+            <div className="text-sm text-gray-700 font-medium mb-1">{t('delivery.totalItems')}</div>
             <div className="text-xl font-bold">
-              {filteredNotes.reduce((sum, n) => sum + n.items.length, 0)}개
+              {filteredNotes.reduce((sum, n) => sum + n.items.length, 0)}{t('common.count')}
             </div>
           </div>
           <div className="bg-gray-50 p-4 rounded-lg">
-            <div className="text-sm text-gray-700 font-medium mb-1">총 금액</div>
+            <div className="text-sm text-gray-700 font-medium mb-1">{t('dashboard.totalSales')}</div>
             <div className="text-xl font-bold text-blue-600">
               {formatCurrency(filteredNotes.reduce((sum, n) => sum + n.totalAmount, 0))}
             </div>
@@ -325,14 +327,14 @@ export default function DeliveryPage() {
           </div>
         ) : filteredNotes.length === 0 ? (
           <EmptyState
-            title="배송장이 없습니다"
-            description="해당 날짜에 주문이 없습니다."
+            title={t('delivery.noDelivery')}
+            description={t('delivery.noOrderForDate')}
           />
         ) : (
           <div ref={printRef}>
             {/* 인쇄용 헤더 */}
             <div className="hidden print:block mb-4 text-center">
-              <h1 className="text-2xl font-bold">FK365 {viewMode === 'delivery' ? '배송장' : '인보이스'}</h1>
+              <h1 className="text-2xl font-bold">FK365 {viewMode === 'delivery' ? t('delivery.title') : t('delivery.invoice')}</h1>
               <p className="text-gray-500">{date}</p>
             </div>
 
@@ -341,7 +343,7 @@ export default function DeliveryPage() {
               <div className="mb-8">
                 <h2 className="text-lg font-semibold mb-4 flex items-center gap-2">
                   <span className="w-3 h-3 bg-blue-500 rounded-full"></span>
-                  파타야 ({pattayaNotes.length}곳)
+                  {t('customers.pattaya')} ({pattayaNotes.length}{t('delivery.places')})
                 </h2>
                 {pattayaNotes.map((note) => renderDeliveryNote(note, viewMode === 'invoice'))}
               </div>
@@ -352,7 +354,7 @@ export default function DeliveryPage() {
               <div className="mb-8">
                 <h2 className="text-lg font-semibold mb-4 flex items-center gap-2">
                   <span className="w-3 h-3 bg-yellow-500 rounded-full"></span>
-                  방콕 ({bangkokNotes.length}곳)
+                  {t('customers.bangkok')} ({bangkokNotes.length}{t('delivery.places')})
                 </h2>
                 {bangkokNotes.map((note) => renderDeliveryNote(note, viewMode === 'invoice'))}
               </div>

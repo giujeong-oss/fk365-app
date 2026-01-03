@@ -2,6 +2,7 @@
 
 import { useState, useEffect } from 'react';
 import { useAuth } from '@/lib/context';
+import { useI18n } from '@/lib/i18n';
 import { ProtectedRoute } from '@/components/auth';
 import { MainLayout } from '@/components/layout';
 import { Button, Input, Spinner, Badge, Modal } from '@/components/ui';
@@ -21,6 +22,7 @@ import type { FreshMargin, IndustrialMargin, MarginHistory, Grade } from '@/type
 
 export default function MarginsPage() {
   const { user, isAdmin, signOut } = useAuth();
+  const { t } = useI18n();
   const [freshMargins, setFreshMargins] = useState<FreshMargin[]>([]);
   const [industrialMargins, setIndustrialMarginsState] = useState<IndustrialMargin[]>([]);
   const [history, setHistory] = useState<MarginHistory[]>([]);
@@ -149,7 +151,7 @@ export default function MarginsPage() {
       <MainLayout
         isAdmin={isAdmin}
         userName={user?.email || ''}
-        pageTitle="마진 설정"
+        pageTitle={t('margins.title')}
         onLogout={signOut}
       >
       <div className="p-4 md:p-6 max-w-6xl mx-auto">
@@ -158,13 +160,13 @@ export default function MarginsPage() {
             <Link href="/">
               <Button variant="secondary" size="sm">
                 <Home size={18} className="mr-1" />
-                홈
+                {t('common.home')}
               </Button>
             </Link>
             <div>
-              <h1 className="text-2xl font-bold">마진 설정</h1>
+              <h1 className="text-2xl font-bold">{t('margins.title')}</h1>
               <p className="text-sm text-red-600 mt-1">
-                등급별 마진율을 설정합니다. 변경 시 히스토리가 자동 기록됩니다.
+                {t('margins.description')}
               </p>
             </div>
           </div>
@@ -180,7 +182,7 @@ export default function MarginsPage() {
                 : 'text-red-600 hover:text-red-800'
             }`}
           >
-            신선제품 마진
+            {t('margins.freshMargin')}
           </button>
           <button
             onClick={() => setActiveTab('industrial')}
@@ -190,7 +192,7 @@ export default function MarginsPage() {
                 : 'text-red-600 hover:text-red-800'
             }`}
           >
-            공산품 마진
+            {t('margins.industrialMargin')}
           </button>
           <button
             onClick={() => setActiveTab('history')}
@@ -200,7 +202,7 @@ export default function MarginsPage() {
                 : 'text-red-600 hover:text-red-800'
             }`}
           >
-            변경 히스토리
+            {t('margins.history')}
           </button>
         </div>
 
@@ -214,9 +216,9 @@ export default function MarginsPage() {
             {activeTab === 'fresh' && (
               <div className="space-y-4">
                 <div className="bg-green-50 p-4 rounded-lg mb-6">
-                  <h3 className="font-medium text-green-700 mb-2">신선제품 마진 계산식</h3>
+                  <h3 className="font-medium text-green-700 mb-2">{t('margins.freshFormula')}</h3>
                   <p className="text-sm text-green-600">
-                    판매가 = 매입가(3일최고가) + 마진(바트) + 고객adj
+                    {t('margins.freshFormulaDesc')}
                   </p>
                 </div>
 
@@ -224,11 +226,11 @@ export default function MarginsPage() {
                   <table className="w-full">
                     <thead className="bg-red-50">
                       <tr>
-                        <th className="px-4 py-3 text-left text-sm font-medium text-red-700">등급</th>
-                        <th className="px-4 py-3 text-left text-sm font-medium text-red-700">설명</th>
-                        <th className="px-4 py-3 text-center text-sm font-medium text-red-700">마진 (바트)</th>
-                        <th className="px-4 py-3 text-center text-sm font-medium text-red-700">상태</th>
-                        <th className="px-4 py-3 text-center text-sm font-medium text-red-700">작업</th>
+                        <th className="px-4 py-3 text-left text-sm font-medium text-red-700">{t('table.grade')}</th>
+                        <th className="px-4 py-3 text-left text-sm font-medium text-red-700">{t('common.description')}</th>
+                        <th className="px-4 py-3 text-center text-sm font-medium text-red-700">{t('margins.marginBaht')}</th>
+                        <th className="px-4 py-3 text-center text-sm font-medium text-red-700">{t('table.status')}</th>
+                        <th className="px-4 py-3 text-center text-sm font-medium text-red-700">{t('table.action')}</th>
                       </tr>
                     </thead>
                     <tbody className="divide-y">
@@ -255,7 +257,7 @@ export default function MarginsPage() {
                           </td>
                           <td className="px-4 py-3 text-center">
                             {isFreshModified(grade) && (
-                              <Badge variant="warning" size="sm">수정됨</Badge>
+                              <Badge variant="warning" size="sm">{t('common.modified')}</Badge>
                             )}
                           </td>
                           <td className="px-4 py-3 text-center">
@@ -264,7 +266,7 @@ export default function MarginsPage() {
                               onClick={() => handleSaveFresh(grade)}
                               disabled={!isFreshModified(grade) || saving}
                             >
-                              저장
+                              {t('common.save')}
                             </Button>
                           </td>
                         </tr>
@@ -279,12 +281,12 @@ export default function MarginsPage() {
             {activeTab === 'industrial' && (
               <div className="space-y-4">
                 <div className="bg-blue-50 p-4 rounded-lg mb-6">
-                  <h3 className="font-medium text-blue-700 mb-2">공산품 마진 계산식</h3>
+                  <h3 className="font-medium text-blue-700 mb-2">{t('margins.industrialFormula')}</h3>
                   <p className="text-sm text-blue-600 mb-1">
-                    S~C, E등급: 판매가 = Pur × 배율 + 고객adj
+                    {t('margins.industrialFormulaDesc1')}
                   </p>
                   <p className="text-sm text-blue-600">
-                    D등급: 판매가 = max(Min, Mid) + 고객adj (마진 {`<`} 체크값이면 재협상)
+                    {t('margins.industrialFormulaDesc2')}
                   </p>
                 </div>
 
@@ -305,7 +307,7 @@ export default function MarginsPage() {
                             <Badge variant="info">{grade}</Badge>
                             <span className="text-sm text-red-700 font-medium">{GRADE_DESCRIPTIONS[grade]}</span>
                             {isIndustrialModified(grade) && (
-                              <Badge variant="warning" size="sm">수정됨</Badge>
+                              <Badge variant="warning" size="sm">{t('common.modified')}</Badge>
                             )}
                           </div>
                           <Button
@@ -313,14 +315,14 @@ export default function MarginsPage() {
                             onClick={() => handleSaveIndustrial(grade)}
                             disabled={!isIndustrialModified(grade) || saving}
                           >
-                            저장
+                            {t('common.save')}
                           </Button>
                         </div>
 
                         <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
                           {!isD && (
                             <div>
-                              <label className="block text-xs text-red-600 mb-1">Pur 배율</label>
+                              <label className="block text-xs text-red-600 mb-1">{t('margins.purMultiplier')}</label>
                               <input
                                 type="number"
                                 step="0.01"
@@ -339,7 +341,7 @@ export default function MarginsPage() {
                           {isD && (
                             <>
                               <div>
-                                <label className="block text-xs text-red-600 mb-1">Min 배율</label>
+                                <label className="block text-xs text-red-600 mb-1">{t('margins.minMultiplier')}</label>
                                 <input
                                   type="number"
                                   step="0.01"
@@ -354,7 +356,7 @@ export default function MarginsPage() {
                                 />
                               </div>
                               <div>
-                                <label className="block text-xs text-red-600 mb-1">Mid 배율</label>
+                                <label className="block text-xs text-red-600 mb-1">{t('margins.midMultiplier')}</label>
                                 <input
                                   type="number"
                                   step="0.01"
@@ -369,7 +371,7 @@ export default function MarginsPage() {
                                 />
                               </div>
                               <div>
-                                <label className="block text-xs text-red-600 mb-1">최소마진체크(%)</label>
+                                <label className="block text-xs text-red-600 mb-1">{t('margins.minMarginCheck')}</label>
                                 <input
                                   type="number"
                                   value={editing.minMarginCheck || 0}
@@ -386,7 +388,7 @@ export default function MarginsPage() {
                           )}
 
                           <div className={isD ? '' : 'md:col-span-3'}>
-                            <label className="block text-xs text-red-600 mb-1">계산식</label>
+                            <label className="block text-xs text-red-600 mb-1">{t('margins.formula')}</label>
                             <div className="px-2 py-1 bg-red-100 rounded text-sm text-red-700">
                               {editing.formula || '-'}
                             </div>
@@ -404,19 +406,19 @@ export default function MarginsPage() {
               <div className="bg-white border rounded-lg overflow-hidden">
                 {history.length === 0 ? (
                   <div className="p-8 text-center text-red-600">
-                    변경 히스토리가 없습니다.
+                    {t('margins.noHistory')}
                   </div>
                 ) : (
                   <table className="w-full">
                     <thead className="bg-red-50">
                       <tr>
-                        <th className="px-4 py-3 text-left text-sm font-medium text-red-700">일시</th>
-                        <th className="px-4 py-3 text-left text-sm font-medium text-red-700">유형</th>
-                        <th className="px-4 py-3 text-left text-sm font-medium text-red-700">등급</th>
-                        <th className="px-4 py-3 text-left text-sm font-medium text-red-700">항목</th>
-                        <th className="px-4 py-3 text-center text-sm font-medium text-red-700">변경 전</th>
-                        <th className="px-4 py-3 text-center text-sm font-medium text-red-700">변경 후</th>
-                        <th className="px-4 py-3 text-left text-sm font-medium text-red-700">변경자</th>
+                        <th className="px-4 py-3 text-left text-sm font-medium text-red-700">{t('margins.dateTime')}</th>
+                        <th className="px-4 py-3 text-left text-sm font-medium text-red-700">{t('table.type')}</th>
+                        <th className="px-4 py-3 text-left text-sm font-medium text-red-700">{t('table.grade')}</th>
+                        <th className="px-4 py-3 text-left text-sm font-medium text-red-700">{t('margins.field')}</th>
+                        <th className="px-4 py-3 text-center text-sm font-medium text-red-700">{t('margins.oldValue')}</th>
+                        <th className="px-4 py-3 text-center text-sm font-medium text-red-700">{t('margins.newValue')}</th>
+                        <th className="px-4 py-3 text-left text-sm font-medium text-red-700">{t('margins.changedBy')}</th>
                       </tr>
                     </thead>
                     <tbody className="divide-y">
@@ -430,7 +432,7 @@ export default function MarginsPage() {
                               variant={h.type === 'fresh' ? 'success' : 'info'}
                               size="sm"
                             >
-                              {h.type === 'fresh' ? '신선' : '공산품'}
+                              {h.type === 'fresh' ? t('products.fresh') : t('products.industrial')}
                             </Badge>
                           </td>
                           <td className="px-4 py-3">

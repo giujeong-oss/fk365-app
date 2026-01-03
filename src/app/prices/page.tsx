@@ -2,6 +2,7 @@
 
 import { useState, useEffect } from 'react';
 import { useAuth } from '@/lib/context';
+import { useI18n } from '@/lib/i18n';
 import { ProtectedRoute } from '@/components/auth';
 import { MainLayout } from '@/components/layout';
 import { Button, Spinner, Badge, EmptyState, Modal, useToast } from '@/components/ui';
@@ -28,6 +29,7 @@ interface FreshProductPrice {
 
 export default function PricesPage() {
   const { user, isAdmin, signOut } = useAuth();
+  const { t } = useI18n();
   const { showSuccess, showError, showWarning } = useToast();
   const [products, setProducts] = useState<Product[]>([]);
   const [vendors, setVendors] = useState<Vendor[]>([]);
@@ -156,7 +158,7 @@ export default function PricesPage() {
   const applyBulkEdit = () => {
     const value = parseFloat(bulkEditValue);
     if (isNaN(value)) {
-      showWarning('올바른 숫자를 입력해주세요.');
+      showWarning(t('common.required'));
       return;
     }
 
@@ -185,7 +187,7 @@ export default function PricesPage() {
       return newPp;
     }));
 
-    showSuccess(`${selectedProducts.size}개 제품에 일괄 수정이 적용되었습니다.`);
+    showSuccess(`${selectedProducts.size}${t('prices.bulkApplied')}`);
     setBulkEditModal(false);
     setBulkEditValue('');
     setSelectedProducts(new Set());
@@ -197,7 +199,7 @@ export default function PricesPage() {
       const modifiedItems = productPrices.filter((pp) => pp.isModified);
 
       if (modifiedItems.length === 0) {
-        showWarning('변경된 항목이 없습니다.');
+        showWarning(t('common.noChanges'));
         return;
       }
 
@@ -213,10 +215,10 @@ export default function PricesPage() {
         prev.map((pp) => ({ ...pp, isModified: false }))
       );
 
-      showSuccess(`${modifiedItems.length}개 제품 가격이 저장되었습니다.`);
+      showSuccess(`${modifiedItems.length}${t('common.itemsSaved')}`);
     } catch (error) {
       console.error('Failed to save prices:', error);
-      showError('저장에 실패했습니다.');
+      showError(t('common.saveFailed'));
     } finally {
       setSaving(false);
     }
@@ -228,7 +230,7 @@ export default function PricesPage() {
       const modifiedItems = freshPrices.filter((fp) => fp.isModified && fp.todayPrice !== undefined);
 
       if (modifiedItems.length === 0) {
-        showWarning('변경된 항목이 없습니다.');
+        showWarning(t('common.noChanges'));
         return;
       }
 
@@ -241,10 +243,10 @@ export default function PricesPage() {
       // 데이터 다시 로드하여 max3day 업데이트
       await loadData();
 
-      showSuccess(`${modifiedItems.length}개 제품 가격이 저장되었습니다.`);
+      showSuccess(`${modifiedItems.length}${t('common.itemsSaved')}`);
     } catch (error) {
       console.error('Failed to save prices:', error);
-      showError('저장에 실패했습니다.');
+      showError(t('common.saveFailed'));
     } finally {
       setSaving(false);
     }
@@ -300,7 +302,7 @@ export default function PricesPage() {
       <MainLayout
         isAdmin={isAdmin}
         userName={user?.email || ''}
-        pageTitle="제품 가격"
+        pageTitle={t('prices.title')}
         onLogout={signOut}
       >
         <div className="p-4 md:p-6 max-w-7xl mx-auto">
@@ -309,13 +311,13 @@ export default function PricesPage() {
               <Link href="/">
                 <Button variant="secondary" size="sm">
                   <Home size={18} className="mr-1" />
-                  홈
+                  {t('common.home')}
                 </Button>
               </Link>
               <div>
-                <h1 className="text-2xl font-bold text-gray-900">제품 가격</h1>
+                <h1 className="text-2xl font-bold text-gray-900">{t('prices.title')}</h1>
                 <p className="text-sm text-gray-600 mt-1">
-                  공산품 {productPrices.length}개 / 신선제품 {freshPrices.length}개
+                  {t('prices.industrialTab')} {productPrices.length}{t('common.count')} / {t('prices.freshTab')} {freshPrices.length}{t('common.count')}
                 </p>
               </div>
             </div>
@@ -326,21 +328,21 @@ export default function PricesPage() {
                   onClick={() => setBulkEditModal(true)}
                 >
                   <Percent size={16} className="mr-1" />
-                  일괄 수정 ({selectedProducts.size}개)
+                  {t('prices.bulkAdjust')} ({selectedProducts.size}{t('common.count')})
                 </Button>
               )}
               {currentModifiedCount > 0 && (
-                <Badge variant="warning">{currentModifiedCount}개 변경됨</Badge>
+                <Badge variant="warning">{currentModifiedCount}{t('common.modified')}</Badge>
               )}
               <Button variant="secondary" onClick={handleReset} disabled={currentModifiedCount === 0}>
-                초기화
+                {t('common.reset')}
               </Button>
               <Button
                 onClick={activeTab === 'industrial' ? handleSaveIndustrial : handleSaveFresh}
                 disabled={saving || currentModifiedCount === 0}
               >
                 <Save size={16} className="mr-1" />
-                {saving ? '저장 중...' : '저장'}
+                {saving ? t('common.saving') : t('common.save')}
               </Button>
             </div>
           </div>
@@ -355,7 +357,7 @@ export default function PricesPage() {
                   : 'border-transparent text-gray-500 hover:text-gray-700'
               }`}
             >
-              신선제품 ({freshPrices.length})
+              {t('prices.freshTab')} ({freshPrices.length})
             </button>
             <button
               onClick={() => setActiveTab('industrial')}
@@ -365,7 +367,7 @@ export default function PricesPage() {
                   : 'border-transparent text-gray-500 hover:text-gray-700'
               }`}
             >
-              공산품 ({productPrices.length})
+              {t('prices.industrialTab')} ({productPrices.length})
             </button>
           </div>
 
@@ -375,7 +377,7 @@ export default function PricesPage() {
               <Search size={18} className="absolute left-3 top-1/2 -translate-y-1/2 text-gray-500" />
               <input
                 type="text"
-                placeholder="제품 코드 또는 이름으로 검색..."
+                placeholder={t('products.searchPlaceholder')}
                 value={searchTerm}
                 onChange={(e) => setSearchTerm(e.target.value)}
                 className="w-full pl-10 pr-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-green-500"
@@ -386,7 +388,7 @@ export default function PricesPage() {
               onChange={(e) => setSelectedVendor(e.target.value)}
               className="px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-green-500"
             >
-              <option value="">전체 구매처</option>
+              <option value="">{t('common.all')} {t('vendors.vendor')}</option>
               {vendors.map((vendor) => (
                 <option key={vendor.id} value={vendor.code}>
                   {vendor.name}
@@ -403,8 +405,8 @@ export default function PricesPage() {
             // 공산품 탭
             filteredIndustrial.length === 0 ? (
               <EmptyState
-                title="공산품이 없습니다"
-                description={searchTerm || selectedVendor ? '검색 조건을 변경해보세요.' : '먼저 공산품을 등록해주세요.'}
+                title={t('prices.noIndustrial')}
+                description={searchTerm || selectedVendor ? t('stock.changeCondition') : t('stock.addProductFirst')}
               />
             ) : (
               <div className="bg-white border rounded-lg overflow-hidden">
@@ -417,7 +419,7 @@ export default function PricesPage() {
                           <button
                             onClick={toggleSelectAll}
                             className="p-1 hover:bg-gray-200 rounded"
-                            title={selectedProducts.size === filteredIndustrial.length ? '전체 해제' : '전체 선택'}
+                            title={selectedProducts.size === filteredIndustrial.length ? t('common.deselect') : t('common.selectAll')}
                           >
                             {selectedProducts.size === filteredIndustrial.length && filteredIndustrial.length > 0 ? (
                               <CheckSquare size={18} className="text-green-600" />
@@ -426,13 +428,13 @@ export default function PricesPage() {
                             )}
                           </button>
                         </th>
-                        <th className="px-4 py-3 text-left text-sm font-medium text-gray-700">코드</th>
-                        <th className="px-4 py-3 text-left text-sm font-medium text-gray-700">제품명</th>
-                        <th className="px-4 py-3 text-left text-sm font-medium text-gray-700">구매처</th>
-                        <th className="px-4 py-3 text-center text-sm font-medium text-gray-700">매입가 (VAT포함)</th>
-                        <th className="px-4 py-3 text-center text-sm font-medium text-gray-700">최소가 (Min)</th>
-                        <th className="px-4 py-3 text-center text-sm font-medium text-gray-700">중간가 (Mid)</th>
-                        <th className="px-4 py-3 text-center text-sm font-medium text-gray-700">상태</th>
+                        <th className="px-4 py-3 text-left text-sm font-medium text-gray-700">{t('table.code')}</th>
+                        <th className="px-4 py-3 text-left text-sm font-medium text-gray-700">{t('table.name')}</th>
+                        <th className="px-4 py-3 text-left text-sm font-medium text-gray-700">{t('table.vendor')}</th>
+                        <th className="px-4 py-3 text-center text-sm font-medium text-gray-700">{t('prices.purPrice')}</th>
+                        <th className="px-4 py-3 text-center text-sm font-medium text-gray-700">{t('prices.minPrice')}</th>
+                        <th className="px-4 py-3 text-center text-sm font-medium text-gray-700">{t('prices.midPrice')}</th>
+                        <th className="px-4 py-3 text-center text-sm font-medium text-gray-700">{t('table.status')}</th>
                       </tr>
                     </thead>
                     <tbody className="divide-y">
@@ -492,7 +494,7 @@ export default function PricesPage() {
                           </td>
                           <td className="px-4 py-3 text-center">
                             {pp.isModified && (
-                              <Badge variant="warning" size="sm">수정됨</Badge>
+                              <Badge variant="warning" size="sm">{t('common.modified')}</Badge>
                             )}
                           </td>
                         </tr>
@@ -512,7 +514,7 @@ export default function PricesPage() {
                         <div>
                           <div className="flex items-center gap-2 mb-1">
                             <span className="font-semibold text-gray-900">{pp.product.name_ko}</span>
-                            {pp.isModified && <Badge variant="warning" size="sm">수정됨</Badge>}
+                            {pp.isModified && <Badge variant="warning" size="sm">{t('common.modified')}</Badge>}
                           </div>
                           <div className="text-sm text-gray-700">{pp.product.code}</div>
                           <div className="text-xs text-gray-600 mt-1">
@@ -523,7 +525,7 @@ export default function PricesPage() {
 
                       <div className="grid grid-cols-3 gap-2">
                         <div>
-                          <label className="block text-xs text-gray-600 mb-1">매입가(VAT)</label>
+                          <label className="block text-xs text-gray-600 mb-1">{t('prices.purPrice')}</label>
                           <input
                             type="number"
                             value={pp.pur ?? ''}
@@ -533,7 +535,7 @@ export default function PricesPage() {
                           />
                         </div>
                         <div>
-                          <label className="block text-xs text-gray-600 mb-1">최소가</label>
+                          <label className="block text-xs text-gray-600 mb-1">{t('prices.minPrice')}</label>
                           <input
                             type="number"
                             value={pp.min ?? ''}
@@ -543,7 +545,7 @@ export default function PricesPage() {
                           />
                         </div>
                         <div>
-                          <label className="block text-xs text-gray-600 mb-1">중간가</label>
+                          <label className="block text-xs text-gray-600 mb-1">{t('prices.midPrice')}</label>
                           <input
                             type="number"
                             value={pp.mid ?? ''}
@@ -562,8 +564,8 @@ export default function PricesPage() {
             // 신선제품 탭
             filteredFresh.length === 0 ? (
               <EmptyState
-                title="신선제품이 없습니다"
-                description={searchTerm || selectedVendor ? '검색 조건을 변경해보세요.' : '먼저 신선제품을 등록해주세요.'}
+                title={t('prices.noFresh')}
+                description={searchTerm || selectedVendor ? t('stock.changeCondition') : t('stock.addProductFirst')}
               />
             ) : (
               <div className="bg-white border rounded-lg overflow-hidden">
@@ -572,21 +574,21 @@ export default function PricesPage() {
                   <table className="w-full">
                     <thead className="bg-gray-50">
                       <tr>
-                        <th className="px-4 py-3 text-left text-sm font-medium text-gray-700">코드</th>
-                        <th className="px-4 py-3 text-left text-sm font-medium text-gray-700">제품명</th>
-                        <th className="px-4 py-3 text-left text-sm font-medium text-gray-700">구매처</th>
+                        <th className="px-4 py-3 text-left text-sm font-medium text-gray-700">{t('table.code')}</th>
+                        <th className="px-4 py-3 text-left text-sm font-medium text-gray-700">{t('table.name')}</th>
+                        <th className="px-4 py-3 text-left text-sm font-medium text-gray-700">{t('table.vendor')}</th>
                         <th className="px-4 py-3 text-center text-sm font-medium text-gray-700 bg-green-50">
-                          3일 최고가
+                          {t('prices.max3Day')}
                         </th>
                         <th className="px-4 py-3 text-center text-sm font-medium text-gray-700 bg-blue-50">
-                          오늘 ({today.slice(5)})
+                          {t('dashboard.today')} ({today.slice(5)})
                         </th>
                         {recentDates.slice(1, 4).map(date => (
                           <th key={date} className="px-3 py-3 text-center text-sm font-medium text-gray-500">
                             {date.slice(5)}
                           </th>
                         ))}
-                        <th className="px-4 py-3 text-center text-sm font-medium text-gray-700">상태</th>
+                        <th className="px-4 py-3 text-center text-sm font-medium text-gray-700">{t('table.status')}</th>
                       </tr>
                     </thead>
                     <tbody className="divide-y">
@@ -626,7 +628,7 @@ export default function PricesPage() {
                           ))}
                           <td className="px-4 py-3 text-center">
                             {fp.isModified && (
-                              <Badge variant="warning" size="sm">수정됨</Badge>
+                              <Badge variant="warning" size="sm">{t('common.modified')}</Badge>
                             )}
                           </td>
                         </tr>
@@ -646,7 +648,7 @@ export default function PricesPage() {
                         <div className="flex-1">
                           <div className="flex items-center gap-2 mb-1">
                             <span className="font-semibold text-gray-900">{fp.product.name_ko}</span>
-                            {fp.isModified && <Badge variant="warning" size="sm">수정됨</Badge>}
+                            {fp.isModified && <Badge variant="warning" size="sm">{t('common.modified')}</Badge>}
                           </div>
                           <div className="text-sm text-gray-700">{fp.product.code}</div>
                           <div className="text-xs text-gray-600 mt-1">
@@ -654,14 +656,14 @@ export default function PricesPage() {
                           </div>
                         </div>
                         <div className="text-right">
-                          <div className="text-xs text-gray-500">3일 최고가</div>
+                          <div className="text-xs text-gray-500">{t('prices.max3Day')}</div>
                           <div className="text-xl font-bold text-green-600">{fp.max3day || '-'}</div>
                         </div>
                       </div>
 
                       <div className="flex items-center gap-4 mb-3">
                         <div className="flex-1">
-                          <label className="block text-xs text-gray-600 mb-1">오늘 매입가</label>
+                          <label className="block text-xs text-gray-600 mb-1">{t('prices.todayPrice')}</label>
                           <input
                             type="number"
                             value={fp.todayPrice ?? ''}
@@ -693,9 +695,9 @@ export default function PricesPage() {
           {currentModifiedCount > 0 && (
             <div className="md:hidden fixed bottom-0 left-0 right-0 bg-white border-t shadow-lg p-4">
               <div className="flex items-center justify-between mb-2">
-                <span className="text-sm text-gray-700">{currentModifiedCount}개 항목 변경됨</span>
+                <span className="text-sm text-gray-700">{currentModifiedCount}{t('common.modified')}</span>
                 <Button variant="secondary" size="sm" onClick={handleReset}>
-                  초기화
+                  {t('common.reset')}
                 </Button>
               </div>
               <Button
@@ -704,7 +706,7 @@ export default function PricesPage() {
                 className="w-full"
               >
                 <Save size={16} className="mr-1" />
-                {saving ? '저장 중...' : '저장'}
+                {saving ? t('common.saving') : t('common.save')}
               </Button>
             </div>
           )}
@@ -717,23 +719,23 @@ export default function PricesPage() {
             setBulkEditModal(false);
             setBulkEditValue('');
           }}
-          title="일괄 가격 수정"
+          title={t('prices.bulkEditTitle')}
         >
           <div className="p-4">
             <p className="text-sm text-gray-600 mb-4">
-              선택한 <strong>{selectedProducts.size}개</strong> 제품의 가격을 일괄 수정합니다.
+              {t('common.selected')}: <strong>{selectedProducts.size}{t('common.count')}</strong>
             </p>
 
             <div className="space-y-4">
               {/* 수정 대상 */}
               <div>
-                <label className="block text-sm font-medium text-gray-700 mb-2">수정 대상</label>
+                <label className="block text-sm font-medium text-gray-700 mb-2">{t('prices.adjustTarget')}</label>
                 <div className="flex gap-2 flex-wrap">
                   {[
-                    { value: 'all', label: '전체' },
-                    { value: 'pur', label: '매입가만' },
-                    { value: 'min', label: '최소가만' },
-                    { value: 'mid', label: '중간가만' },
+                    { value: 'all', label: t('prices.allPrices') },
+                    { value: 'pur', label: t('prices.onlyPur') },
+                    { value: 'min', label: t('prices.onlyMin') },
+                    { value: 'mid', label: t('prices.onlyMid') },
                   ].map((opt) => (
                     <button
                       key={opt.value}
@@ -752,7 +754,7 @@ export default function PricesPage() {
 
               {/* 수정 방식 */}
               <div>
-                <label className="block text-sm font-medium text-gray-700 mb-2">수정 방식</label>
+                <label className="block text-sm font-medium text-gray-700 mb-2">{t('prices.adjustMethod')}</label>
                 <div className="flex gap-2">
                   <button
                     onClick={() => setBulkEditMode('percent')}
@@ -763,7 +765,7 @@ export default function PricesPage() {
                     }`}
                   >
                     <Percent size={16} className="inline mr-1" />
-                    비율 (%)
+                    {t('prices.percentMode')}
                   </button>
                   <button
                     onClick={() => setBulkEditMode('fixed')}
@@ -773,7 +775,7 @@ export default function PricesPage() {
                         : 'border-gray-300 text-gray-600 hover:bg-gray-50'
                     }`}
                   >
-                    고정값 (฿)
+                    {t('prices.fixedMode')}
                   </button>
                 </div>
               </div>
@@ -781,17 +783,17 @@ export default function PricesPage() {
               {/* 수정 값 */}
               <div>
                 <label className="block text-sm font-medium text-gray-700 mb-2">
-                  {bulkEditMode === 'percent' ? '변경 비율 (%)' : '변경값 (฿)'}
+                  {t('prices.adjustValue')}
                 </label>
                 <input
                   type="number"
                   value={bulkEditValue}
                   onChange={(e) => setBulkEditValue(e.target.value)}
-                  placeholder={bulkEditMode === 'percent' ? '예: 5 (5% 인상), -3 (3% 인하)' : '예: 10 (10฿ 인상), -5 (5฿ 인하)'}
+                  placeholder={bulkEditMode === 'percent' ? t('prices.percentHint') : t('prices.fixedHint')}
                   className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-green-500"
                 />
                 <p className="text-xs text-gray-500 mt-1">
-                  양수: 인상 / 음수: 인하
+                  {t('prices.positiveIncrease')}
                 </p>
               </div>
             </div>
@@ -804,10 +806,10 @@ export default function PricesPage() {
                   setBulkEditValue('');
                 }}
               >
-                취소
+                {t('common.cancel')}
               </Button>
               <Button onClick={applyBulkEdit}>
-                적용
+                {t('prices.apply')}
               </Button>
             </div>
           </div>

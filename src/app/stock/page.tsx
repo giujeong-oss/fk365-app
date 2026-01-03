@@ -180,7 +180,7 @@ export default function StockPage() {
         }));
 
       if (modifiedItems.length === 0) {
-        alert('변경된 항목이 없습니다.');
+        alert(t('common.noChanges'));
         return;
       }
 
@@ -191,10 +191,10 @@ export default function StockPage() {
         prev.map((ps) => ({ ...ps, isModified: false }))
       );
 
-      alert(`${modifiedItems.length}개 항목이 저장되었습니다.`);
+      alert(`${modifiedItems.length}${t('common.itemsSaved')}`);
     } catch (error) {
       console.error('Failed to save stock:', error);
-      alert('저장에 실패했습니다.');
+      alert(t('common.saveFailed'));
     } finally {
       setSaving(false);
     }
@@ -250,7 +250,7 @@ export default function StockPage() {
       <MainLayout
         isAdmin={isAdmin}
         userName={user?.email || ''}
-        pageTitle="재고 관리"
+        pageTitle={t('stock.title')}
         onLogout={signOut}
       >
       <div className="p-4 md:p-6 max-w-6xl mx-auto">
@@ -259,29 +259,29 @@ export default function StockPage() {
             <Link href="/">
               <Button variant="secondary" size="sm">
                 <Home size={18} className="mr-1" />
-                홈
+                {t('common.home')}
               </Button>
             </Link>
             <div>
-              <h1 className="text-2xl font-bold">재고 관리</h1>
+              <h1 className="text-2xl font-bold">{t('stock.title')}</h1>
               <p className="text-sm text-gray-500 mt-1">
-                총 {products.length}개 제품 / 총 재고 {totalStock}개
+                {t('stock.totalProducts')} {products.length}{t('common.count')} / {t('stock.totalStock')} {totalStock}{t('common.count')}
               </p>
             </div>
           </div>
           <div className="flex items-center gap-2">
             {modifiedCount > 0 && (
-              <Badge variant="warning">{modifiedCount}개 변경됨</Badge>
+              <Badge variant="warning">{modifiedCount}{t('common.count')} {t('stock.changed')}</Badge>
             )}
             <Button variant="secondary" onClick={handleExportCsv}>
               <Download size={18} className="mr-1" />
               CSV
             </Button>
             <Button variant="secondary" onClick={handleResetAll} disabled={modifiedCount === 0}>
-              초기화
+              {t('common.reset')}
             </Button>
             <Button onClick={handleSaveAll} disabled={saving || modifiedCount === 0}>
-              {saving ? '저장 중...' : '모두 저장'}
+              {saving ? t('common.saving') : t('stock.saveAll')}
             </Button>
           </div>
         </div>
@@ -329,8 +329,8 @@ export default function StockPage() {
           </div>
         ) : filteredStocks.length === 0 ? (
           <EmptyState
-            title="제품이 없습니다"
-            description={searchTerm || selectedPriceType ? '검색 조건을 변경해보세요.' : '먼저 제품을 등록해주세요.'}
+            title={t('stock.noProducts')}
+            description={searchTerm || selectedPriceType ? t('stock.changeCondition') : t('stock.addProductFirst')}
           />
         ) : (
           <div className="bg-white border rounded-lg overflow-hidden">
@@ -339,13 +339,13 @@ export default function StockPage() {
               <table className="w-full">
                 <thead className="bg-gray-50">
                   <tr>
-                    <th className="px-4 py-3 text-left text-sm font-medium text-gray-800">코드</th>
-                    <th className="px-4 py-3 text-left text-sm font-medium text-gray-800">제품명</th>
-                    <th className="px-4 py-3 text-left text-sm font-medium text-gray-800">단위</th>
-                    <th className="px-4 py-3 text-center text-sm font-medium text-gray-800">보관장소</th>
-                    <th className="px-4 py-3 text-center text-sm font-medium text-gray-800">안전재고</th>
-                    <th className="px-4 py-3 text-center text-sm font-medium text-gray-800">상태</th>
-                    <th className="px-4 py-3 text-center text-sm font-medium text-gray-800">재고 수량</th>
+                    <th className="px-4 py-3 text-left text-sm font-medium text-gray-800">{t('products.code')}</th>
+                    <th className="px-4 py-3 text-left text-sm font-medium text-gray-800">{t('products.name')}</th>
+                    <th className="px-4 py-3 text-left text-sm font-medium text-gray-800">{t('products.unit')}</th>
+                    <th className="px-4 py-3 text-center text-sm font-medium text-gray-800">{t('stock.location')}</th>
+                    <th className="px-4 py-3 text-center text-sm font-medium text-gray-800">{t('stock.minStock')}</th>
+                    <th className="px-4 py-3 text-center text-sm font-medium text-gray-800">{t('common.status')}</th>
+                    <th className="px-4 py-3 text-center text-sm font-medium text-gray-800">{t('stock.stockQty')}</th>
                     <th className="px-4 py-3 text-center text-sm font-medium text-gray-800"></th>
                   </tr>
                 </thead>
@@ -388,19 +388,19 @@ export default function StockPage() {
                       </td>
                       <td className="px-4 py-3 text-center">
                         {ps.isModified && (
-                          <Badge variant="warning" size="sm">수정됨</Badge>
+                          <Badge variant="warning" size="sm">{t('stock.modified')}</Badge>
                         )}
                         {!ps.isModified && ps.qty === 0 && (
-                          <Badge variant="danger" size="sm">품절</Badge>
+                          <Badge variant="danger" size="sm">{t('stock.outOfStock')}</Badge>
                         )}
                         {!ps.isModified && ps.qty > 0 && ps.minStock > 0 && ps.qty <= ps.minStock && (
                           <div className="flex items-center justify-center gap-1">
                             <AlertTriangle size={14} className="text-orange-500" />
-                            <Badge variant="warning" size="sm">부족</Badge>
+                            <Badge variant="warning" size="sm">{t('stock.low')}</Badge>
                           </div>
                         )}
                         {!ps.isModified && ps.minStock === 0 && ps.qty > 0 && ps.qty <= 5 && (
-                          <Badge variant="warning" size="sm">부족</Badge>
+                          <Badge variant="warning" size="sm">{t('stock.low')}</Badge>
                         )}
                       </td>
                       <td className="px-4 py-3">
@@ -437,7 +437,7 @@ export default function StockPage() {
                         <button
                           onClick={() => handleViewHistory(ps.product.code)}
                           className="p-1 text-gray-600 hover:text-blue-600 hover:bg-blue-50 rounded"
-                          title="재고 히스토리"
+                          title={t('stock.history')}
                         >
                           <History size={16} />
                         </button>
@@ -459,7 +459,7 @@ export default function StockPage() {
                     <div>
                       <div className="flex items-center gap-2 mb-1">
                         <span className="font-semibold text-gray-900">{ps.product.name_ko}</span>
-                        {ps.isModified && <Badge variant="warning" size="sm">수정됨</Badge>}
+                        {ps.isModified && <Badge variant="warning" size="sm">{t('stock.modified')}</Badge>}
                       </div>
                       <div className="text-sm text-gray-700">{ps.product.name_th}</div>
                       <div className="text-sm text-gray-600">{ps.product.name_mm}</div>
@@ -468,10 +468,10 @@ export default function StockPage() {
                       </div>
                     </div>
                     {!ps.isModified && ps.qty === 0 && (
-                      <Badge variant="danger" size="sm">품절</Badge>
+                      <Badge variant="danger" size="sm">{t('stock.outOfStock')}</Badge>
                     )}
                     {!ps.isModified && ps.qty > 0 && ps.qty <= 5 && (
-                      <Badge variant="warning" size="sm">부족</Badge>
+                      <Badge variant="warning" size="sm">{t('stock.low')}</Badge>
                     )}
                   </div>
 
@@ -523,7 +523,7 @@ export default function StockPage() {
         {modifiedCount > 0 && (
           <div className="md:hidden fixed bottom-0 left-0 right-0 bg-white border-t shadow-lg p-4">
             <div className="flex items-center justify-between mb-2">
-              <span className="text-sm text-gray-700">{modifiedCount}개 항목 변경됨</span>
+              <span className="text-sm text-gray-700">{modifiedCount}{t('common.count')} {t('stock.changed')}</span>
               <Button variant="secondary" size="sm" onClick={handleResetAll}>
                 {t('common.reset')}
               </Button>
@@ -554,7 +554,7 @@ export default function StockPage() {
             ))}
           </div>
           <p className="text-sm text-gray-600">
-            * 보관장소 추가/삭제는 관리자에게 문의하세요.
+            * {t('stock.locationNote')}
           </p>
           <div className="flex justify-end pt-4">
             <Button variant="secondary" onClick={() => setShowLocationModal(false)}>
@@ -571,12 +571,12 @@ export default function StockPage() {
           setShowHistoryModal(null);
           setStockHistoryData([]);
         }}
-        title="재고 변동 히스토리"
+        title={t('stock.historyTitle')}
       >
         <div className="space-y-4">
           {showHistoryModal && (
             <div className="text-sm text-gray-600 mb-2">
-              제품: {products.find(p => p.code === showHistoryModal)?.name_ko || showHistoryModal}
+              {t('products.product')}: {products.find(p => p.code === showHistoryModal)?.name_ko || showHistoryModal}
             </div>
           )}
 
@@ -586,18 +586,18 @@ export default function StockPage() {
             </div>
           ) : stockHistoryData.length === 0 ? (
             <div className="text-center py-8 text-gray-600">
-              히스토리가 없습니다.
+              {t('stock.noHistory')}
             </div>
           ) : (
             <div className="max-h-96 overflow-y-auto">
               <table className="w-full text-sm">
                 <thead className="bg-gray-50 sticky top-0">
                   <tr>
-                    <th className="px-2 py-2 text-left">일시</th>
-                    <th className="px-2 py-2 text-center">유형</th>
-                    <th className="px-2 py-2 text-right">변동</th>
-                    <th className="px-2 py-2 text-right">결과</th>
-                    <th className="px-2 py-2 text-left">사유</th>
+                    <th className="px-2 py-2 text-left">{t('stock.datetime')}</th>
+                    <th className="px-2 py-2 text-center">{t('stock.changeType')}</th>
+                    <th className="px-2 py-2 text-right">{t('stock.change')}</th>
+                    <th className="px-2 py-2 text-right">{t('stock.result')}</th>
+                    <th className="px-2 py-2 text-left">{t('stock.reason')}</th>
                   </tr>
                 </thead>
                 <tbody className="divide-y">
@@ -612,7 +612,7 @@ export default function StockPage() {
                           variant={history.type === 'in' ? 'success' : history.type === 'out' ? 'danger' : 'info'}
                           size="sm"
                         >
-                          {history.type === 'in' ? '입고' : history.type === 'out' ? '출고' : '조정'}
+                          {history.type === 'in' ? t('stock.typeIn') : history.type === 'out' ? t('stock.typeOut') : t('stock.typeAdjust')}
                         </Badge>
                       </td>
                       <td className="px-2 py-2 text-right font-medium">
@@ -638,7 +638,7 @@ export default function StockPage() {
               setShowHistoryModal(null);
               setStockHistoryData([]);
             }}>
-              닫기
+              {t('common.close')}
             </Button>
           </div>
         </div>

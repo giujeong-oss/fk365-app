@@ -4,6 +4,7 @@ import { useState, useEffect } from 'react';
 import { MainLayout } from '@/components/layout';
 import { ProtectedRoute } from '@/components/auth';
 import { useAuth } from '@/lib/context';
+import { useI18n } from '@/lib/i18n';
 import { Button, EmptyState, LoadingState, Badge } from '@/components/ui';
 import { getProducts, deleteProduct, getVendors, updateProduct } from '@/lib/firebase';
 import type { Product, Vendor, PriceType } from '@/types';
@@ -13,6 +14,7 @@ import { exportToCsv, getDateForFilename, type CsvColumn } from '@/lib/utils';
 
 export default function ProductsPage() {
   const { user, isAdmin, signOut } = useAuth();
+  const { t } = useI18n();
   const [products, setProducts] = useState<Product[]>([]);
   const [vendors, setVendors] = useState<Vendor[]>([]);
   const [loading, setLoading] = useState(true);
@@ -141,15 +143,15 @@ export default function ProductsPage() {
   // CSV Export handler
   const handleExportCsv = () => {
     const columns: CsvColumn<Product>[] = [
-      { header: '코드', accessor: 'code' },
-      { header: '한국어명', accessor: 'name_ko' },
-      { header: '태국어명', accessor: 'name_th' },
-      { header: '미얀마어명', accessor: 'name_mm' },
-      { header: '유형', accessor: (p) => p.priceType === 'fresh' ? '신선' : '공산품' },
-      { header: '단위', accessor: 'unit' },
-      { header: '카테고리', accessor: (p) => p.category || '' },
-      { header: '구매처', accessor: (p) => getVendorName(p.vendorCode) },
-      { header: '상태', accessor: (p) => p.isActive ? '활성' : '비활성' },
+      { header: t('products.code'), accessor: 'code' },
+      { header: t('products.name_ko'), accessor: 'name_ko' },
+      { header: t('products.name_th'), accessor: 'name_th' },
+      { header: t('products.name_mm'), accessor: 'name_mm' },
+      { header: t('products.type'), accessor: (p) => p.priceType === 'fresh' ? t('products.fresh') : t('products.industrial') },
+      { header: t('products.unit'), accessor: 'unit' },
+      { header: t('products.category'), accessor: (p) => p.category || '' },
+      { header: t('products.vendor'), accessor: (p) => getVendorName(p.vendorCode) },
+      { header: t('common.status'), accessor: (p) => p.isActive ? t('products.active') : t('products.inactive') },
     ];
 
     const filename = `products_${getDateForFilename()}.csv`;
@@ -161,27 +163,27 @@ export default function ProductsPage() {
       <MainLayout
         isAdmin={isAdmin}
         userName={user?.email || ''}
-        pageTitle="제품 관리"
+        pageTitle={t('products.title')}
         onLogout={signOut}
       >
         <div className="p-4 lg:p-8 max-w-7xl mx-auto">
           {/* Header */}
           <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4 mb-6">
             <div className="flex items-center gap-4">
-              <h1 className="text-2xl font-bold text-gray-900">제품 관리</h1>
+              <h1 className="text-2xl font-bold text-gray-900">{t('products.title')}</h1>
               {selectedIds.size > 0 && (
-                <Badge variant="info">{selectedIds.size}개 선택</Badge>
+                <Badge variant="info">{selectedIds.size}{t('common.selected')}</Badge>
               )}
             </div>
             <div className="flex items-center gap-2">
               {selectedIds.size > 0 ? (
                 <>
                   <Button variant="secondary" onClick={clearSelection}>
-                    선택 해제
+                    {t('common.deselect')}
                   </Button>
                   <Button variant="danger" onClick={() => setBulkDeleteMode(true)}>
                     <Trash2 size={18} className="mr-2" />
-                    일괄 삭제
+                    {t('common.bulkDelete')}
                   </Button>
                 </>
               ) : (
@@ -193,7 +195,7 @@ export default function ProductsPage() {
                   <Link href="/products/new">
                     <Button>
                       <Plus size={18} className="mr-2" />
-                      제품 추가
+                      {t('products.new')}
                     </Button>
                   </Link>
                 </>
@@ -210,7 +212,7 @@ export default function ProductsPage() {
               />
               <input
                 type="text"
-                placeholder="코드 또는 이름으로 검색..."
+                placeholder={t('products.searchPlaceholder')}
                 value={searchTerm}
                 onChange={(e) => setSearchTerm(e.target.value)}
                 className="w-full pl-10 pr-4 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-green-500"
@@ -226,7 +228,7 @@ export default function ProductsPage() {
                       : 'text-gray-600 hover:text-gray-900'
                   }`}
                 >
-                  전체
+                  {t('common.all')}
                 </button>
                 <button
                   onClick={() => setFilterType('fresh')}
@@ -236,7 +238,7 @@ export default function ProductsPage() {
                       : 'text-gray-600 hover:text-gray-900'
                   }`}
                 >
-                  신선
+                  {t('products.fresh')}
                 </button>
                 <button
                   onClick={() => setFilterType('industrial')}
@@ -246,7 +248,7 @@ export default function ProductsPage() {
                       : 'text-gray-600 hover:text-gray-900'
                   }`}
                 >
-                  공산품
+                  {t('products.industrial')}
                 </button>
               </div>
               <label className="flex items-center gap-2 text-sm text-gray-600">
@@ -256,24 +258,24 @@ export default function ProductsPage() {
                   onChange={(e) => setShowInactive(e.target.checked)}
                   className="rounded border-gray-300 text-green-600 focus:ring-green-500"
                 />
-                비활성 포함
+                {t('common.includeInactive')}
               </label>
             </div>
           </div>
 
           {/* Content */}
           {loading ? (
-            <LoadingState message="제품 목록을 불러오는 중..." />
+            <LoadingState message={t('common.loadingData')} />
           ) : filteredProducts.length === 0 ? (
             <EmptyState
               icon={<Apple className="w-8 h-8 text-gray-500" />}
-              title="등록된 제품이 없습니다"
-              description="새 제품을 추가하여 시작하세요."
+              title={t('products.noProducts')}
+              description={t('products.addFirst')}
               action={
                 <Link href="/products/new">
                   <Button>
                     <Plus size={18} className="mr-2" />
-                    제품 추가
+                    {t('products.new')}
                   </Button>
                 </Link>
               }
@@ -295,25 +297,25 @@ export default function ProductsPage() {
                           />
                         </th>
                         <th className="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase">
-                          코드
+                          {t('table.code')}
                         </th>
                         <th className="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase">
-                          유형
+                          {t('table.type')}
                         </th>
                         <th className="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase">
-                          제품명
+                          {t('products.name')}
                         </th>
                         <th className="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase">
-                          단위
+                          {t('table.unit')}
                         </th>
                         <th className="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase">
-                          구매처
+                          {t('table.vendor')}
                         </th>
                         <th className="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase">
-                          상태
+                          {t('table.status')}
                         </th>
                         <th className="px-4 py-3 text-right text-xs font-medium text-gray-500 uppercase">
-                          작업
+                          {t('table.action')}
                         </th>
                       </tr>
                     </thead>
@@ -341,8 +343,8 @@ export default function ProductsPage() {
                                   : 'bg-blue-100 text-blue-800'
                               }`}
                             >
-                              <option value="fresh">신선</option>
-                              <option value="industrial">공산품</option>
+                              <option value="fresh">{t('products.fresh')}</option>
+                              <option value="industrial">{t('products.industrial')}</option>
                             </select>
                           </td>
                           <td className="px-4 py-3">
@@ -360,7 +362,7 @@ export default function ProductsPage() {
                           </td>
                           <td className="px-4 py-3 whitespace-nowrap">
                             <Badge variant={product.isActive ? 'success' : 'default'} size="sm">
-                              {product.isActive ? '활성' : '비활성'}
+                              {product.isActive ? t('products.active') : t('products.inactive')}
                             </Badge>
                           </td>
                           <td className="px-4 py-3 whitespace-nowrap text-right">
@@ -368,7 +370,7 @@ export default function ProductsPage() {
                               <Link href={`/products/${product.id}/edit`}>
                                 <button
                                   className="p-2 text-gray-500 hover:text-green-600 hover:bg-green-50 rounded-lg transition-colors"
-                                  title="수정"
+                                  title={t('common.edit')}
                                 >
                                   <Pencil size={16} />
                                 </button>
@@ -376,7 +378,7 @@ export default function ProductsPage() {
                               <button
                                 onClick={() => setDeleteTarget(product)}
                                 className="p-2 text-gray-500 hover:text-red-600 hover:bg-red-50 rounded-lg transition-colors"
-                                title="삭제"
+                                title={t('common.delete')}
                               >
                                 <Trash2 size={16} />
                               </button>
@@ -418,8 +420,8 @@ export default function ProductsPage() {
                               : 'bg-blue-100 text-blue-800'
                           }`}
                         >
-                          <option value="fresh">신선</option>
-                          <option value="industrial">공산품</option>
+                          <option value="fresh">{t('products.fresh')}</option>
+                          <option value="industrial">{t('products.industrial')}</option>
                         </select>
                       </div>
                       <div className="flex items-center gap-1">
@@ -443,8 +445,8 @@ export default function ProductsPage() {
                       <p className="text-sm text-gray-600">{product.name_mm}</p>
                     </div>
                     <div className="flex items-center gap-4 text-sm text-gray-700 font-medium">
-                      <span>단위: {product.unit}</span>
-                      <span>구매처: {getVendorName(product.vendorCode)}</span>
+                      <span>{t('products.unit')}: {product.unit}</span>
+                      <span>{t('products.vendor')}: {getVendorName(product.vendorCode)}</span>
                     </div>
                   </div>
                 ))}
@@ -463,20 +465,20 @@ export default function ProductsPage() {
             <div className="flex min-h-full items-center justify-center p-4">
               <div className="relative bg-white rounded-xl shadow-xl max-w-sm w-full p-6">
                 <h3 className="text-lg font-semibold text-gray-900 mb-2">
-                  제품 삭제
+                  {t('products.deleteProduct')}
                 </h3>
                 <p className="text-gray-600 mb-4">
                   <span className="font-medium text-gray-900">
                     {deleteTarget.name_ko}
                   </span>
-                  {' '}제품을 삭제하시겠습니까?
+                  {' '}{t('products.deleteConfirm')}
                 </p>
                 <div className="flex justify-end gap-3">
                   <Button variant="secondary" onClick={() => setDeleteTarget(null)}>
-                    취소
+                    {t('common.cancel')}
                   </Button>
                   <Button variant="danger" onClick={handleDelete}>
-                    삭제
+                    {t('common.delete')}
                   </Button>
                 </div>
               </div>
@@ -494,12 +496,12 @@ export default function ProductsPage() {
             <div className="flex min-h-full items-center justify-center p-4">
               <div className="relative bg-white rounded-xl shadow-xl max-w-md w-full p-6">
                 <h3 className="text-lg font-semibold text-gray-900 mb-2">
-                  일괄 삭제 확인
+                  {t('common.deleteConfirm')}
                 </h3>
                 <p className="text-gray-600 mb-4">
-                  선택한 <span className="font-bold text-red-600">{selectedIds.size}개</span> 제품을 삭제하시겠습니까?
+                  {t('products.bulkDeleteConfirm')} <span className="font-bold text-red-600">{selectedIds.size}{t('common.count')}</span>
                   <br />
-                  <span className="text-sm text-red-500">이 작업은 되돌릴 수 없습니다.</span>
+                  <span className="text-sm text-red-500">{t('common.deleteWarning')}</span>
                 </p>
                 <div className="max-h-40 overflow-y-auto mb-4 p-3 bg-gray-50 rounded-lg">
                   <div className="flex flex-wrap gap-2">
@@ -518,10 +520,10 @@ export default function ProductsPage() {
                 </div>
                 <div className="flex justify-end gap-3">
                   <Button variant="secondary" onClick={() => setBulkDeleteMode(false)}>
-                    취소
+                    {t('common.cancel')}
                   </Button>
                   <Button variant="danger" onClick={handleBulkDelete}>
-                    {selectedIds.size}개 삭제
+                    {selectedIds.size}{t('common.count')} {t('common.delete')}
                   </Button>
                 </div>
               </div>
