@@ -19,6 +19,7 @@ import {
 } from 'lucide-react';
 import type { UILanguage } from '@/types';
 import { useI18n, type TranslationKey } from '@/lib/i18n';
+import { useNavigation } from '@/lib/context';
 
 interface NavItem {
   href: string;
@@ -58,6 +59,11 @@ export default function Sidebar({
 }: SidebarProps) {
   const pathname = usePathname();
   const { t } = useI18n();
+  const { setNavigationDirection } = useNavigation();
+
+  const handleNavClick = (href: string) => {
+    setNavigationDirection(pathname, href);
+  };
 
   const filteredNavItems = navItems.filter(item => !item.adminOnly || isAdmin);
 
@@ -83,6 +89,7 @@ export default function Sidebar({
               <li key={item.href}>
                 <Link
                   href={item.href}
+                  onClick={() => handleNavClick(item.href)}
                   className={`flex items-center gap-3 px-3 py-2 rounded-lg transition-colors ${
                     isActive
                       ? 'bg-green-600 text-white'

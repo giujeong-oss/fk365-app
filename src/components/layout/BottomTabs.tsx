@@ -19,6 +19,7 @@ import {
   X,
 } from 'lucide-react';
 import { useI18n, type TranslationKey } from '@/lib/i18n';
+import { useNavigation } from '@/lib/context';
 
 interface TabItem {
   href: string;
@@ -53,7 +54,12 @@ interface BottomTabsProps {
 export default function BottomTabs({ isAdmin = false }: BottomTabsProps) {
   const pathname = usePathname();
   const { t } = useI18n();
+  const { setNavigationDirection } = useNavigation();
   const [showMore, setShowMore] = useState(false);
+
+  const handleNavClick = (href: string) => {
+    setNavigationDirection(pathname, href);
+  };
 
   // 관리자가 아니면 기본 탭만 표시
   const visibleTabs = isAdmin
@@ -97,7 +103,10 @@ export default function BottomTabs({ isAdmin = false }: BottomTabsProps) {
                   <Link
                     key={item.href}
                     href={item.href}
-                    onClick={() => setShowMore(false)}
+                    onClick={() => {
+                      handleNavClick(item.href);
+                      setShowMore(false);
+                    }}
                     className={`flex flex-col items-center justify-center p-3 rounded-xl transition-colors ${
                       isActive
                         ? 'bg-green-100 text-green-600'
@@ -123,6 +132,7 @@ export default function BottomTabs({ isAdmin = false }: BottomTabsProps) {
               <li key={item.href} className="flex-1">
                 <Link
                   href={item.href}
+                  onClick={() => handleNavClick(item.href)}
                   className={`flex flex-col items-center justify-center h-full gap-1 ${
                     isActive
                       ? 'text-green-600'

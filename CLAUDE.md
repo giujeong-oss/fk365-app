@@ -405,6 +405,25 @@ node scripts/seed-data.mjs
 
 ## 업데이트 이력
 
+### 2026-01-03 (페이지 전환 슬라이드 애니메이션)
+
+**페이지 전환 애니메이션 구현**
+- `framer-motion` 패키지 설치
+- `NavigationContext` 생성: 페이지 이동 방향 감지 (메뉴 인덱스 기반)
+- `template.tsx` 생성: 슬라이드 애니메이션 적용
+- `Sidebar.tsx`, `BottomTabs.tsx` 수정: 네비게이션 방향 설정
+
+**슬라이드 방향 로직**
+- 현재 메뉴 인덱스 < 다음 메뉴 인덱스 → 오른쪽에서 왼쪽으로 슬라이드
+- 현재 메뉴 인덱스 > 다음 메뉴 인덱스 → 왼쪽에서 오른쪽으로 슬라이드
+
+**관련 파일**
+- `src/lib/context/NavigationContext.tsx` (신규)
+- `src/app/template.tsx` (신규)
+- `src/app/providers.tsx` (NavigationProvider 추가)
+- `src/components/layout/Sidebar.tsx` (handleNavClick 추가)
+- `src/components/layout/BottomTabs.tsx` (handleNavClick 추가)
+
 ### 2026-01-03 (브랜드 컬러 시스템 및 가독성 개선)
 
 **FK365 브랜드 컬러 시스템 적용**
