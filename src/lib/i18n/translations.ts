@@ -165,6 +165,14 @@ export const translations = {
     'stock.low': '부족',
     'stock.modified': '수정됨',
     'stock.saveAll': '모두 저장',
+    'stock.location': '보관장소',
+    'stock.noLocation': '선택 안함',
+    'stock.freezer': '냉동창고',
+    'stock.fridge': '냉장창고',
+    'stock.zoneA': 'A zone',
+    'stock.zoneB': 'B zone',
+    'stock.locationManage': '보관장소 관리',
+    'stock.locationManageDesc': '보관장소 목록을 관리합니다.',
 
     // Delivery
     'delivery.title': '배송장',
@@ -350,6 +358,14 @@ export const translations = {
     'stock.low': 'น้อย',
     'stock.modified': 'แก้ไข',
     'stock.saveAll': 'บันทึกทั้งหมด',
+    'stock.location': 'สถานที่เก็บ',
+    'stock.noLocation': 'ไม่เลือก',
+    'stock.freezer': 'ห้องแช่แข็ง',
+    'stock.fridge': 'ตู้เย็น',
+    'stock.zoneA': 'โซน A',
+    'stock.zoneB': 'โซน B',
+    'stock.locationManage': 'จัดการสถานที่',
+    'stock.locationManageDesc': 'จัดการรายการสถานที่เก็บสินค้า',
 
     // Delivery
     'delivery.title': 'ใบส่งของ',
@@ -535,6 +551,14 @@ export const translations = {
     'stock.low': 'Low Stock',
     'stock.modified': 'Modified',
     'stock.saveAll': 'Save All',
+    'stock.location': 'Location',
+    'stock.noLocation': 'Not selected',
+    'stock.freezer': 'Freezer',
+    'stock.fridge': 'Fridge',
+    'stock.zoneA': 'Zone A',
+    'stock.zoneB': 'Zone B',
+    'stock.locationManage': 'Manage Locations',
+    'stock.locationManageDesc': 'Manage storage location list.',
 
     // Delivery
     'delivery.title': 'Delivery Note',

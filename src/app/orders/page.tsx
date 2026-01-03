@@ -6,9 +6,9 @@ import { useI18n } from '@/lib/i18n/I18nContext';
 import { ProtectedRoute } from '@/components/auth';
 import { MainLayout } from '@/components/layout';
 import { Button, Select, Spinner, EmptyState, Badge, Modal, useToast } from '@/components/ui';
-import { getCustomers, getOrdersByDate, getCutoffSummary, confirmOrder, updateOrder } from '@/lib/firebase';
+import { getCustomers, getOrdersByDate, getCutoffSummary, confirmOrder, updateOrder, deleteOrder } from '@/lib/firebase';
 import type { Customer, Order, Cutoff } from '@/types';
-import { Home, CheckCircle, Lock, Unlock, AlertCircle, Search } from 'lucide-react';
+import { Home, CheckCircle, Lock, Unlock, AlertCircle, Search, Trash2 } from 'lucide-react';
 import Link from 'next/link';
 import { formatCurrency } from '@/lib/constants';
 
@@ -37,6 +37,7 @@ export default function OrdersPage() {
   const [loading, setLoading] = useState(true);
   const [selectedCutoff, setSelectedCutoff] = useState<string>('');
   const [confirmModal, setConfirmModal] = useState<{ open: boolean; type: 'single' | 'bulk'; orderId?: string; cutoff?: Cutoff }>({ open: false, type: 'single' });
+  const [cancelModal, setCancelModal] = useState<{ open: boolean; orderId?: string; customerCode?: string }>({ open: false });
   const [processing, setProcessing] = useState(false);
   const [searchTerm, setSearchTerm] = useState('');
 
@@ -135,6 +136,22 @@ export default function OrdersPage() {
       showError('확정 취소에 실패했습니다.');
     } finally {
       setProcessing(false);
+    }
+  };
+
+  // 주문 취소 (삭제)
+  const handleDeleteOrder = async (orderId: string) => {
+    setProcessing(true);
+    try {
+      await deleteOrder(orderId);
+      showSuccess('주문이 취소되었습니다.');
+      await loadData();
+    } catch (error) {
+      console.error('Failed to delete order:', error);
+      showError('주문 취소에 실패했습니다.');
+    } finally {
+      setProcessing(false);
+      setCancelModal({ open: false });
     }
   };
 
@@ -320,6 +337,22 @@ export default function OrdersPage() {
                               {formatCurrency(getOrderTotal(customer.code))}
                             </div>
                           </div>
+                          {isAdmin && (
+                            <button
+                              onClick={(e) => {
+                                e.preventDefault();
+                                e.stopPropagation();
+                                const customerOrders = getCustomerOrders(customer.code);
+                                if (customerOrders.length > 0) {
+                                  setCancelModal({ open: true, orderId: customerOrders[0].id, customerCode: customer.code });
+                                }
+                              }}
+                              className="p-2 text-red-500 hover:text-red-700 hover:bg-red-50 rounded-lg transition-colors"
+                              title="주문 취소"
+                            >
+                              <Trash2 size={18} />
+                            </button>
+                          )}
                           <svg className="w-5 h-5 text-green-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                             <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 5l7 7-7 7" />
                           </svg>
@@ -416,6 +449,42 @@ export default function OrdersPage() {
               disabled={processing}
             >
               {processing ? <Spinner size="sm" /> : t('common.confirm')}
+            </Button>
+          </div>
+        </div>
+      </Modal>
+
+      {/* 주문 취소 확인 모달 */}
+      <Modal
+        isOpen={cancelModal.open}
+        onClose={() => setCancelModal({ open: false })}
+        title="주문 취소"
+      >
+        <div className="space-y-4">
+          <p className="text-gray-800">
+            <span className="font-semibold text-red-600">{cancelModal.customerCode}</span> 고객의 주문을 취소하시겠습니까?
+          </p>
+          <p className="text-sm text-gray-600">
+            이 작업은 되돌릴 수 없습니다. 해당 고객의 모든 주문 항목이 삭제됩니다.
+          </p>
+          <div className="flex justify-end gap-2 pt-4">
+            <Button
+              variant="secondary"
+              onClick={() => setCancelModal({ open: false })}
+              disabled={processing}
+            >
+              {t('common.cancel')}
+            </Button>
+            <Button
+              variant="danger"
+              onClick={() => {
+                if (cancelModal.orderId) {
+                  handleDeleteOrder(cancelModal.orderId);
+                }
+              }}
+              disabled={processing}
+            >
+              {processing ? <Spinner size="sm" /> : '주문 취소'}
             </Button>
           </div>
         </div>

@@ -18,6 +18,8 @@ import {
   generateBuy3PurchaseOrder,
   getOrdersByCutoff,
   setPrice,
+  updateVendor,
+  increaseStock,
 } from '@/lib/firebase';
 import type { Product, Vendor, PurchaseOrder, Cutoff } from '@/types';
 import { Home, Printer, X, Download, FileDown, Save } from 'lucide-react';
@@ -38,6 +40,7 @@ interface ProductSummary {
   buy3: number;
   overrideVendorCode?: string; // 임시 구매처 변경용
   buyPrice?: number; // 실제 매입가 입력용
+  actualQty?: number; // 실제 매입량 (영수증 숫자)
 }
 
 export default function PurchaseOrdersPage() {
@@ -240,12 +243,31 @@ export default function PurchaseOrdersPage() {
     );
   };
 
-  // 매입가 저장 (가격 히스토리에 반영)
+  // 실제 매입량 입력 처리
+  const handleActualQtyChange = (productCode: string, qty: number) => {
+    setProductSummaries((prev) =>
+      prev.map((s) =>
+        s.product.code === productCode
+          ? { ...s, actualQty: qty }
+          : s
+      )
+    );
+  };
+
+  // 추가 구매량 계산
+  const getExtraQty = (summary: ProductSummary): number => {
+    const orderQty = activeTab === 'buy1' ? summary.buy1 : activeTab === 'buy2' ? summary.buy2 : summary.buy3;
+    if (summary.actualQty === undefined || summary.actualQty === 0) return 0;
+    return summary.actualQty - orderQty;
+  };
+
+  // 매입가 및 실제 매입량 저장 (가격 히스토리 + 재고 반영)
   const handleSaveBuyPrices = async () => {
     const summariesWithPrice = productSummaries.filter((s) => s.buyPrice !== undefined && s.buyPrice > 0);
+    const summariesWithActualQty = productSummaries.filter((s) => s.actualQty !== undefined && s.actualQty > 0);
 
-    if (summariesWithPrice.length === 0) {
-      alert('입력된 매입가가 없습니다.');
+    if (summariesWithPrice.length === 0 && summariesWithActualQty.length === 0) {
+      alert('입력된 매입가 또는 실제 매입량이 없습니다.');
       return;
     }
 
@@ -254,18 +276,62 @@ export default function PurchaseOrdersPage() {
       const selectedDate = new Date(date);
 
       // 병렬로 모든 가격 저장
-      await Promise.all(
-        summariesWithPrice.map((s) =>
-          setPrice(s.product.code, selectedDate, s.buyPrice!)
-        )
-      );
+      if (summariesWithPrice.length > 0) {
+        await Promise.all(
+          summariesWithPrice.map((s) =>
+            setPrice(s.product.code, selectedDate, s.buyPrice!)
+          )
+        );
+      }
 
-      alert(`${summariesWithPrice.length}개 제품의 매입가가 저장되었습니다.`);
+      // 실제 매입량을 재고에 반영
+      if (summariesWithActualQty.length > 0) {
+        await Promise.all(
+          summariesWithActualQty.map((s) =>
+            increaseStock(s.product.code, s.actualQty!)
+          )
+        );
+      }
+
+      const messages = [];
+      if (summariesWithPrice.length > 0) {
+        messages.push(`${summariesWithPrice.length}개 제품 매입가`);
+      }
+      if (summariesWithActualQty.length > 0) {
+        messages.push(`${summariesWithActualQty.length}개 제품 재고`);
+      }
+      alert(`${messages.join(', ')}가 저장되었습니다.`);
+
+      // 데이터 새로고침
+      await loadData();
     } catch (error) {
-      console.error('Failed to save buy prices:', error);
-      alert('매입가 저장에 실패했습니다.');
+      console.error('Failed to save:', error);
+      alert('저장에 실패했습니다.');
     } finally {
       setSavingPrices(false);
+    }
+  };
+
+  // 구매처 변경 시 제품 매핑 자동 저장
+  const handleVendorOverrideWithSave = async (productCode: string, newVendorCode: string) => {
+    // 먼저 UI 업데이트
+    handleVendorOverride(productCode, newVendorCode);
+
+    // 새 구매처에 제품 매핑 추가
+    if (newVendorCode) {
+      try {
+        const vendor = vendors.find(v => v.code === newVendorCode);
+        if (vendor) {
+          const currentProducts = vendor.products || [];
+          if (!currentProducts.includes(productCode)) {
+            await updateVendor(vendor.id, {
+              products: [...currentProducts, productCode]
+            });
+          }
+        }
+      } catch (error) {
+        console.error('Failed to save vendor product mapping:', error);
+      }
     }
   };
 
@@ -534,7 +600,7 @@ export default function PurchaseOrdersPage() {
                     )
                     .map((vendor) => (
                     <option key={vendor.id} value={vendor.code}>
-                      {vendor.name} ({vendor.code})
+                      {vendor.code} | {vendor.name}
                     </option>
                   ))}
                 </select>
@@ -574,7 +640,7 @@ export default function PurchaseOrdersPage() {
                         <span className="font-medium">
                           {po.vendorCode ? getVendorName(po.vendorCode) : po.note}
                         </span>
-                        <span className="text-sm text-gray-700 ml-2">
+                        <span className="text-sm text-gray-800 ml-2">
                           {po.items.length}개 품목
                         </span>
                       </div>
@@ -588,10 +654,10 @@ export default function PurchaseOrdersPage() {
                           인쇄
                         </Button>
                         <div className="text-right">
-                          <div className="font-medium">
+                          <div className="font-medium text-gray-900">
                             {po.totalAmount ? formatCurrency(po.totalAmount) : '-'}
                           </div>
-                          <div className="text-xs text-gray-600">
+                          <div className="text-xs text-gray-700">
                             {po.createdAt.toLocaleTimeString()}
                           </div>
                         </div>
@@ -607,31 +673,39 @@ export default function PurchaseOrdersPage() {
               <table className="w-full">
                 <thead className="bg-gray-50">
                   <tr>
-                    <th className="px-4 py-3 text-left text-sm font-medium text-gray-900">{t('products.product')}</th>
-                    <th className="px-4 py-3 text-center text-sm font-medium text-gray-900">{t('products.type')}</th>
+                    <th className="px-3 py-3 text-left text-sm font-medium text-gray-900">{t('products.code')}</th>
+                    <th className="px-3 py-3 text-left text-sm font-medium text-gray-900">{t('products.product')}</th>
+                    <th className="px-3 py-3 text-center text-sm font-medium text-gray-900">{t('products.type')}</th>
                     {activeTab === 'buy1' && (
                       <>
-                        <th className="px-4 py-3 text-right text-sm font-medium text-gray-900">{t('purchaseOrders.cut1Order')}</th>
-                        <th className="px-4 py-3 text-right text-sm font-medium text-gray-900">{t('nav.stock')}</th>
+                        <th className="px-3 py-3 text-right text-sm font-medium text-gray-900">{t('purchaseOrders.cut1Order')}</th>
+                        <th className="px-3 py-3 text-right text-sm font-medium text-gray-900">{t('nav.stock')}</th>
                       </>
                     )}
-                    <th className="px-4 py-3 text-right text-sm font-medium text-gray-900">{t('purchaseOrders.orderQty')}</th>
-                    <th className="px-4 py-3 text-center text-sm font-medium text-gray-900">{t('purchaseOrders.buyPrice')}</th>
-                    <th className="px-4 py-3 text-left text-sm font-medium text-gray-900">{t('vendors.vendor')}</th>
+                    <th className="px-3 py-3 text-right text-sm font-medium text-gray-900">{t('purchaseOrders.orderQty')}</th>
+                    <th className="px-3 py-3 text-center text-sm font-medium text-gray-900">실제 매입량</th>
+                    <th className="px-3 py-3 text-center text-sm font-medium text-gray-900">추가</th>
+                    <th className="px-3 py-3 text-center text-sm font-medium text-gray-900">{t('purchaseOrders.buyPrice')}</th>
+                    <th className="px-3 py-3 text-left text-sm font-medium text-gray-900">{t('vendors.vendor')}</th>
                   </tr>
                 </thead>
                 <tbody className="divide-y">
                   {getFilteredSummaries().map((summary) => {
                     const effectiveVendorCode = getEffectiveVendorCode(summary);
                     const isOverridden = summary.overrideVendorCode !== undefined;
+                    const extraQty = getExtraQty(summary);
 
                     return (
                       <tr key={summary.product.code} className={`hover:bg-gray-50 ${isOverridden ? 'bg-yellow-50' : ''}`}>
-                        <td className="px-4 py-3">
-                          <div className="font-medium text-gray-900">{summary.product.name_ko}</div>
-                          <div className="text-sm text-gray-700 font-mono">{summary.product.code}</div>
+                        <td className="px-3 py-3">
+                          <span className="font-mono text-sm text-gray-900 font-semibold">{summary.product.code}</span>
                         </td>
-                        <td className="px-4 py-3 text-center">
+                        <td className="px-3 py-3">
+                          <div className="font-medium text-gray-900">{summary.product.name_ko}</div>
+                          <div className="text-sm text-gray-700">{summary.product.name_th}</div>
+                          <div className="text-sm text-gray-600">{summary.product.name_mm}</div>
+                        </td>
+                        <td className="px-3 py-3 text-center">
                           <Badge
                             variant={summary.product.priceType === 'fresh' ? 'success' : 'info'}
                             size="sm"
@@ -641,44 +715,60 @@ export default function PurchaseOrdersPage() {
                         </td>
                         {activeTab === 'buy1' && (
                           <>
-                            <td className="px-4 py-3 text-right text-gray-900 font-medium">{summary.cut1}</td>
-                            <td className="px-4 py-3 text-right text-green-600 font-semibold">{summary.stock}</td>
+                            <td className="px-3 py-3 text-right text-gray-900 font-medium">{summary.cut1}</td>
+                            <td className="px-3 py-3 text-right text-green-600 font-semibold">{summary.stock}</td>
                           </>
                         )}
-                        <td className="px-4 py-3 text-right font-bold text-green-600">
+                        <td className="px-3 py-3 text-right font-bold text-green-600">
                           {activeTab === 'buy1' ? summary.buy1 : activeTab === 'buy2' ? summary.buy2 : summary.buy3}
                         </td>
-                        <td className="px-4 py-3 text-center">
+                        <td className="px-3 py-3 text-center">
+                          <input
+                            type="number"
+                            placeholder="매입량"
+                            value={summary.actualQty || ''}
+                            onChange={(e) => handleActualQtyChange(summary.product.code, parseFloat(e.target.value) || 0)}
+                            className="w-20 px-2 py-1 text-sm text-center border border-gray-300 rounded focus:ring-2 focus:ring-blue-500 focus:border-blue-500 text-gray-900"
+                          />
+                        </td>
+                        <td className="px-3 py-3 text-center">
+                          {extraQty !== 0 && (
+                            <span className={`font-medium ${extraQty > 0 ? 'text-blue-600' : 'text-red-600'}`}>
+                              {extraQty > 0 ? '+' : ''}{extraQty}
+                            </span>
+                          )}
+                        </td>
+                        <td className="px-3 py-3 text-center">
                           <input
                             type="number"
                             placeholder="฿"
                             value={summary.buyPrice || ''}
                             onChange={(e) => handleBuyPriceChange(summary.product.code, parseFloat(e.target.value) || 0)}
-                            className="w-20 px-2 py-1 text-sm text-center border border-gray-300 rounded focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
+                            className="w-20 px-2 py-1 text-sm text-center border border-gray-300 rounded focus:ring-2 focus:ring-blue-500 focus:border-blue-500 text-gray-900"
                           />
                         </td>
-                        <td className="px-4 py-3">
+                        <td className="px-3 py-3">
                           {/* 신선 제품은 구매처 변경 가능 */}
                           {summary.product.priceType === 'fresh' ? (
                             <div className="flex items-center gap-2">
                               <select
                                 value={effectiveVendorCode}
-                                onChange={(e) => handleVendorOverride(summary.product.code, e.target.value)}
-                                className={`px-2 py-1 text-sm border rounded focus:ring-2 focus:ring-blue-500 ${
+                                onChange={(e) => handleVendorOverrideWithSave(summary.product.code, e.target.value)}
+                                className={`px-2 py-1 text-sm border rounded focus:ring-2 focus:ring-blue-500 text-gray-900 ${
                                   isOverridden ? 'border-yellow-400 bg-yellow-50' : 'border-gray-300'
                                 }`}
                               >
                                 <option value="">선택 안함</option>
                                 {vendors.map((v) => (
                                   <option key={v.code} value={v.code}>
-                                    {v.name}
+                                    {v.code} | {v.name}
                                   </option>
                                 ))}
                               </select>
                               {isOverridden && (
                                 <button
                                   onClick={() => handleVendorOverride(summary.product.code, summary.product.vendorCode)}
-                                  className="text-xs text-gray-500 hover:text-gray-700"
+                                  className="text-xs text-gray-600 hover:text-gray-800"
                                   title="원래 구매처로 복원"
                                 >
                                   원복
@@ -687,7 +777,7 @@ export default function PurchaseOrdersPage() {
                             </div>
                           ) : (
                             <span className="text-sm text-gray-900 font-semibold">
-                              {getVendorName(summary.product.vendorCode)}
+                              {effectiveVendorCode} | {getVendorName(effectiveVendorCode)}
                             </span>
                           )}
                         </td>
@@ -698,7 +788,7 @@ export default function PurchaseOrdersPage() {
               </table>
 
               {getFilteredSummaries().length === 0 && (
-                <div className="p-8 text-center text-gray-500">
+                <div className="p-8 text-center text-gray-700">
                   발주할 제품이 없습니다.
                 </div>
               )}
@@ -737,28 +827,28 @@ export default function PurchaseOrdersPage() {
             <div className="flex-1 overflow-auto p-4">
               <div ref={printRef}>
                 <div className="header">
-                  <h1>발주서</h1>
+                  <h1>Purchase Order</h1>
                   <div className="date">{date}</div>
                 </div>
 
                 <div className="info-row">
                   <div>
-                    <strong>발주 유형:</strong> {getPOTypeLabel(printPO.type as POType)}
+                    <strong>Order Type:</strong> {printPO.type === 'buy1' ? '1st Order (Normal)' : printPO.type === 'buy2' ? '2nd Order (Additional)' : '3rd Order (Urgent)'}
                   </div>
                   <div>
-                    <strong>구매처:</strong> {printPO.vendorCode ? getVendorName(printPO.vendorCode) : (printPO.note || '전체')}
+                    <strong>Vendor:</strong> {printPO.vendorCode ? `${printPO.vendorCode} | ${getVendorName(printPO.vendorCode)}` : (printPO.note || 'All')}
                   </div>
                 </div>
 
                 <table>
                   <thead>
                     <tr>
-                      <th style={{ width: '80px' }}>코드</th>
-                      <th>제품명</th>
-                      <th style={{ width: '80px', textAlign: 'center' }}>유형</th>
-                      <th style={{ width: '80px', textAlign: 'right' }}>수량</th>
-                      <th style={{ width: '100px', textAlign: 'right' }}>단가</th>
-                      <th style={{ width: '100px', textAlign: 'right' }}>금액</th>
+                      <th style={{ width: '80px' }}>Code</th>
+                      <th>Product</th>
+                      <th style={{ width: '80px', textAlign: 'center' }}>Type</th>
+                      <th style={{ width: '80px', textAlign: 'right' }}>Qty</th>
+                      <th style={{ width: '100px', textAlign: 'right' }}>Unit Price</th>
+                      <th style={{ width: '100px', textAlign: 'right' }}>Amount</th>
                     </tr>
                   </thead>
                   <tbody>
@@ -772,11 +862,14 @@ export default function PurchaseOrdersPage() {
                           <td>
                             <div>{product?.name_ko || item.productCode}</div>
                             {product?.name_th && (
-                              <div style={{ fontSize: '11px', color: '#888' }}>{product.name_th}</div>
+                              <div style={{ fontSize: '11px', color: '#666' }}>{product.name_th}</div>
+                            )}
+                            {product?.name_mm && (
+                              <div style={{ fontSize: '11px', color: '#666' }}>{product.name_mm}</div>
                             )}
                           </td>
                           <td style={{ textAlign: 'center' }}>
-                            {product?.priceType === 'fresh' ? '신선' : '공산품'}
+                            {product?.priceType === 'fresh' ? 'Fresh' : 'Industrial'}
                           </td>
                           <td className="number">{item.buyQty}</td>
                           <td className="number">{formatCurrency(unitPrice)}</td>
@@ -788,11 +881,11 @@ export default function PurchaseOrdersPage() {
                 </table>
 
                 <div className="total">
-                  총 금액: {formatCurrency(printPO.totalAmount || 0)}
+                  Total Amount: {formatCurrency(printPO.totalAmount || 0)}
                 </div>
 
                 <div className="footer">
-                  Fresh Kitchen 365 - {new Date().toLocaleDateString('ko-KR')} {new Date().toLocaleTimeString('ko-KR', { hour: '2-digit', minute: '2-digit' })} 생성
+                  Fresh Kitchen 365 - Generated on {new Date().toLocaleDateString('en-US')} {new Date().toLocaleTimeString('en-US', { hour: '2-digit', minute: '2-digit' })}
                 </div>
               </div>
             </div>

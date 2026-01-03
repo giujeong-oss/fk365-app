@@ -81,6 +81,7 @@ export interface Vendor {
   id: string;
   code: string;
   name: string;
+  products?: string[]; // 구매처에서 구매하는 제품 코드 목록
   isActive: boolean;
   createdAt: Date;
   updatedAt: Date;

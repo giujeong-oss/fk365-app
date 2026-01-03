@@ -2,21 +2,24 @@
 
 import { useState, useEffect, useRef } from 'react';
 import { useAuth } from '@/lib/context';
+import { useI18n } from '@/lib/i18n/I18nContext';
+import type { TranslationKey } from '@/lib/i18n/translations';
 import { ProtectedRoute } from '@/components/auth';
 import { MainLayout } from '@/components/layout';
-import { Button, Input, Spinner, Badge, EmptyState } from '@/components/ui';
+import { Button, Input, Spinner, Badge, EmptyState, Modal } from '@/components/ui';
 import { getProducts, getAllStock, setStock, batchUpdateStock } from '@/lib/firebase';
 import type { Product, Stock } from '@/types';
-import { Home, Download } from 'lucide-react';
+import { Home, Download, Settings } from 'lucide-react';
 import Link from 'next/link';
 import { exportToCsv, getDateForFilename, type CsvColumn } from '@/lib/utils';
 
-const LOCATION_OPTIONS = [
-  { value: '', label: '선택 안함' },
-  { value: 'freezer', label: '냉동창고' },
-  { value: 'fridge', label: '냉장창고' },
-  { value: 'zone-a', label: 'A zone' },
-  { value: 'zone-b', label: 'B zone' },
+// 보관장소 옵션 (다국어 키 사용)
+const LOCATION_KEYS: { value: string; labelKey: TranslationKey }[] = [
+  { value: '', labelKey: 'stock.noLocation' },
+  { value: 'freezer', labelKey: 'stock.freezer' },
+  { value: 'fridge', labelKey: 'stock.fridge' },
+  { value: 'zone-a', labelKey: 'stock.zoneA' },
+  { value: 'zone-b', labelKey: 'stock.zoneB' },
 ];
 
 interface ProductStock {
@@ -28,6 +31,7 @@ interface ProductStock {
 
 export default function StockPage() {
   const { user, isAdmin, signOut } = useAuth();
+  const { t } = useI18n();
   const [products, setProducts] = useState<Product[]>([]);
   const [productStocks, setProductStocks] = useState<ProductStock[]>([]);
   const [loading, setLoading] = useState(true);
@@ -35,6 +39,18 @@ export default function StockPage() {
   const [searchTerm, setSearchTerm] = useState('');
   const [selectedPriceType, setSelectedPriceType] = useState('');
   const [selectedLocation, setSelectedLocation] = useState('');
+  const [showLocationModal, setShowLocationModal] = useState(false);
+
+  // 다국어 지원 보관장소 옵션 생성
+  const getLocationOptions = () => LOCATION_KEYS.map(loc => ({
+    value: loc.value,
+    label: t(loc.labelKey)
+  }));
+
+  // 유형 라벨 가져오기
+  const getPriceTypeLabel = (priceType: string) => {
+    return priceType === 'fresh' ? t('products.fresh') : t('products.industrial');
+  };
 
   // Tab 키 네비게이션을 위한 refs
   const qtyInputRefs = useRef<Map<string, HTMLInputElement>>(new Map());
@@ -159,20 +175,21 @@ export default function StockPage() {
 
   // CSV Export handler
   const handleExportCsv = () => {
+    const locationOptions = getLocationOptions();
     const getLocationLabel = (loc: string) => {
-      const option = LOCATION_OPTIONS.find(o => o.value === loc);
+      const option = locationOptions.find(o => o.value === loc);
       return option?.label || loc || '';
     };
 
     const columns: CsvColumn<ProductStock>[] = [
-      { header: '코드', accessor: (ps) => ps.product.code },
-      { header: '한국어명', accessor: (ps) => ps.product.name_ko },
-      { header: '태국어명', accessor: (ps) => ps.product.name_th },
-      { header: '미얀마어명', accessor: (ps) => ps.product.name_mm },
-      { header: '단위', accessor: (ps) => ps.product.unit },
-      { header: '카테고리', accessor: (ps) => ps.product.category || '' },
-      { header: '보관장소', accessor: (ps) => getLocationLabel(ps.location) },
-      { header: '재고수량', accessor: (ps) => ps.qty },
+      { header: t('products.code'), accessor: (ps) => ps.product.code },
+      { header: t('products.name') + ' (KO)', accessor: (ps) => ps.product.name_ko },
+      { header: t('products.name') + ' (TH)', accessor: (ps) => ps.product.name_th },
+      { header: t('products.name') + ' (MM)', accessor: (ps) => ps.product.name_mm },
+      { header: t('products.unit'), accessor: (ps) => ps.product.unit },
+      { header: t('products.type'), accessor: (ps) => getPriceTypeLabel(ps.product.priceType) },
+      { header: t('stock.location'), accessor: (ps) => getLocationLabel(ps.location) },
+      { header: t('stock.qty'), accessor: (ps) => ps.qty },
     ];
 
     const filename = `stock_${getDateForFilename()}.csv`;
@@ -243,7 +260,7 @@ export default function StockPage() {
           <div className="flex-1">
             <Input
               type="text"
-              placeholder="제품 코드 또는 이름으로 검색..."
+              placeholder={`${t('products.code')} / ${t('products.name')} ${t('common.search')}...`}
               value={searchTerm}
               onChange={(e) => setSearchTerm(e.target.value)}
             />
@@ -253,22 +270,26 @@ export default function StockPage() {
             onChange={(e) => setSelectedPriceType(e.target.value)}
             className="px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 text-gray-900"
           >
-            <option value="">전체 유형</option>
-            <option value="fresh">신선</option>
-            <option value="industrial">공산품</option>
+            <option value="">{t('common.all')} {t('products.type')}</option>
+            <option value="fresh">{t('products.fresh')}</option>
+            <option value="industrial">{t('products.industrial')}</option>
           </select>
           <select
             value={selectedLocation}
             onChange={(e) => setSelectedLocation(e.target.value)}
             className="px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 text-gray-900"
           >
-            <option value="">전체 보관장소</option>
-            {LOCATION_OPTIONS.filter(opt => opt.value).map((opt) => (
+            <option value="">{t('common.all')} {t('stock.location')}</option>
+            {getLocationOptions().filter(opt => opt.value).map((opt) => (
               <option key={opt.value} value={opt.value}>
                 {opt.label}
               </option>
             ))}
           </select>
+          <Button variant="secondary" size="sm" onClick={() => setShowLocationModal(true)}>
+            <Settings size={18} className="mr-1" />
+            {t('stock.locationManage')}
+          </Button>
         </div>
 
         {loading ? (
@@ -314,7 +335,7 @@ export default function StockPage() {
                           onChange={(e) => handleLocationChange(ps.product.code, e.target.value)}
                           className="px-2 py-1 text-sm border border-gray-300 rounded focus:ring-2 focus:ring-blue-500 text-gray-900 font-medium"
                         >
-                          {LOCATION_OPTIONS.map((opt) => (
+                          {getLocationOptions().map((opt) => (
                             <option key={opt.value} value={opt.value} className="text-gray-900">
                               {opt.label}
                             </option>
@@ -397,13 +418,13 @@ export default function StockPage() {
 
                   {/* 보관장소 선택 */}
                   <div className="mb-3">
-                    <label className="text-xs text-gray-700 font-medium mb-1 block">보관장소</label>
+                    <label className="text-xs text-gray-700 font-medium mb-1 block">{t('stock.location')}</label>
                     <select
                       value={ps.location}
                       onChange={(e) => handleLocationChange(ps.product.code, e.target.value)}
                       className="w-full px-3 py-2 text-sm border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 text-gray-900 font-medium"
                     >
-                      {LOCATION_OPTIONS.map((opt) => (
+                      {getLocationOptions().map((opt) => (
                         <option key={opt.value} value={opt.value} className="text-gray-900">
                           {opt.label}
                         </option>
@@ -443,17 +464,46 @@ export default function StockPage() {
         {modifiedCount > 0 && (
           <div className="md:hidden fixed bottom-0 left-0 right-0 bg-white border-t shadow-lg p-4">
             <div className="flex items-center justify-between mb-2">
-              <span className="text-sm text-gray-600">{modifiedCount}개 항목 변경됨</span>
+              <span className="text-sm text-gray-700">{modifiedCount}개 항목 변경됨</span>
               <Button variant="secondary" size="sm" onClick={handleResetAll}>
-                초기화
+                {t('common.reset')}
               </Button>
             </div>
             <Button onClick={handleSaveAll} disabled={saving} className="w-full">
-              {saving ? '저장 중...' : '모두 저장'}
+              {saving ? t('common.saving') : t('common.save')}
             </Button>
           </div>
         )}
       </div>
+
+      {/* 보관장소 관리 모달 */}
+      <Modal
+        isOpen={showLocationModal}
+        onClose={() => setShowLocationModal(false)}
+        title={t('stock.locationManage')}
+      >
+        <div className="space-y-4">
+          <p className="text-gray-700">
+            {t('stock.locationManageDesc')}
+          </p>
+          <div className="space-y-2">
+            {getLocationOptions().filter(opt => opt.value).map((opt) => (
+              <div key={opt.value} className="flex items-center justify-between p-3 bg-gray-50 rounded-lg">
+                <span className="font-medium text-gray-900">{opt.label}</span>
+                <span className="text-sm text-gray-600">{opt.value}</span>
+              </div>
+            ))}
+          </div>
+          <p className="text-sm text-gray-600">
+            * 보관장소 추가/삭제는 관리자에게 문의하세요.
+          </p>
+          <div className="flex justify-end pt-4">
+            <Button variant="secondary" onClick={() => setShowLocationModal(false)}>
+              {t('common.close')}
+            </Button>
+          </div>
+        </div>
+      </Modal>
       </MainLayout>
     </ProtectedRoute>
   );

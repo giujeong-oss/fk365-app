@@ -375,6 +375,37 @@ node scripts/seed-data.mjs
 
 ## 업데이트 이력
 
+### 2026-01-02 (테스트 피드백 반영 5차)
+
+**주문 페이지 - 주문 취소 기능**
+- 주문 완료된 고객 행에 휴지통 아이콘 버튼 추가
+- 취소 확인 모달로 실수 방지
+- `deleteOrder()` Firebase 함수 연동
+- 파일: `src/app/orders/page.tsx`
+
+**발주서 페이지 전면 개선**
+1. **색상 개선**: 연한 회색(text-gray-500/600) → 진한 회색(text-gray-800/900)
+2. **구매처 표시**: "코드 | 이름" 형식으로 변경, 드롭다운에서 검색 가능
+3. **제품 컬럼 개선**: 제품 코드 컬럼 추가, 제품명 3개 언어 통합 표시
+4. **구매처 변경 시 자동 저장**: 신선 제품 구매처 변경 시 vendor.products에 자동 추가
+5. **실제 매입량 기능**:
+   - "실제 매입량" 컬럼 추가 (영수증 숫자 입력)
+   - "추가량" 자동 계산 (실제매입량 - 발주량)
+   - 저장 시 재고에 자동 반영 (`increaseStock()`)
+6. **PDF 인쇄**: 영어 헤더 적용 (Purchase Order, Code, Product, Type, Qty, Unit Price, Amount)
+- 파일: `src/app/purchase-orders/page.tsx`
+
+**재고 페이지 다국어 적용**
+- 유형(신선/공산품) 다국어 표시
+- 보관장소 다국어 표시 (냉동창고/냉장창고/A zone/B zone)
+- 보관장소 관리 버튼 및 모달 추가
+- 추가 번역 키: `stock.location`, `stock.noLocation`, `stock.freezer`, `stock.fridge`, `stock.zoneA`, `stock.zoneB`, `stock.locationManage`, `stock.locationManageDesc`
+- 파일: `src/app/stock/page.tsx`, `src/lib/i18n/translations.ts`
+
+**타입 정의 수정**
+- `Vendor` 인터페이스에 `products?: string[]` 필드 추가
+- 파일: `src/types/index.ts`
+
 ### 2026-01-02 (테스트 피드백 반영 4차)
 
 **대시보드 빠른 메뉴 다국어 적용**
