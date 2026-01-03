@@ -163,7 +163,7 @@ export default function MarginsPage() {
             </Link>
             <div>
               <h1 className="text-2xl font-bold">마진 설정</h1>
-              <p className="text-sm text-gray-500 mt-1">
+              <p className="text-sm text-red-600 mt-1">
                 등급별 마진율을 설정합니다. 변경 시 히스토리가 자동 기록됩니다.
               </p>
             </div>
@@ -177,7 +177,7 @@ export default function MarginsPage() {
             className={`px-4 py-2 font-medium ${
               activeTab === 'fresh'
                 ? 'border-b-2 border-green-500 text-green-600'
-                : 'text-gray-500 hover:text-gray-700'
+                : 'text-red-600 hover:text-red-800'
             }`}
           >
             신선제품 마진
@@ -187,7 +187,7 @@ export default function MarginsPage() {
             className={`px-4 py-2 font-medium ${
               activeTab === 'industrial'
                 ? 'border-b-2 border-blue-500 text-blue-600'
-                : 'text-gray-500 hover:text-gray-700'
+                : 'text-red-600 hover:text-red-800'
             }`}
           >
             공산품 마진
@@ -196,8 +196,8 @@ export default function MarginsPage() {
             onClick={() => setActiveTab('history')}
             className={`px-4 py-2 font-medium ${
               activeTab === 'history'
-                ? 'border-b-2 border-gray-500 text-gray-600'
-                : 'text-gray-500 hover:text-gray-700'
+                ? 'border-b-2 border-red-500 text-red-600'
+                : 'text-red-600 hover:text-red-800'
             }`}
           >
             변경 히스토리
@@ -222,13 +222,13 @@ export default function MarginsPage() {
 
                 <div className="bg-white border rounded-lg overflow-hidden">
                   <table className="w-full">
-                    <thead className="bg-gray-50">
+                    <thead className="bg-red-50">
                       <tr>
-                        <th className="px-4 py-3 text-left text-sm font-medium text-gray-600">등급</th>
-                        <th className="px-4 py-3 text-left text-sm font-medium text-gray-600">설명</th>
-                        <th className="px-4 py-3 text-center text-sm font-medium text-gray-600">마진 (바트)</th>
-                        <th className="px-4 py-3 text-center text-sm font-medium text-gray-600">상태</th>
-                        <th className="px-4 py-3 text-center text-sm font-medium text-gray-600">작업</th>
+                        <th className="px-4 py-3 text-left text-sm font-medium text-red-700">등급</th>
+                        <th className="px-4 py-3 text-left text-sm font-medium text-red-700">설명</th>
+                        <th className="px-4 py-3 text-center text-sm font-medium text-red-700">마진 (바트)</th>
+                        <th className="px-4 py-3 text-center text-sm font-medium text-red-700">상태</th>
+                        <th className="px-4 py-3 text-center text-sm font-medium text-red-700">작업</th>
                       </tr>
                     </thead>
                     <tbody className="divide-y">
@@ -237,7 +237,7 @@ export default function MarginsPage() {
                           <td className="px-4 py-3">
                             <Badge variant="success" size="sm">{grade}</Badge>
                           </td>
-                          <td className="px-4 py-3 text-sm text-gray-700 font-medium">
+                          <td className="px-4 py-3 text-sm text-red-700 font-medium">
                             {GRADE_DESCRIPTIONS[grade]}
                           </td>
                           <td className="px-4 py-3">
@@ -303,7 +303,7 @@ export default function MarginsPage() {
                         <div className="flex items-center justify-between mb-4">
                           <div className="flex items-center gap-3">
                             <Badge variant="info">{grade}</Badge>
-                            <span className="text-sm text-gray-700 font-medium">{GRADE_DESCRIPTIONS[grade]}</span>
+                            <span className="text-sm text-red-700 font-medium">{GRADE_DESCRIPTIONS[grade]}</span>
                             {isIndustrialModified(grade) && (
                               <Badge variant="warning" size="sm">수정됨</Badge>
                             )}
@@ -320,7 +320,7 @@ export default function MarginsPage() {
                         <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
                           {!isD && (
                             <div>
-                              <label className="block text-xs text-gray-500 mb-1">Pur 배율</label>
+                              <label className="block text-xs text-red-600 mb-1">Pur 배율</label>
                               <input
                                 type="number"
                                 step="0.01"
@@ -339,7 +339,7 @@ export default function MarginsPage() {
                           {isD && (
                             <>
                               <div>
-                                <label className="block text-xs text-gray-500 mb-1">Min 배율</label>
+                                <label className="block text-xs text-red-600 mb-1">Min 배율</label>
                                 <input
                                   type="number"
                                   step="0.01"
@@ -354,7 +354,7 @@ export default function MarginsPage() {
                                 />
                               </div>
                               <div>
-                                <label className="block text-xs text-gray-500 mb-1">Mid 배율</label>
+                                <label className="block text-xs text-red-600 mb-1">Mid 배율</label>
                                 <input
                                   type="number"
                                   step="0.01"
@@ -369,7 +369,7 @@ export default function MarginsPage() {
                                 />
                               </div>
                               <div>
-                                <label className="block text-xs text-gray-500 mb-1">최소마진체크(%)</label>
+                                <label className="block text-xs text-red-600 mb-1">최소마진체크(%)</label>
                                 <input
                                   type="number"
                                   value={editing.minMarginCheck || 0}
@@ -386,8 +386,8 @@ export default function MarginsPage() {
                           )}
 
                           <div className={isD ? '' : 'md:col-span-3'}>
-                            <label className="block text-xs text-gray-500 mb-1">계산식</label>
-                            <div className="px-2 py-1 bg-gray-100 rounded text-sm text-gray-600">
+                            <label className="block text-xs text-red-600 mb-1">계산식</label>
+                            <div className="px-2 py-1 bg-red-100 rounded text-sm text-red-700">
                               {editing.formula || '-'}
                             </div>
                           </div>
@@ -403,26 +403,26 @@ export default function MarginsPage() {
             {activeTab === 'history' && (
               <div className="bg-white border rounded-lg overflow-hidden">
                 {history.length === 0 ? (
-                  <div className="p-8 text-center text-gray-500">
+                  <div className="p-8 text-center text-red-600">
                     변경 히스토리가 없습니다.
                   </div>
                 ) : (
                   <table className="w-full">
-                    <thead className="bg-gray-50">
+                    <thead className="bg-red-50">
                       <tr>
-                        <th className="px-4 py-3 text-left text-sm font-medium text-gray-600">일시</th>
-                        <th className="px-4 py-3 text-left text-sm font-medium text-gray-600">유형</th>
-                        <th className="px-4 py-3 text-left text-sm font-medium text-gray-600">등급</th>
-                        <th className="px-4 py-3 text-left text-sm font-medium text-gray-600">항목</th>
-                        <th className="px-4 py-3 text-center text-sm font-medium text-gray-600">변경 전</th>
-                        <th className="px-4 py-3 text-center text-sm font-medium text-gray-600">변경 후</th>
-                        <th className="px-4 py-3 text-left text-sm font-medium text-gray-600">변경자</th>
+                        <th className="px-4 py-3 text-left text-sm font-medium text-red-700">일시</th>
+                        <th className="px-4 py-3 text-left text-sm font-medium text-red-700">유형</th>
+                        <th className="px-4 py-3 text-left text-sm font-medium text-red-700">등급</th>
+                        <th className="px-4 py-3 text-left text-sm font-medium text-red-700">항목</th>
+                        <th className="px-4 py-3 text-center text-sm font-medium text-red-700">변경 전</th>
+                        <th className="px-4 py-3 text-center text-sm font-medium text-red-700">변경 후</th>
+                        <th className="px-4 py-3 text-left text-sm font-medium text-red-700">변경자</th>
                       </tr>
                     </thead>
                     <tbody className="divide-y">
                       {history.map((h) => (
-                        <tr key={h.id} className="hover:bg-gray-50">
-                          <td className="px-4 py-3 text-sm text-gray-500">
+                        <tr key={h.id} className="hover:bg-red-50">
+                          <td className="px-4 py-3 text-sm text-red-600">
                             {h.changedAt.toLocaleString()}
                           </td>
                           <td className="px-4 py-3">
@@ -436,14 +436,14 @@ export default function MarginsPage() {
                           <td className="px-4 py-3">
                             <Badge variant="default" size="sm">{h.grade}</Badge>
                           </td>
-                          <td className="px-4 py-3 text-sm">{h.field}</td>
-                          <td className="px-4 py-3 text-center text-sm text-red-600">
+                          <td className="px-4 py-3 text-sm text-red-700">{h.field}</td>
+                          <td className="px-4 py-3 text-center text-sm text-red-600 font-medium">
                             {h.oldValue}
                           </td>
-                          <td className="px-4 py-3 text-center text-sm text-green-600">
+                          <td className="px-4 py-3 text-center text-sm text-green-600 font-medium">
                             {h.newValue}
                           </td>
-                          <td className="px-4 py-3 text-sm text-gray-500">
+                          <td className="px-4 py-3 text-sm text-red-600">
                             {h.changedByName || h.changedByEmail}
                           </td>
                         </tr>
