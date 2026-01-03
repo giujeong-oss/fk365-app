@@ -7,9 +7,9 @@ import type { TranslationKey } from '@/lib/i18n/translations';
 import { ProtectedRoute } from '@/components/auth';
 import { MainLayout } from '@/components/layout';
 import { Button, Input, Spinner, Badge, EmptyState, Modal } from '@/components/ui';
-import { getProducts, getAllStock, setStock, batchUpdateStock } from '@/lib/firebase';
-import type { Product, Stock } from '@/types';
-import { Home, Download, Settings } from 'lucide-react';
+import { getProducts, getAllStock, setStock, batchUpdateStock, getStockHistory } from '@/lib/firebase';
+import type { Product, Stock, StockHistory } from '@/types';
+import { Home, Download, Settings, History, AlertTriangle } from 'lucide-react';
 import Link from 'next/link';
 import { exportToCsv, getDateForFilename, type CsvColumn } from '@/lib/utils';
 
@@ -26,6 +26,7 @@ interface ProductStock {
   product: Product;
   qty: number;
   location: string;
+  minStock: number;
   isModified: boolean;
 }
 
@@ -40,6 +41,9 @@ export default function StockPage() {
   const [selectedPriceType, setSelectedPriceType] = useState('');
   const [selectedLocation, setSelectedLocation] = useState('');
   const [showLocationModal, setShowLocationModal] = useState(false);
+  const [showHistoryModal, setShowHistoryModal] = useState<string | null>(null); // productCode
+  const [stockHistoryData, setStockHistoryData] = useState<StockHistory[]>([]);
+  const [loadingHistory, setLoadingHistory] = useState(false);
 
   // 다국어 지원 보관장소 옵션 생성
   const getLocationOptions = () => LOCATION_KEYS.map(loc => ({
@@ -92,10 +96,10 @@ export default function StockPage() {
 
       // 카테고리 추출 삭제 - priceType 필터로 변경됨
 
-      // 재고 맵 생성 (qty와 location 포함)
-      const stockMap = new Map<string, { qty: number; location: string }>();
+      // 재고 맵 생성 (qty, location, minStock 포함)
+      const stockMap = new Map<string, { qty: number; location: string; minStock: number }>();
       stockData.forEach((s) => {
-        stockMap.set(s.code, { qty: s.qty, location: s.location || '' });
+        stockMap.set(s.code, { qty: s.qty, location: s.location || '', minStock: s.minStock || 0 });
       });
 
       // 제품별 재고 상태 생성
@@ -105,6 +109,7 @@ export default function StockPage() {
           product,
           qty: stockInfo?.qty || 0,
           location: stockInfo?.location || '',
+          minStock: stockInfo?.minStock || 0,
           isModified: false,
         };
       });
@@ -137,6 +142,31 @@ export default function StockPage() {
     );
   };
 
+  const handleMinStockChange = (productCode: string, newMinStock: number) => {
+    setProductStocks((prev) =>
+      prev.map((ps) =>
+        ps.product.code === productCode
+          ? { ...ps, minStock: Math.max(0, newMinStock), isModified: true }
+          : ps
+      )
+    );
+  };
+
+  // 재고 히스토리 보기
+  const handleViewHistory = async (productCode: string) => {
+    setShowHistoryModal(productCode);
+    setLoadingHistory(true);
+    try {
+      const history = await getStockHistory(productCode, 20);
+      setStockHistoryData(history);
+    } catch (error) {
+      console.error('Failed to load stock history:', error);
+      setStockHistoryData([]);
+    } finally {
+      setLoadingHistory(false);
+    }
+  };
+
   const handleSaveAll = async () => {
     setSaving(true);
     try {
@@ -146,6 +176,7 @@ export default function StockPage() {
           productCode: ps.product.code,
           qty: ps.qty,
           location: ps.location,
+          minStock: ps.minStock,
         }));
 
       if (modifiedItems.length === 0) {
@@ -312,8 +343,10 @@ export default function StockPage() {
                     <th className="px-4 py-3 text-left text-sm font-medium text-gray-800">제품명</th>
                     <th className="px-4 py-3 text-left text-sm font-medium text-gray-800">단위</th>
                     <th className="px-4 py-3 text-center text-sm font-medium text-gray-800">보관장소</th>
+                    <th className="px-4 py-3 text-center text-sm font-medium text-gray-800">안전재고</th>
                     <th className="px-4 py-3 text-center text-sm font-medium text-gray-800">상태</th>
                     <th className="px-4 py-3 text-center text-sm font-medium text-gray-800">재고 수량</th>
+                    <th className="px-4 py-3 text-center text-sm font-medium text-gray-800"></th>
                   </tr>
                 </thead>
                 <tbody className="divide-y">
@@ -343,13 +376,30 @@ export default function StockPage() {
                         </select>
                       </td>
                       <td className="px-4 py-3 text-center">
+                        <input
+                          type="number"
+                          value={ps.minStock || ''}
+                          onChange={(e) =>
+                            handleMinStockChange(ps.product.code, parseInt(e.target.value) || 0)
+                          }
+                          placeholder="0"
+                          className="w-16 h-8 text-center border border-gray-300 rounded focus:ring-2 focus:ring-blue-500 text-gray-900"
+                        />
+                      </td>
+                      <td className="px-4 py-3 text-center">
                         {ps.isModified && (
                           <Badge variant="warning" size="sm">수정됨</Badge>
                         )}
                         {!ps.isModified && ps.qty === 0 && (
                           <Badge variant="danger" size="sm">품절</Badge>
                         )}
-                        {!ps.isModified && ps.qty > 0 && ps.qty <= 5 && (
+                        {!ps.isModified && ps.qty > 0 && ps.minStock > 0 && ps.qty <= ps.minStock && (
+                          <div className="flex items-center justify-center gap-1">
+                            <AlertTriangle size={14} className="text-orange-500" />
+                            <Badge variant="warning" size="sm">부족</Badge>
+                          </div>
+                        )}
+                        {!ps.isModified && ps.minStock === 0 && ps.qty > 0 && ps.qty <= 5 && (
                           <Badge variant="warning" size="sm">부족</Badge>
                         )}
                       </td>
@@ -382,6 +432,15 @@ export default function StockPage() {
                             +
                           </button>
                         </div>
+                      </td>
+                      <td className="px-4 py-3 text-center">
+                        <button
+                          onClick={() => handleViewHistory(ps.product.code)}
+                          className="p-1 text-gray-600 hover:text-blue-600 hover:bg-blue-50 rounded"
+                          title="재고 히스토리"
+                        >
+                          <History size={16} />
+                        </button>
                       </td>
                     </tr>
                   ))}
@@ -500,6 +559,86 @@ export default function StockPage() {
           <div className="flex justify-end pt-4">
             <Button variant="secondary" onClick={() => setShowLocationModal(false)}>
               {t('common.close')}
+            </Button>
+          </div>
+        </div>
+      </Modal>
+
+      {/* 재고 히스토리 모달 */}
+      <Modal
+        isOpen={!!showHistoryModal}
+        onClose={() => {
+          setShowHistoryModal(null);
+          setStockHistoryData([]);
+        }}
+        title="재고 변동 히스토리"
+      >
+        <div className="space-y-4">
+          {showHistoryModal && (
+            <div className="text-sm text-gray-600 mb-2">
+              제품: {products.find(p => p.code === showHistoryModal)?.name_ko || showHistoryModal}
+            </div>
+          )}
+
+          {loadingHistory ? (
+            <div className="flex justify-center py-8">
+              <Spinner />
+            </div>
+          ) : stockHistoryData.length === 0 ? (
+            <div className="text-center py-8 text-gray-600">
+              히스토리가 없습니다.
+            </div>
+          ) : (
+            <div className="max-h-96 overflow-y-auto">
+              <table className="w-full text-sm">
+                <thead className="bg-gray-50 sticky top-0">
+                  <tr>
+                    <th className="px-2 py-2 text-left">일시</th>
+                    <th className="px-2 py-2 text-center">유형</th>
+                    <th className="px-2 py-2 text-right">변동</th>
+                    <th className="px-2 py-2 text-right">결과</th>
+                    <th className="px-2 py-2 text-left">사유</th>
+                  </tr>
+                </thead>
+                <tbody className="divide-y">
+                  {stockHistoryData.map((history) => (
+                    <tr key={history.id} className="hover:bg-gray-50">
+                      <td className="px-2 py-2 text-gray-600">
+                        {history.createdAt.toLocaleDateString()}<br />
+                        <span className="text-xs">{history.createdAt.toLocaleTimeString()}</span>
+                      </td>
+                      <td className="px-2 py-2 text-center">
+                        <Badge
+                          variant={history.type === 'in' ? 'success' : history.type === 'out' ? 'danger' : 'info'}
+                          size="sm"
+                        >
+                          {history.type === 'in' ? '입고' : history.type === 'out' ? '출고' : '조정'}
+                        </Badge>
+                      </td>
+                      <td className="px-2 py-2 text-right font-medium">
+                        <span className={history.qty >= 0 ? 'text-green-600' : 'text-red-600'}>
+                          {history.qty >= 0 ? '+' : ''}{history.qty}
+                        </span>
+                      </td>
+                      <td className="px-2 py-2 text-right">
+                        <span className="text-gray-600">{history.prevQty}</span>
+                        <span className="mx-1">→</span>
+                        <span className="font-medium">{history.newQty}</span>
+                      </td>
+                      <td className="px-2 py-2 text-gray-600">{history.reason || '-'}</td>
+                    </tr>
+                  ))}
+                </tbody>
+              </table>
+            </div>
+          )}
+
+          <div className="flex justify-end pt-4">
+            <Button variant="secondary" onClick={() => {
+              setShowHistoryModal(null);
+              setStockHistoryData([]);
+            }}>
+              닫기
             </Button>
           </div>
         </div>

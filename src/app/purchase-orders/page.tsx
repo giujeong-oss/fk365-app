@@ -9,6 +9,7 @@ import { Button, Spinner, Badge, EmptyState } from '@/components/ui';
 import {
   getProducts,
   getVendors,
+  getCustomers,
   getOrderSummaryByProduct,
   getStockMap,
   getPurchaseOrdersByDate,
@@ -20,14 +21,24 @@ import {
   setPrice,
   updateVendor,
   increaseStock,
+  uploadReceiptImage,
 } from '@/lib/firebase';
 import type { Product, Vendor, PurchaseOrder, Cutoff } from '@/types';
-import { Home, Printer, X, Download, FileDown, Save } from 'lucide-react';
+import { Home, Printer, X, Download, FileDown, Save, Users, Search, Share2, Camera, Image, Upload } from 'lucide-react';
 import Link from 'next/link';
 import { useRef } from 'react';
+import html2canvas from 'html2canvas';
 import { exportToCsv, getDateForFilename, type CsvColumn } from '@/lib/utils';
 
 type POType = 'buy1' | 'buy2' | 'buy3';
+
+// 고객별 주문 정보
+interface CustomerOrder {
+  customerCode: string;
+  customerName: string;
+  qty: number;
+  cutoff: 1 | 2 | 3;
+}
 
 interface ProductSummary {
   product: Product;
@@ -41,6 +52,7 @@ interface ProductSummary {
   overrideVendorCode?: string; // 임시 구매처 변경용
   buyPrice?: number; // 실제 매입가 입력용
   actualQty?: number; // 실제 매입량 (영수증 숫자)
+  customers: CustomerOrder[]; // 이 제품을 주문한 고객 목록
 }
 
 export default function PurchaseOrdersPage() {
@@ -61,7 +73,13 @@ export default function PurchaseOrdersPage() {
   const [activeTab, setActiveTab] = useState<POType>('buy1');
   const [printPO, setPrintPO] = useState<PurchaseOrder | null>(null);
   const [savingPrices, setSavingPrices] = useState(false);
-  const printRef = useRef<HTMLDivElement>(null);
+  const [selectedProductForCustomers, setSelectedProductForCustomers] = useState<ProductSummary | null>(null);
+  const [customerSearch, setCustomerSearch] = useState('');
+  const [capturing, setCapturing] = useState(false);
+  const [uploadingReceipt, setUploadingReceipt] = useState<string | null>(null); // PO ID being uploaded
+  const [receiptPreview, setReceiptPreview] = useState<{ poId: string; url: string } | null>(null);
+  const captureRef = useRef<HTMLDivElement>(null);
+  const receiptInputRef = useRef<HTMLInputElement>(null);
 
   useEffect(() => {
     loadData();
@@ -71,9 +89,10 @@ export default function PurchaseOrdersPage() {
     setLoading(true);
     try {
       const selectedDate = new Date(date);
-      const [productsData, vendorsData, stockMap, existingPOs] = await Promise.all([
+      const [productsData, vendorsData, customersData, stockMap, existingPOs] = await Promise.all([
         getProducts(true),
         getVendors(true),
+        getCustomers(true),
         getStockMap(),
         getPurchaseOrdersByDate(selectedDate),
       ]);
@@ -82,6 +101,10 @@ export default function PurchaseOrdersPage() {
       setVendors(vendorsData);
       setPurchaseOrders(existingPOs);
 
+      // 고객 코드 → 이름 매핑
+      const customerNameMap = new Map<string, string>();
+      customersData.forEach((c) => customerNameMap.set(c.code, c.fullName));
+
       // cutoff별 주문 합계 계산
       const [cut1Orders, cut2Orders, cut3Orders] = await Promise.all([
         getOrdersByCutoff(selectedDate, 1),
@@ -89,26 +112,57 @@ export default function PurchaseOrdersPage() {
         getOrdersByCutoff(selectedDate, 3),
       ]);
 
-      // 제품별 수량 합산
+      // 제품별 수량 합산 및 고객 정보 추적
       const cut1Map = new Map<string, number>();
       const cut2Map = new Map<string, number>();
       const cut3Map = new Map<string, number>();
+      const productCustomersMap = new Map<string, CustomerOrder[]>();
 
       cut1Orders.forEach((order) => {
         order.items.forEach((item) => {
           cut1Map.set(item.productCode, (cut1Map.get(item.productCode) || 0) + item.qty);
+          // 고객 정보 추가
+          if (!productCustomersMap.has(item.productCode)) {
+            productCustomersMap.set(item.productCode, []);
+          }
+          productCustomersMap.get(item.productCode)!.push({
+            customerCode: order.customerCode,
+            customerName: customerNameMap.get(order.customerCode) || order.customerCode,
+            qty: item.qty,
+            cutoff: 1,
+          });
         });
       });
 
       cut2Orders.forEach((order) => {
         order.items.forEach((item) => {
           cut2Map.set(item.productCode, (cut2Map.get(item.productCode) || 0) + item.qty);
+          // 고객 정보 추가
+          if (!productCustomersMap.has(item.productCode)) {
+            productCustomersMap.set(item.productCode, []);
+          }
+          productCustomersMap.get(item.productCode)!.push({
+            customerCode: order.customerCode,
+            customerName: customerNameMap.get(order.customerCode) || order.customerCode,
+            qty: item.qty,
+            cutoff: 2,
+          });
         });
       });
 
       cut3Orders.forEach((order) => {
         order.items.forEach((item) => {
           cut3Map.set(item.productCode, (cut3Map.get(item.productCode) || 0) + item.qty);
+          // 고객 정보 추가
+          if (!productCustomersMap.has(item.productCode)) {
+            productCustomersMap.set(item.productCode, []);
+          }
+          productCustomersMap.get(item.productCode)!.push({
+            customerCode: order.customerCode,
+            customerName: customerNameMap.get(order.customerCode) || order.customerCode,
+            qty: item.qty,
+            cutoff: 3,
+          });
         });
       });
 
@@ -118,6 +172,7 @@ export default function PurchaseOrdersPage() {
         const cut2 = cut2Map.get(product.code) || 0;
         const cut3 = cut3Map.get(product.code) || 0;
         const stock = stockMap.get(product.code) || 0;
+        const customers = productCustomersMap.get(product.code) || [];
 
         return {
           product,
@@ -128,6 +183,7 @@ export default function PurchaseOrdersPage() {
           buy1: Math.max(0, cut1 - stock),
           buy2: cut2,
           buy3: cut3,
+          customers,
         };
       });
 
@@ -344,7 +400,7 @@ export default function PurchaseOrdersPage() {
   };
 
   const handlePrint = () => {
-    if (printRef.current) {
+    if (captureRef.current) {
       const printWindow = window.open('', '_blank');
       if (printWindow) {
         printWindow.document.write(`
@@ -372,7 +428,7 @@ export default function PurchaseOrdersPage() {
             </style>
           </head>
           <body>
-            ${printRef.current.innerHTML}
+            ${captureRef.current.innerHTML}
           </body>
           </html>
         `);
@@ -384,6 +440,94 @@ export default function PurchaseOrdersPage() {
         }, 250);
       }
     }
+  };
+
+  // 발주서 캡쳐 및 전송
+  const handleCaptureAndShare = async () => {
+    if (!captureRef.current) return;
+
+    setCapturing(true);
+    try {
+      const canvas = await html2canvas(captureRef.current, {
+        scale: 2,
+        backgroundColor: '#ffffff',
+        useCORS: true,
+      });
+
+      const blob = await new Promise<Blob>((resolve) => {
+        canvas.toBlob((blob) => resolve(blob!), 'image/png');
+      });
+
+      const vendorName = printPO?.vendorCode ? getVendorName(printPO.vendorCode) : (printPO?.note || '');
+      const fileName = `발주서_${vendorName}_${date}.png`;
+
+      // Web Share API 지원 여부 확인
+      if (navigator.share && navigator.canShare) {
+        const file = new File([blob], fileName, { type: 'image/png' });
+        const shareData = {
+          files: [file],
+          title: `발주서 - ${vendorName}`,
+          text: `${date} 발주서입니다.`,
+        };
+
+        if (navigator.canShare(shareData)) {
+          await navigator.share(shareData);
+          return;
+        }
+      }
+
+      // Web Share API 미지원 시 다운로드
+      const url = URL.createObjectURL(blob);
+      const link = document.createElement('a');
+      link.href = url;
+      link.download = fileName;
+      document.body.appendChild(link);
+      link.click();
+      document.body.removeChild(link);
+      URL.revokeObjectURL(url);
+
+      alert('이미지가 다운로드되었습니다.');
+    } catch (error) {
+      console.error('Failed to capture:', error);
+      alert('캡쳐에 실패했습니다.');
+    } finally {
+      setCapturing(false);
+    }
+  };
+
+  // 영수증 업로드 핸들러
+  const handleReceiptUpload = async (poId: string, file: File) => {
+    setUploadingReceipt(poId);
+    try {
+      await uploadReceiptImage(poId, file);
+      await loadData(); // 데이터 새로고침
+      alert('영수증이 업로드되었습니다.');
+    } catch (error) {
+      console.error('Failed to upload receipt:', error);
+      alert('영수증 업로드에 실패했습니다.');
+    } finally {
+      setUploadingReceipt(null);
+    }
+  };
+
+  // 영수증 파일 선택 핸들러
+  const handleReceiptFileChange = (poId: string) => (e: React.ChangeEvent<HTMLInputElement>) => {
+    const file = e.target.files?.[0];
+    if (file) {
+      // 이미지 파일 검증
+      if (!file.type.startsWith('image/')) {
+        alert('이미지 파일만 업로드할 수 있습니다.');
+        return;
+      }
+      // 파일 크기 제한 (5MB)
+      if (file.size > 5 * 1024 * 1024) {
+        alert('파일 크기는 5MB 이하여야 합니다.');
+        return;
+      }
+      handleReceiptUpload(poId, file);
+    }
+    // 입력 초기화
+    e.target.value = '';
   };
 
   const getPOTypeLabel = (type: POType) => {
@@ -635,33 +779,79 @@ export default function PurchaseOrdersPage() {
                 <h3 className="font-medium text-green-700 mb-2">생성된 발주서</h3>
                 <div className="space-y-2">
                   {existingPOsForTab.map((po) => (
-                    <div key={po.id} className="flex items-center justify-between bg-white p-3 rounded border">
-                      <div>
-                        <span className="font-medium">
-                          {po.vendorCode ? getVendorName(po.vendorCode) : po.note}
-                        </span>
-                        <span className="text-sm text-gray-800 ml-2">
-                          {po.items.length}개 품목
-                        </span>
-                      </div>
-                      <div className="flex items-center gap-4">
-                        <Button
-                          variant="secondary"
-                          size="sm"
-                          onClick={() => setPrintPO(po)}
-                        >
-                          <Printer size={16} className="mr-1" />
-                          인쇄
-                        </Button>
-                        <div className="text-right">
-                          <div className="font-medium text-gray-900">
-                            {po.totalAmount ? formatCurrency(po.totalAmount) : '-'}
-                          </div>
-                          <div className="text-xs text-gray-700">
-                            {po.createdAt.toLocaleTimeString()}
+                    <div key={po.id} className="bg-white p-3 rounded border">
+                      <div className="flex items-center justify-between">
+                        <div>
+                          <span className="font-medium">
+                            {po.vendorCode ? getVendorName(po.vendorCode) : po.note}
+                          </span>
+                          <span className="text-sm text-gray-800 ml-2">
+                            {po.items.length}개 품목
+                          </span>
+                        </div>
+                        <div className="flex items-center gap-2">
+                          {/* 영수증 업로드 버튼 */}
+                          <label className="cursor-pointer">
+                            <input
+                              type="file"
+                              accept="image/*"
+                              className="hidden"
+                              onChange={handleReceiptFileChange(po.id)}
+                              disabled={uploadingReceipt === po.id}
+                            />
+                            <span className={`inline-flex items-center px-2 py-1 text-sm rounded border ${
+                              po.receiptImageUrl
+                                ? 'bg-green-50 border-green-300 text-green-700'
+                                : 'bg-gray-50 border-gray-300 text-gray-700 hover:bg-gray-100'
+                            }`}>
+                              {uploadingReceipt === po.id ? (
+                                <>
+                                  <Spinner size="sm" className="mr-1" />
+                                  업로드 중...
+                                </>
+                              ) : po.receiptImageUrl ? (
+                                <>
+                                  <Image size={14} className="mr-1" />
+                                  영수증
+                                </>
+                              ) : (
+                                <>
+                                  <Upload size={14} className="mr-1" />
+                                  영수증
+                                </>
+                              )}
+                            </span>
+                          </label>
+                          <Button
+                            variant="secondary"
+                            size="sm"
+                            onClick={() => setPrintPO(po)}
+                          >
+                            <Printer size={16} className="mr-1" />
+                            인쇄
+                          </Button>
+                          <div className="text-right">
+                            <div className="font-medium text-gray-900">
+                              {po.totalAmount ? formatCurrency(po.totalAmount) : '-'}
+                            </div>
+                            <div className="text-xs text-gray-700">
+                              {po.createdAt.toLocaleTimeString()}
+                            </div>
                           </div>
                         </div>
                       </div>
+                      {/* 영수증 이미지 미리보기 */}
+                      {po.receiptImageUrl && (
+                        <div className="mt-2 pt-2 border-t">
+                          <button
+                            onClick={() => setReceiptPreview({ poId: po.id, url: po.receiptImageUrl! })}
+                            className="flex items-center gap-2 text-sm text-blue-600 hover:text-blue-800"
+                          >
+                            <Image size={14} />
+                            영수증 보기
+                          </button>
+                        </div>
+                      )}
                     </div>
                   ))}
                 </div>
@@ -676,11 +866,9 @@ export default function PurchaseOrdersPage() {
                     <th className="px-3 py-3 text-left text-sm font-medium text-gray-900">{t('products.code')}</th>
                     <th className="px-3 py-3 text-left text-sm font-medium text-gray-900">{t('products.product')}</th>
                     <th className="px-3 py-3 text-center text-sm font-medium text-gray-900">{t('products.type')}</th>
+                    <th className="px-3 py-3 text-center text-sm font-medium text-gray-900">주문 상세</th>
                     {activeTab === 'buy1' && (
-                      <>
-                        <th className="px-3 py-3 text-right text-sm font-medium text-gray-900">{t('purchaseOrders.cut1Order')}</th>
-                        <th className="px-3 py-3 text-right text-sm font-medium text-gray-900">{t('nav.stock')}</th>
-                      </>
+                      <th className="px-3 py-3 text-right text-sm font-medium text-gray-900">{t('nav.stock')}</th>
                     )}
                     <th className="px-3 py-3 text-right text-sm font-medium text-gray-900">{t('purchaseOrders.orderQty')}</th>
                     <th className="px-3 py-3 text-center text-sm font-medium text-gray-900">실제 매입량</th>
@@ -713,13 +901,30 @@ export default function PurchaseOrdersPage() {
                             {summary.product.priceType === 'fresh' ? '신선' : '공산품'}
                           </Badge>
                         </td>
+                        <td className="px-3 py-3 text-center">
+                          {/* 주문 상세: 합계(cut1+cut2+cut3) 형식 */}
+                          <div className="flex items-center justify-center gap-1">
+                            <span className="font-medium text-gray-900">
+                              {summary.cut1 + summary.cut2 + summary.cut3}
+                              <span className="text-xs text-gray-600 ml-1">
+                                ({summary.cut1}+{summary.cut2}+{summary.cut3})
+                              </span>
+                            </span>
+                            {summary.customers.length > 0 && (
+                              <button
+                                onClick={() => setSelectedProductForCustomers(summary)}
+                                className="p-1 text-blue-600 hover:bg-blue-50 rounded"
+                                title="주문자 보기"
+                              >
+                                <Users size={14} />
+                              </button>
+                            )}
+                          </div>
+                        </td>
                         {activeTab === 'buy1' && (
-                          <>
-                            <td className="px-3 py-3 text-right text-gray-900 font-medium">{summary.cut1}</td>
-                            <td className="px-3 py-3 text-right text-green-600 font-semibold">{summary.stock}</td>
-                          </>
+                          <td className="px-3 py-3 text-right text-green-600 font-semibold">{summary.stock}</td>
                         )}
-                        <td className="px-3 py-3 text-right font-bold text-green-600">
+                        <td className="px-3 py-3 text-right font-bold text-blue-600">
                           {activeTab === 'buy1' ? summary.buy1 : activeTab === 'buy2' ? summary.buy2 : summary.buy3}
                         </td>
                         <td className="px-3 py-3 text-center">
@@ -812,6 +1017,10 @@ export default function PurchaseOrdersPage() {
             <div className="flex items-center justify-between p-4 border-b">
               <h3 className="text-lg font-semibold">발주서 미리보기</h3>
               <div className="flex items-center gap-2">
+                <Button onClick={handleCaptureAndShare} disabled={capturing} variant="secondary">
+                  <Share2 size={18} className="mr-1" />
+                  {capturing ? '캡쳐 중...' : '캡쳐/전송'}
+                </Button>
                 <Button onClick={handlePrint}>
                   <Printer size={18} className="mr-1" />
                   인쇄
@@ -825,7 +1034,7 @@ export default function PurchaseOrdersPage() {
               </div>
             </div>
             <div className="flex-1 overflow-auto p-4">
-              <div ref={printRef}>
+              <div ref={captureRef}>
                 <div className="header">
                   <h1>Purchase Order</h1>
                   <div className="date">{date}</div>
@@ -888,6 +1097,161 @@ export default function PurchaseOrdersPage() {
                   Fresh Kitchen 365 - Generated on {new Date().toLocaleDateString('en-US')} {new Date().toLocaleTimeString('en-US', { hour: '2-digit', minute: '2-digit' })}
                 </div>
               </div>
+            </div>
+          </div>
+        </div>
+      )}
+
+      {/* 주문자 목록 모달 */}
+      {selectedProductForCustomers && (
+        <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50 p-4">
+          <div className="bg-white rounded-lg max-w-2xl w-full max-h-[80vh] flex flex-col">
+            <div className="flex items-center justify-between p-4 border-b">
+              <div>
+                <h3 className="text-lg font-semibold">주문자 목록</h3>
+                <p className="text-sm text-gray-600">
+                  {selectedProductForCustomers.product.code} - {selectedProductForCustomers.product.name_ko}
+                </p>
+              </div>
+              <button
+                onClick={() => {
+                  setSelectedProductForCustomers(null);
+                  setCustomerSearch('');
+                }}
+                className="p-2 hover:bg-gray-100 rounded"
+              >
+                <X size={20} />
+              </button>
+            </div>
+
+            {/* 검색 */}
+            <div className="p-4 border-b">
+              <div className="relative">
+                <Search size={16} className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400" />
+                <input
+                  type="text"
+                  placeholder="고객 코드 또는 이름으로 검색..."
+                  value={customerSearch}
+                  onChange={(e) => setCustomerSearch(e.target.value)}
+                  className="w-full pl-9 pr-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 text-gray-900"
+                />
+              </div>
+            </div>
+
+            {/* 주문 요약 */}
+            <div className="p-4 bg-gray-50 border-b">
+              <div className="grid grid-cols-4 gap-4 text-center">
+                <div>
+                  <div className="text-sm text-gray-600">총 주문</div>
+                  <div className="text-lg font-bold text-gray-900">
+                    {selectedProductForCustomers.cut1 + selectedProductForCustomers.cut2 + selectedProductForCustomers.cut3}
+                  </div>
+                </div>
+                <div>
+                  <div className="text-sm text-gray-600">1차 (정상)</div>
+                  <div className="text-lg font-bold text-blue-600">{selectedProductForCustomers.cut1}</div>
+                </div>
+                <div>
+                  <div className="text-sm text-gray-600">2차 (추가)</div>
+                  <div className="text-lg font-bold text-yellow-600">{selectedProductForCustomers.cut2}</div>
+                </div>
+                <div>
+                  <div className="text-sm text-gray-600">3차 (긴급)</div>
+                  <div className="text-lg font-bold text-red-600">{selectedProductForCustomers.cut3}</div>
+                </div>
+              </div>
+            </div>
+
+            {/* 고객 목록 */}
+            <div className="flex-1 overflow-auto p-4">
+              <table className="w-full">
+                <thead className="bg-gray-50 sticky top-0">
+                  <tr>
+                    <th className="px-3 py-2 text-left text-sm font-medium text-gray-900">고객</th>
+                    <th className="px-3 py-2 text-center text-sm font-medium text-gray-900">주문 유형</th>
+                    <th className="px-3 py-2 text-right text-sm font-medium text-gray-900">수량</th>
+                  </tr>
+                </thead>
+                <tbody className="divide-y">
+                  {selectedProductForCustomers.customers
+                    .filter((c) =>
+                      !customerSearch ||
+                      c.customerCode.toLowerCase().includes(customerSearch.toLowerCase()) ||
+                      c.customerName.toLowerCase().includes(customerSearch.toLowerCase())
+                    )
+                    .sort((a, b) => a.cutoff - b.cutoff)
+                    .map((customer, idx) => (
+                      <tr key={`${customer.customerCode}-${customer.cutoff}-${idx}`} className="hover:bg-gray-50">
+                        <td className="px-3 py-2">
+                          <div className="font-medium text-gray-900">{customer.customerName}</div>
+                          <div className="text-xs text-gray-600">{customer.customerCode}</div>
+                        </td>
+                        <td className="px-3 py-2 text-center">
+                          <Badge
+                            variant={customer.cutoff === 1 ? 'info' : customer.cutoff === 2 ? 'warning' : 'danger'}
+                            size="sm"
+                          >
+                            {customer.cutoff === 1 ? '1차 정상' : customer.cutoff === 2 ? '2차 추가' : '3차 긴급'}
+                          </Badge>
+                        </td>
+                        <td className="px-3 py-2 text-right font-medium text-gray-900">{customer.qty}</td>
+                      </tr>
+                    ))}
+                </tbody>
+              </table>
+              {selectedProductForCustomers.customers.filter((c) =>
+                !customerSearch ||
+                c.customerCode.toLowerCase().includes(customerSearch.toLowerCase()) ||
+                c.customerName.toLowerCase().includes(customerSearch.toLowerCase())
+              ).length === 0 && (
+                <div className="p-8 text-center text-gray-600">
+                  {customerSearch ? '검색 결과가 없습니다.' : '주문자가 없습니다.'}
+                </div>
+              )}
+            </div>
+          </div>
+        </div>
+      )}
+
+      {/* 영수증 미리보기 모달 */}
+      {receiptPreview && (
+        <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50 p-4">
+          <div className="bg-white rounded-lg max-w-3xl w-full max-h-[90vh] flex flex-col">
+            <div className="flex items-center justify-between p-4 border-b">
+              <h3 className="text-lg font-semibold">영수증 이미지</h3>
+              <button
+                onClick={() => setReceiptPreview(null)}
+                className="p-2 hover:bg-gray-100 rounded"
+              >
+                <X size={20} />
+              </button>
+            </div>
+            <div className="flex-1 overflow-auto p-4 flex items-center justify-center bg-gray-100">
+              <img
+                src={receiptPreview.url}
+                alt="영수증"
+                className="max-w-full max-h-[70vh] object-contain rounded shadow-lg"
+              />
+            </div>
+            <div className="p-4 border-t flex justify-end gap-2">
+              <a
+                href={receiptPreview.url}
+                target="_blank"
+                rel="noopener noreferrer"
+                className="px-4 py-2 bg-blue-600 text-white rounded hover:bg-blue-700"
+              >
+                새 탭에서 열기
+              </a>
+              <label className="cursor-pointer px-4 py-2 bg-gray-100 text-gray-700 rounded hover:bg-gray-200">
+                <input
+                  type="file"
+                  accept="image/*"
+                  className="hidden"
+                  onChange={handleReceiptFileChange(receiptPreview.poId)}
+                  disabled={uploadingReceipt === receiptPreview.poId}
+                />
+                {uploadingReceipt === receiptPreview.poId ? '업로드 중...' : '다른 이미지로 교체'}
+              </label>
             </div>
           </div>
         </div>

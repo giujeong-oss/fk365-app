@@ -107,6 +107,8 @@ export interface Order {
   cutoff: Cutoff;
   items: OrderItem[];
   totalAmount: number;
+  totalDiscount?: number; // 합계 할인 금액
+  finalAmount?: number;   // 최종 금액 (totalAmount - totalDiscount)
   status: 'draft' | 'confirmed';
   createdBy: string;
   createdAt: Date;
@@ -134,6 +136,7 @@ export interface PurchaseOrder {
   items: PurchaseOrderItem[];
   totalAmount?: number;
   note?: string;
+  receiptImageUrl?: string;  // 영수증 사진 URL
   createdAt: Date;
 }
 
@@ -146,7 +149,23 @@ export interface Stock {
   code: string;
   qty: number;
   location?: string;  // 보관장소 (freezer, fridge, zone-a, zone-b 등)
+  minStock?: number;  // 안전재고량 (이하로 떨어지면 경고)
   updatedAt: Date;
+}
+
+// 재고 변동 히스토리
+export interface StockHistory {
+  id: string;
+  code: string;  // 제품 코드
+  type: 'in' | 'out' | 'adjust';  // 입고/출고/조정
+  qty: number;  // 변동 수량 (+ 또는 -)
+  prevQty: number;  // 변동 전 재고
+  newQty: number;  // 변동 후 재고
+  reason?: string;  // 변동 사유 (예: 발주입고, 주문출고, 재고조정)
+  orderId?: string;  // 관련 주문 ID
+  purchaseOrderId?: string;  // 관련 발주서 ID
+  createdBy: string;  // 변경한 사용자
+  createdAt: Date;
 }
 
 // ============================================

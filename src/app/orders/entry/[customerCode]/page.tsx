@@ -53,6 +53,7 @@ export default function OrderEntryPage() {
   const [max3DayPriceMap, setMax3DayPriceMap] = useState<Map<string, number>>(new Map());
   const [showingAllProducts, setShowingAllProducts] = useState(false);
   const [loadError, setLoadError] = useState<string | null>(null);
+  const [totalDiscount, setTotalDiscount] = useState(0); // 합계 할인
 
   // Tab 키 네비게이션을 위한 refs
   const qtyInputRefs = useRef<Map<string, HTMLInputElement>>(new Map());
@@ -290,10 +291,17 @@ export default function OrderEntryPage() {
       }
 
       const totalAmount = items.reduce((sum, item) => sum + item.amount, 0);
+      const finalAmount = totalAmount - totalDiscount;
 
       if (existingOrders.length > 0) {
         // 기존 주문 업데이트
         await updateOrderItems(existingOrders[0].id, items, totalAmount);
+        // 할인 정보도 업데이트
+        if (totalDiscount > 0) {
+          await import('@/lib/firebase').then(({ updateOrder }) =>
+            updateOrder(existingOrders[0].id, { totalDiscount, finalAmount })
+          );
+        }
       } else {
         // 새 주문 생성
         await createOrder({
@@ -302,6 +310,8 @@ export default function OrderEntryPage() {
           cutoff: Number(cutoff) as Cutoff,
           items,
           totalAmount,
+          totalDiscount: totalDiscount > 0 ? totalDiscount : undefined,
+          finalAmount: totalDiscount > 0 ? finalAmount : undefined,
           status: 'draft',
           createdBy: user.uid,
         });
@@ -546,16 +556,39 @@ export default function OrderEntryPage() {
         {/* 하단 고정 바 */}
         <div className="fixed bottom-0 left-0 right-0 bg-white border-t shadow-lg">
           <div className="p-4 max-w-4xl mx-auto">
-            <div className="flex items-center justify-between mb-3">
+            <div className="flex items-center justify-between mb-2">
               <div>
                 <span className="text-gray-800">{t('orders.selectedItems')}: </span>
                 <span className="font-bold text-green-600">{totalItems}{t('common.count')}</span>
               </div>
               <div>
                 <span className="text-gray-800">{t('orders.totalAmount')}: </span>
-                <span className="text-xl font-bold text-green-600">
+                <span className="text-lg font-bold text-gray-800">
                   {formatCurrency(totalAmount)}
                 </span>
+              </div>
+            </div>
+            {/* 합계 할인 입력 */}
+            <div className="flex items-center justify-between mb-3 pb-2 border-b">
+              <div className="flex items-center gap-2">
+                <span className="text-gray-800 text-sm">합계 할인:</span>
+                <input
+                  type="number"
+                  value={totalDiscount || ''}
+                  onChange={(e) => setTotalDiscount(Math.max(0, parseInt(e.target.value) || 0))}
+                  placeholder="0"
+                  className="w-24 px-2 py-1 text-center border border-gray-300 rounded focus:ring-2 focus:ring-green-500 text-red-600 font-medium"
+                />
+                <span className="text-gray-600 text-sm">฿</span>
+              </div>
+              <div>
+                <span className="text-gray-800 text-sm">최종 금액: </span>
+                <span className="text-xl font-bold text-green-600">
+                  {formatCurrency(totalAmount - totalDiscount)}
+                </span>
+                {totalDiscount > 0 && (
+                  <span className="text-sm text-red-500 ml-2">(-{formatCurrency(totalDiscount)})</span>
+                )}
               </div>
             </div>
             <Button

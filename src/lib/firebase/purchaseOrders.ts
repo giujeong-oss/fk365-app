@@ -13,7 +13,13 @@ import {
   serverTimestamp,
   Timestamp,
 } from 'firebase/firestore';
-import { db, FK365_COLLECTIONS } from './config';
+import {
+  ref,
+  uploadBytes,
+  getDownloadURL,
+  deleteObject,
+} from 'firebase/storage';
+import { db, storage, FK365_COLLECTIONS } from './config';
 import type { PurchaseOrder, PurchaseOrderItem } from '@/types';
 
 const getDb = () => {
@@ -249,5 +255,50 @@ export async function generateBuy3PurchaseOrder(
     type: 'buy3',
     items: poItems,
     note: '라라무브 긴급',
+  });
+}
+
+// 영수증 사진 업로드
+export async function uploadReceiptImage(
+  purchaseOrderId: string,
+  file: File
+): Promise<string> {
+  if (!storage) throw new Error('Storage가 초기화되지 않았습니다.');
+
+  // 파일명 생성: receipts/{poId}/{timestamp}_{filename}
+  const timestamp = Date.now();
+  const sanitizedName = file.name.replace(/[^a-zA-Z0-9.]/g, '_');
+  const storagePath = `receipts/${purchaseOrderId}/${timestamp}_${sanitizedName}`;
+
+  const storageRef = ref(storage, storagePath);
+  await uploadBytes(storageRef, file);
+  const downloadUrl = await getDownloadURL(storageRef);
+
+  // 발주서에 영수증 URL 저장
+  await updatePurchaseOrder(purchaseOrderId, {
+    receiptImageUrl: downloadUrl,
+  });
+
+  return downloadUrl;
+}
+
+// 영수증 사진 삭제
+export async function deleteReceiptImage(
+  purchaseOrderId: string,
+  imageUrl: string
+): Promise<void> {
+  if (!storage) throw new Error('Storage가 초기화되지 않았습니다.');
+
+  try {
+    // URL에서 storage path 추출
+    const storageRef = ref(storage, imageUrl);
+    await deleteObject(storageRef);
+  } catch (error) {
+    console.error('Failed to delete receipt image:', error);
+  }
+
+  // 발주서에서 영수증 URL 제거
+  await updatePurchaseOrder(purchaseOrderId, {
+    receiptImageUrl: undefined,
   });
 }

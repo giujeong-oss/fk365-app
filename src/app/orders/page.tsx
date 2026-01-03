@@ -164,11 +164,20 @@ export default function OrdersPage() {
     ? orders.filter((o) => o.cutoff === Number(selectedCutoff))
     : orders;
 
-  // 검색어로 고객 필터링
+  // 검색어로 고객 필터링 (고객 코드/이름 + 제품코드)
   const filteredCustomers = customers.filter((c) => {
     if (!searchTerm) return true;
     const term = searchTerm.toLowerCase();
-    return c.code.toLowerCase().includes(term) || c.fullName.toLowerCase().includes(term);
+    // 고객 코드/이름 검색
+    if (c.code.toLowerCase().includes(term) || c.fullName.toLowerCase().includes(term)) {
+      return true;
+    }
+    // 제품코드로 검색 - 해당 제품을 주문한 고객 찾기
+    const customerOrders = getCustomerOrders(c.code);
+    const hasProduct = customerOrders.some(order =>
+      order.items.some(item => item.productCode.toLowerCase().includes(term))
+    );
+    return hasProduct;
   });
 
   const orderedCustomerCodes = [...new Set(filteredOrders.map((o) => o.customerCode))];
@@ -264,7 +273,7 @@ export default function OrdersPage() {
             <Search size={18} className="absolute left-3 top-1/2 -translate-y-1/2 text-green-600" />
             <input
               type="text"
-              placeholder={`${t('customers.code')} / ${t('customers.name')} ${t('common.search')}...`}
+              placeholder={`${t('customers.code')} / ${t('customers.name')} / ${t('products.code')} ${t('common.search')}...`}
               value={searchTerm}
               onChange={(e) => setSearchTerm(e.target.value)}
               className="w-full pl-10 pr-4 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-green-500 text-gray-900"

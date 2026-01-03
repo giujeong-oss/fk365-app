@@ -4,6 +4,7 @@
 import { initializeApp, getApps, getApp, FirebaseApp } from 'firebase/app';
 import { getAuth, GoogleAuthProvider, Auth } from 'firebase/auth';
 import { getFirestore, Firestore } from 'firebase/firestore';
+import { getStorage, FirebaseStorage } from 'firebase/storage';
 
 // Firebase 환경 변수 검증 (줄바꿈/공백 제거)
 const firebaseConfig = {
@@ -36,12 +37,14 @@ if (isBrowser && !hasConfig && process.env.NODE_ENV === 'development') {
 let app: FirebaseApp | null = null;
 let auth: Auth | null = null;
 let db: Firestore | null = null;
+let storage: FirebaseStorage | null = null;
 let googleProvider: GoogleAuthProvider | null = null;
 
 if (isBrowser && hasConfig) {
   app = getApps().length > 0 ? getApp() : initializeApp(firebaseConfig);
   auth = getAuth(app);
   db = getFirestore(app);
+  storage = getStorage(app);
   googleProvider = new GoogleAuthProvider();
 
   // 회사 도메인 로그인 힌트 (Google Workspace 도메인)
@@ -50,7 +53,7 @@ if (isBrowser && hasConfig) {
   });
 }
 
-export { auth, db, googleProvider };
+export { auth, db, storage, googleProvider };
 
 // FK365 컬렉션 경로 상수
 export const FK365_COLLECTIONS = {
@@ -60,6 +63,7 @@ export const FK365_COLLECTIONS = {
   ORDERS: 'fk365_orders',
   PURCHASE_ORDERS: 'fk365_purchaseOrders',
   STOCK: 'fk365_stock',
+  STOCK_HISTORY: 'fk365_stockHistory',
   PRICE_HISTORY: 'fk365_priceHistory',
   MARGINS: 'fk365_margins',
   MARGIN_HISTORY: 'fk365_marginHistory',

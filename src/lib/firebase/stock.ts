@@ -6,13 +6,17 @@ import {
   getDoc,
   setDoc,
   updateDoc,
+  addDoc,
   query,
+  where,
   orderBy,
+  limit,
   serverTimestamp,
   writeBatch,
+  Timestamp,
 } from 'firebase/firestore';
 import { db, FK365_COLLECTIONS } from './config';
-import type { Stock } from '@/types';
+import type { Stock, StockHistory } from '@/types';
 
 const getDb = () => {
   if (!db) throw new Error('Firestore가 초기화되지 않았습니다.');
@@ -89,17 +93,24 @@ export async function decreaseStock(productCode: string, amount: number): Promis
 
 // 여러 제품 재고 일괄 업데이트
 export async function batchUpdateStock(
-  items: Array<{ productCode: string; qty: number }>
+  items: Array<{ productCode: string; qty: number; location?: string; minStock?: number }>
 ): Promise<void> {
   const batch = writeBatch(getDb());
 
   items.forEach((item) => {
     const docRef = doc(getDb(), FK365_COLLECTIONS.STOCK, item.productCode);
-    batch.set(docRef, {
+    const data: Record<string, unknown> = {
       code: item.productCode,
       qty: item.qty,
       updatedAt: serverTimestamp(),
-    });
+    };
+    if (item.location !== undefined) {
+      data.location = item.location;
+    }
+    if (item.minStock !== undefined) {
+      data.minStock = item.minStock;
+    }
+    batch.set(docRef, data, { merge: true });
   });
 
   await batch.commit();
@@ -115,4 +126,122 @@ export async function getStockMap(): Promise<Map<string, number>> {
   });
 
   return map;
+}
+
+// ============================================
+// 재고 히스토리 관련 함수
+// ============================================
+
+// 재고 히스토리 추가
+export async function addStockHistory(
+  data: Omit<StockHistory, 'id' | 'createdAt'>
+): Promise<string> {
+  const historyRef = collection(getDb(), FK365_COLLECTIONS.STOCK_HISTORY);
+  const docRef = await addDoc(historyRef, {
+    ...data,
+    createdAt: serverTimestamp(),
+  });
+  return docRef.id;
+}
+
+// 특정 제품의 재고 히스토리 조회
+export async function getStockHistory(
+  productCode: string,
+  limitCount: number = 50
+): Promise<StockHistory[]> {
+  const historyRef = collection(getDb(), FK365_COLLECTIONS.STOCK_HISTORY);
+  const q = query(
+    historyRef,
+    where('code', '==', productCode),
+    orderBy('createdAt', 'desc'),
+    limit(limitCount)
+  );
+
+  const snapshot = await getDocs(q);
+  return snapshot.docs.map((docSnap) => ({
+    id: docSnap.id,
+    ...docSnap.data(),
+    createdAt: docSnap.data().createdAt?.toDate() || new Date(),
+  })) as StockHistory[];
+}
+
+// 최근 재고 히스토리 조회 (모든 제품)
+export async function getRecentStockHistory(
+  limitCount: number = 100
+): Promise<StockHistory[]> {
+  const historyRef = collection(getDb(), FK365_COLLECTIONS.STOCK_HISTORY);
+  const q = query(
+    historyRef,
+    orderBy('createdAt', 'desc'),
+    limit(limitCount)
+  );
+
+  const snapshot = await getDocs(q);
+  return snapshot.docs.map((docSnap) => ({
+    id: docSnap.id,
+    ...docSnap.data(),
+    createdAt: docSnap.data().createdAt?.toDate() || new Date(),
+  })) as StockHistory[];
+}
+
+// 재고 변경 및 히스토리 기록 (통합 함수)
+export async function updateStockWithHistory(
+  productCode: string,
+  newQty: number,
+  type: 'in' | 'out' | 'adjust',
+  reason: string,
+  createdBy: string,
+  orderId?: string,
+  purchaseOrderId?: string
+): Promise<void> {
+  const currentStock = await getStock(productCode);
+  const prevQty = currentStock?.qty || 0;
+  const qtyChange = newQty - prevQty;
+
+  // 재고 업데이트
+  await setStock(productCode, newQty);
+
+  // 히스토리 기록
+  await addStockHistory({
+    code: productCode,
+    type,
+    qty: qtyChange,
+    prevQty,
+    newQty,
+    reason,
+    orderId,
+    purchaseOrderId,
+    createdBy,
+  });
+}
+
+// 안전재고량 업데이트
+export async function updateMinStock(
+  productCode: string,
+  minStock: number
+): Promise<void> {
+  const docRef = doc(getDb(), FK365_COLLECTIONS.STOCK, productCode);
+  const existing = await getDoc(docRef);
+
+  if (existing.exists()) {
+    await updateDoc(docRef, {
+      minStock,
+      updatedAt: serverTimestamp(),
+    });
+  } else {
+    await setDoc(docRef, {
+      code: productCode,
+      qty: 0,
+      minStock,
+      updatedAt: serverTimestamp(),
+    });
+  }
+}
+
+// 안전재고 미달 제품 조회
+export async function getLowStockProducts(): Promise<Stock[]> {
+  const stocks = await getAllStock();
+  return stocks.filter(
+    (stock) => stock.minStock !== undefined && stock.qty <= stock.minStock
+  );
 }

@@ -304,7 +304,10 @@ export default function Dashboard() {
             <div className="bg-gradient-to-br from-emerald-50 to-emerald-100 rounded-xl p-4 lg:p-6 border border-emerald-200">
               <p className="text-sm text-emerald-700 mb-1">{t('dashboard.totalSales')}</p>
               <p className="text-xl lg:text-2xl font-bold text-emerald-800">
-                {loading ? '-' : formatCurrency(orderSummary.total)}
+                {loading ? '-' : formatCurrency(orderSummary.cut1 + orderSummary.cut2 + orderSummary.cut3)}
+              </p>
+              <p className="text-xs text-emerald-600 mt-1">
+                {!loading && `(${formatCurrency(orderSummary.cut1)} + ${formatCurrency(orderSummary.cut2)} + ${formatCurrency(orderSummary.cut3)})`}
               </p>
             </div>
             <div className="bg-white rounded-xl shadow-sm border border-gray-100 p-4 lg:p-6">
