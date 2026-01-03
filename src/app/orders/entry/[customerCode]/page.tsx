@@ -20,14 +20,27 @@ import {
 } from '@/lib/firebase';
 import { CUTOFF_OPTIONS, formatCurrency } from '@/lib/constants';
 import { calculateSellPrice as calcPrice } from '@/lib/utils';
-import type { Customer, Product, Order, OrderItem, Cutoff, Grade, IndustrialMargin } from '@/types';
+import type { Customer, Product, Order, OrderItem, Cutoff, Grade, IndustrialMargin, DiscountReason } from '@/types';
 import Link from 'next/link';
+
+// 할인 사유 옵션
+const DISCOUNT_REASONS: { value: DiscountReason; label: string }[] = [
+  { value: 'quality', label: '품질 문제' },
+  { value: 'loyal', label: '단골 할인' },
+  { value: 'bulk', label: '대량 구매' },
+  { value: 'promotion', label: '프로모션' },
+  { value: 'negotiation', label: '협상/네고' },
+  { value: 'damage', label: '파손/손상' },
+  { value: 'expiring', label: '유통기한 임박' },
+  { value: 'other', label: '기타' },
+];
 
 interface ProductOrderState {
   product: Product;
   qty: number;
   baseAdj: number;
   orderAdj: number;
+  orderAdjReason?: DiscountReason;
   sellPrice: number;
 }
 
@@ -54,6 +67,7 @@ export default function OrderEntryPage() {
   const [showingAllProducts, setShowingAllProducts] = useState(false);
   const [loadError, setLoadError] = useState<string | null>(null);
   const [totalDiscount, setTotalDiscount] = useState(0); // 합계 할인
+  const [discountReason, setDiscountReason] = useState<DiscountReason | ''>(''); // 합계 할인 사유
 
   // Tab 키 네비게이션을 위한 refs
   const qtyInputRefs = useRef<Map<string, HTMLInputElement>>(new Map());
@@ -254,11 +268,23 @@ export default function OrderEntryPage() {
           ? {
               ...state,
               orderAdj: newAdj,
+              // 할인이 0이면 사유도 초기화
+              orderAdjReason: newAdj === 0 ? undefined : state.orderAdjReason,
               sellPrice: calculateCurrentSellPrice(
                 state.product,
                 state.baseAdj + newAdj
               ),
             }
+          : state
+      )
+    );
+  };
+
+  const handleOrderAdjReasonChange = (productCode: string, reason: DiscountReason | '') => {
+    setProductStates((prev) =>
+      prev.map((state) =>
+        state.product.code === productCode
+          ? { ...state, orderAdjReason: reason || undefined }
           : state
       )
     );
@@ -272,14 +298,21 @@ export default function OrderEntryPage() {
       // 주문 아이템 생성
       const items: OrderItem[] = productStates
         .filter((state) => state.qty > 0)
-        .map((state) => ({
-          productCode: state.product.code,
-          qty: state.qty,
-          baseAdj: state.baseAdj,
-          orderAdj: state.orderAdj,
-          sellPrice: state.sellPrice,
-          amount: state.qty * state.sellPrice,
-        }));
+        .map((state) => {
+          const item: OrderItem = {
+            productCode: state.product.code,
+            qty: state.qty,
+            baseAdj: state.baseAdj,
+            orderAdj: state.orderAdj,
+            sellPrice: state.sellPrice,
+            amount: state.qty * state.sellPrice,
+          };
+          // 개별 할인 사유가 있으면 추가
+          if (state.orderAdj !== 0 && state.orderAdjReason) {
+            item.orderAdjReason = state.orderAdjReason;
+          }
+          return item;
+        });
 
       if (items.length === 0) {
         // 기존 주문 삭제
@@ -317,6 +350,9 @@ export default function OrderEntryPage() {
         if (totalDiscount > 0) {
           orderData.totalDiscount = totalDiscount;
           orderData.finalAmount = finalAmount;
+          if (discountReason) {
+            orderData.discountReason = discountReason as DiscountReason;
+          }
         }
         await createOrder(orderData);
       }
@@ -412,7 +448,7 @@ export default function OrderEntryPage() {
         </div>
 
         {/* 제품 목록 */}
-        <div className="p-4 max-w-4xl mx-auto pb-32">
+        <div className="p-4 max-w-4xl mx-auto pb-56">
           {/* 전체 제품 표시 경고 */}
           {showingAllProducts && productStates.length > 0 && (
             <div className="mb-4 p-3 bg-amber-50 border border-amber-200 rounded-lg flex items-start gap-3">
@@ -541,6 +577,19 @@ export default function OrderEntryPage() {
                         }
                         className="w-20 h-8 px-2 text-center border border-gray-300 rounded focus:outline-none focus:ring-1 focus:ring-green-500 text-green-600 font-medium"
                       />
+                      {/* 개별 할인 사유 (할인이 0이 아닐 때만 표시) */}
+                      {state.orderAdj !== 0 && (
+                        <select
+                          value={state.orderAdjReason || ''}
+                          onChange={(e) => handleOrderAdjReasonChange(state.product.code, e.target.value as DiscountReason | '')}
+                          className="h-8 px-2 border border-orange-300 rounded bg-orange-50 text-sm text-gray-800 focus:outline-none focus:ring-1 focus:ring-orange-500"
+                        >
+                          <option value="">사유 선택</option>
+                          {DISCOUNT_REASONS.map((r) => (
+                            <option key={r.value} value={r.value}>{r.label}</option>
+                          ))}
+                        </select>
+                      )}
                     </div>
 
                     {state.qty > 0 && (
@@ -573,26 +622,45 @@ export default function OrderEntryPage() {
               </div>
             </div>
             {/* 합계 할인 입력 */}
-            <div className="flex items-center justify-between mb-3 pb-2 border-b">
-              <div className="flex items-center gap-2">
-                <span className="text-gray-800 text-sm">합계 할인:</span>
-                <input
-                  type="number"
-                  value={totalDiscount || ''}
-                  onChange={(e) => setTotalDiscount(Math.max(0, parseInt(e.target.value) || 0))}
-                  placeholder="0"
-                  className="w-24 px-2 py-1 text-center border border-gray-300 rounded focus:ring-2 focus:ring-green-500 text-red-600 font-medium"
-                />
-                <span className="text-gray-600 text-sm">฿</span>
-              </div>
-              <div>
-                <span className="text-gray-800 text-sm">최종 금액: </span>
-                <span className="text-xl font-bold text-green-600">
-                  {formatCurrency(totalAmount - totalDiscount)}
-                </span>
-                {totalDiscount > 0 && (
-                  <span className="text-sm text-red-500 ml-2">(-{formatCurrency(totalDiscount)})</span>
-                )}
+            <div className="flex flex-col gap-2 mb-3 pb-2 border-b">
+              <div className="flex items-center justify-between">
+                <div className="flex items-center gap-2">
+                  <span className="text-gray-800 text-sm font-medium">합계 할인:</span>
+                  <input
+                    type="number"
+                    value={totalDiscount || ''}
+                    onChange={(e) => {
+                      const val = Math.max(0, parseInt(e.target.value) || 0);
+                      setTotalDiscount(val);
+                      if (val === 0) setDiscountReason('');
+                    }}
+                    placeholder="0"
+                    className="w-24 px-2 py-1 text-center border border-gray-300 rounded focus:ring-2 focus:ring-green-500 text-red-600 font-medium"
+                  />
+                  <span className="text-gray-700 text-sm">฿</span>
+                  {/* 합계 할인 사유 (할인이 0보다 클 때만 표시) */}
+                  {totalDiscount > 0 && (
+                    <select
+                      value={discountReason}
+                      onChange={(e) => setDiscountReason(e.target.value as DiscountReason | '')}
+                      className="h-8 px-2 border border-red-300 rounded bg-red-50 text-sm text-gray-800 focus:outline-none focus:ring-1 focus:ring-red-500"
+                    >
+                      <option value="">할인 사유 선택</option>
+                      {DISCOUNT_REASONS.map((r) => (
+                        <option key={r.value} value={r.value}>{r.label}</option>
+                      ))}
+                    </select>
+                  )}
+                </div>
+                <div>
+                  <span className="text-gray-800 text-sm">최종 금액: </span>
+                  <span className="text-xl font-bold text-green-600">
+                    {formatCurrency(totalAmount - totalDiscount)}
+                  </span>
+                  {totalDiscount > 0 && (
+                    <span className="text-sm text-red-500 ml-2">(-{formatCurrency(totalDiscount)})</span>
+                  )}
+                </div>
               </div>
             </div>
             <Button

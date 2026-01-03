@@ -91,11 +91,23 @@ export interface Vendor {
 // 주문 (Orders)
 // ============================================
 
+// 할인 사유 타입
+export type DiscountReason =
+  | 'quality'      // 품질 문제
+  | 'loyal'        // 단골 할인
+  | 'bulk'         // 대량 구매
+  | 'promotion'    // 프로모션
+  | 'negotiation'  // 협상/네고
+  | 'damage'       // 파손/손상
+  | 'expiring'     // 유통기한 임박
+  | 'other';       // 기타
+
 export interface OrderItem {
   productCode: string;
   qty: number;
   baseAdj: number;   // 고객별 기본 adj
   orderAdj: number;  // 주문 시 추가 adj
+  orderAdjReason?: DiscountReason;  // 개별 할인 사유
   sellPrice: number;
   amount: number;
 }
@@ -108,6 +120,7 @@ export interface Order {
   items: OrderItem[];
   totalAmount: number;
   totalDiscount?: number; // 합계 할인 금액
+  discountReason?: DiscountReason;  // 합계 할인 사유
   finalAmount?: number;   // 최종 금액 (totalAmount - totalDiscount)
   status: 'draft' | 'confirmed';
   createdBy: string;
