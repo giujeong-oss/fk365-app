@@ -293,6 +293,46 @@ showSuccess('저장되었습니다.');
 showError('저장에 실패했습니다.');
 ```
 
+### 다국어(i18n) 필수 적용
+
+⚠️ **모든 UI 텍스트는 반드시 다국어 처리해야 합니다.**
+
+**규칙:**
+1. 하드코딩된 한국어 텍스트 사용 금지
+2. 모든 사용자 표시 텍스트는 `t()` 함수 사용
+3. 새 텍스트 추가 시 `translations.ts`에 ko/th/en 3개 언어 모두 추가
+
+**사용법:**
+```typescript
+import { useI18n } from '@/lib/i18n';
+
+export default function MyPage() {
+  const { t } = useI18n();
+
+  return (
+    <div>
+      {/* ✅ 올바른 사용 */}
+      <h1>{t('page.title')}</h1>
+      <button>{t('common.save')}</button>
+
+      {/* ❌ 잘못된 사용 - 하드코딩 금지 */}
+      <h1>페이지 제목</h1>
+      <button>저장</button>
+    </div>
+  );
+}
+```
+
+**번역 키 네이밍 규칙:**
+| 카테고리 | 접두사 | 예시 |
+|----------|--------|------|
+| 공통 | `common.*` | `common.save`, `common.cancel` |
+| 네비게이션 | `nav.*` | `nav.dashboard`, `nav.orders` |
+| 테이블 헤더 | `table.*` | `table.code`, `table.name` |
+| 페이지별 | `{page}.*` | `orders.title`, `settings.userManagement` |
+
+**번역 파일 위치:** `src/lib/i18n/translations.ts`
+
 ---
 
 ## 현재 진행 상황
