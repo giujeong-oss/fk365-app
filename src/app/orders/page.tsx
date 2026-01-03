@@ -6,8 +6,8 @@ import { useI18n } from '@/lib/i18n/I18nContext';
 import { ProtectedRoute } from '@/components/auth';
 import { MainLayout } from '@/components/layout';
 import { Button, Select, Spinner, EmptyState, Badge, Modal, useToast } from '@/components/ui';
-import { getCustomers, getOrdersByDate, getCutoffSummary, confirmOrder, updateOrder, deleteOrder } from '@/lib/firebase';
-import type { Customer, Order, Cutoff } from '@/types';
+import { getCustomers, getProducts, getOrdersByDate, getCutoffSummary, confirmOrder, updateOrder, deleteOrder } from '@/lib/firebase';
+import type { Customer, Order, Cutoff, Product } from '@/types';
 import { Home, CheckCircle, Lock, Unlock, AlertCircle, Search, Trash2 } from 'lucide-react';
 import Link from 'next/link';
 import { formatCurrency } from '@/lib/constants';
@@ -32,6 +32,7 @@ export default function OrdersPage() {
   const { showSuccess, showError, showWarning } = useToast();
   const [date, setDate] = useState(() => getThailandToday());
   const [customers, setCustomers] = useState<Customer[]>([]);
+  const [products, setProducts] = useState<Product[]>([]);
   const [orders, setOrders] = useState<Order[]>([]);
   const [cutoffSummary, setCutoffSummary] = useState({ cut1: 0, cut2: 0, cut3: 0, total: 0 });
   const [loading, setLoading] = useState(true);
@@ -49,12 +50,14 @@ export default function OrdersPage() {
     setLoading(true);
     try {
       const selectedDate = new Date(date);
-      const [customersData, ordersData, summary] = await Promise.all([
+      const [customersData, productsData, ordersData, summary] = await Promise.all([
         getCustomers(true),
+        getProducts(true),
         getOrdersByDate(selectedDate),
         getCutoffSummary(selectedDate),
       ]);
       setCustomers(customersData);
+      setProducts(productsData);
       setOrders(ordersData);
       setCutoffSummary(summary);
     } catch (error) {
@@ -191,7 +194,7 @@ export default function OrdersPage() {
     ? orders.filter((o) => o.cutoff === Number(selectedCutoff))
     : orders;
 
-  // 검색어로 고객 필터링 (고객 코드/이름 + 제품코드)
+  // 검색어로 고객 필터링 (고객 코드/이름 + 제품코드/제품명)
   const filteredCustomers = customers.filter((c) => {
     if (!searchTerm) return true;
     const term = searchTerm.toLowerCase();
@@ -199,10 +202,21 @@ export default function OrdersPage() {
     if (c.code.toLowerCase().includes(term) || c.fullName.toLowerCase().includes(term)) {
       return true;
     }
-    // 제품코드로 검색 - 해당 제품을 주문한 고객 찾기
+    // 제품코드/제품명으로 검색 - 해당 제품을 주문한 고객 찾기
     const customerOrders = getCustomerOrders(c.code);
     const hasProduct = customerOrders.some(order =>
-      order.items.some(item => item.productCode.toLowerCase().includes(term))
+      order.items.some(item => {
+        // 제품코드 검색
+        if (item.productCode.toLowerCase().includes(term)) return true;
+        // 제품명 검색 (한국어/태국어/미얀마어)
+        const product = products.find(p => p.code === item.productCode);
+        if (product) {
+          if (product.name_ko?.toLowerCase().includes(term)) return true;
+          if (product.name_th?.toLowerCase().includes(term)) return true;
+          if (product.name_mm?.toLowerCase().includes(term)) return true;
+        }
+        return false;
+      })
     );
     return hasProduct;
   });
@@ -300,7 +314,7 @@ export default function OrdersPage() {
             <Search size={18} className="absolute left-3 top-1/2 -translate-y-1/2 text-green-600" />
             <input
               type="text"
-              placeholder={`${t('customers.code')} / ${t('customers.name')} / ${t('products.code')} ${t('common.search')}...`}
+              placeholder={`${t('customers.code')} / ${t('customers.name')} / ${t('products.code')} / ${t('products.name')} ${t('common.search')}...`}
               value={searchTerm}
               onChange={(e) => setSearchTerm(e.target.value)}
               className="w-full pl-10 pr-4 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-green-500 text-gray-900"

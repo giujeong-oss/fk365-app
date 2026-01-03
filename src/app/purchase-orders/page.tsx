@@ -615,17 +615,24 @@ export default function PurchaseOrdersPage() {
     exportToCsv(summaries, columns, filename);
   };
 
-  // 탭별 데이터 필터링
+  // 탭별 데이터 필터링 (구매처 기준 정렬)
   const getFilteredSummaries = () => {
+    let filtered: ProductSummary[];
     if (activeTab === 'buy1') {
-      return selectedVendor
+      filtered = selectedVendor
         ? productSummaries.filter((s) => getEffectiveVendorCode(s) === selectedVendor && s.buy1 > 0)
         : productSummaries.filter((s) => s.buy1 > 0);
     } else if (activeTab === 'buy2') {
-      return productSummaries.filter((s) => s.buy2 > 0);
+      filtered = productSummaries.filter((s) => s.buy2 > 0);
     } else {
-      return productSummaries.filter((s) => s.buy3 > 0);
+      filtered = productSummaries.filter((s) => s.buy3 > 0);
     }
+    // 구매처 코드 기준 정렬
+    return filtered.sort((a, b) => {
+      const vendorA = getEffectiveVendorCode(a) || '';
+      const vendorB = getEffectiveVendorCode(b) || '';
+      return vendorA.localeCompare(vendorB);
+    });
   };
 
   const existingPOsForTab = purchaseOrders.filter((po) => po.type === activeTab);
@@ -744,7 +751,7 @@ export default function PurchaseOrdersPage() {
                     )
                     .map((vendor) => (
                     <option key={vendor.id} value={vendor.code}>
-                      {vendor.code} | {vendor.name}
+                      {vendor.code} - {vendor.name}
                     </option>
                   ))}
                 </select>
@@ -902,23 +909,25 @@ export default function PurchaseOrdersPage() {
                           </Badge>
                         </td>
                         <td className="px-3 py-3 text-center">
-                          {/* 주문 상세: 합계(cut1+cut2+cut3) 형식 */}
-                          <div className="flex items-center justify-center gap-1">
-                            <span className="font-medium text-gray-900">
-                              {summary.cut1 + summary.cut2 + summary.cut3}
-                              <span className="text-xs text-gray-600 ml-1">
-                                ({summary.cut1}+{summary.cut2}+{summary.cut3})
+                          {/* 주문 상세: 첫줄 합계+버튼, 둘째줄 상세 */}
+                          <div className="space-y-0.5">
+                            <div className="flex items-center justify-center gap-1">
+                              <span className="font-bold text-gray-900">
+                                {summary.cut1 + summary.cut2 + summary.cut3}
                               </span>
-                            </span>
-                            {summary.customers.length > 0 && (
-                              <button
-                                onClick={() => setSelectedProductForCustomers(summary)}
-                                className="p-1 text-blue-600 hover:bg-blue-50 rounded"
-                                title="주문자 보기"
-                              >
-                                <Users size={14} />
-                              </button>
-                            )}
+                              {summary.customers.length > 0 && (
+                                <button
+                                  onClick={() => setSelectedProductForCustomers(summary)}
+                                  className="p-1 text-blue-600 hover:bg-blue-50 rounded"
+                                  title="주문자 보기"
+                                >
+                                  <Users size={14} />
+                                </button>
+                              )}
+                            </div>
+                            <div className="text-xs text-gray-600">
+                              ({summary.cut1}+{summary.cut2}+{summary.cut3})
+                            </div>
                           </div>
                         </td>
                         {activeTab === 'buy1' && (
@@ -966,7 +975,7 @@ export default function PurchaseOrdersPage() {
                                 <option value="">선택 안함</option>
                                 {vendors.map((v) => (
                                   <option key={v.code} value={v.code}>
-                                    {v.code} | {v.name}
+                                    {v.code} - {v.name}
                                   </option>
                                 ))}
                               </select>
@@ -981,9 +990,10 @@ export default function PurchaseOrdersPage() {
                               )}
                             </div>
                           ) : (
-                            <span className="text-sm text-gray-900 font-semibold">
-                              {effectiveVendorCode} | {getVendorName(effectiveVendorCode)}
-                            </span>
+                            <div className="text-sm text-gray-900">
+                              <div className="font-semibold">{effectiveVendorCode}</div>
+                              <div className="text-gray-700">{getVendorName(effectiveVendorCode)}</div>
+                            </div>
                           )}
                         </td>
                       </tr>
