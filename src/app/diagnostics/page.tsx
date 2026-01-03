@@ -438,7 +438,7 @@ export default function DiagnosticsPage() {
                         )}
                     </div>
                   ) : (
-                    <p className="text-gray-500">
+                    <p className="text-gray-600">
                       고객 코드를 입력하고 테스트를 실행하세요.
                     </p>
                   )}

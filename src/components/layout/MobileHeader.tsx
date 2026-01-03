@@ -97,8 +97,8 @@ export default function MobileHeader({
                 {/* Language Selection */}
                 <div className="px-4 py-3 border-b border-gray-100">
                   <div className="flex items-center gap-2 mb-2">
-                    <Globe size={14} className="text-gray-500" />
-                    <span className="text-xs text-gray-500">언어 / Language</span>
+                    <Globe size={14} className="text-gray-600" />
+                    <span className="text-xs text-gray-600">언어 / Language</span>
                   </div>
                   <div className="flex gap-1">
                     {languages.map((lang) => (

@@ -185,7 +185,7 @@ export default function TestPage() {
           <div className="bg-white rounded-lg shadow-lg p-6">
             <h2 className="text-lg font-bold text-gray-900 mb-4">재고 - 안전재고 테스트</h2>
             {stocks.length === 0 ? (
-              <p className="text-gray-500">재고 데이터 없음</p>
+              <p className="text-gray-600">재고 데이터 없음</p>
             ) : (
               <div className="space-y-2 max-h-60 overflow-auto">
                 {stocks.slice(0, 10).map((stock) => (
@@ -221,7 +221,7 @@ export default function TestPage() {
           <div className="bg-white rounded-lg shadow-lg p-6">
             <h2 className="text-lg font-bold text-gray-900 mb-4">주문 - 할인 테스트</h2>
             {orders.length === 0 ? (
-              <p className="text-gray-500">오늘 주문 없음</p>
+              <p className="text-gray-600">오늘 주문 없음</p>
             ) : (
               <div className="space-y-2 max-h-60 overflow-auto">
                 {orders.slice(0, 10).map((order) => (
@@ -251,7 +251,7 @@ export default function TestPage() {
           <div className="bg-white rounded-lg shadow-lg p-6">
             <h2 className="text-lg font-bold text-gray-900 mb-4">발주서 - 영수증 테스트</h2>
             {purchaseOrders.length === 0 ? (
-              <p className="text-gray-500">오늘 발주서 없음</p>
+              <p className="text-gray-600">오늘 발주서 없음</p>
             ) : (
               <div className="space-y-2 max-h-60 overflow-auto">
                 {purchaseOrders.map((po) => (
@@ -282,7 +282,7 @@ export default function TestPage() {
           <div className="bg-white rounded-lg shadow-lg p-6">
             <h2 className="text-lg font-bold text-gray-900 mb-4">고객 - 제품 매핑</h2>
             {customers.length === 0 ? (
-              <p className="text-gray-500">고객 데이터 없음</p>
+              <p className="text-gray-600">고객 데이터 없음</p>
             ) : (
               <div className="space-y-2 max-h-60 overflow-auto">
                 {customers.slice(0, 10).map((customer) => (
@@ -330,7 +330,7 @@ export default function TestPage() {
           </div>
         </div>
 
-        <footer className="mt-6 text-center text-sm text-gray-500">
+        <footer className="mt-6 text-center text-sm text-gray-600">
           FK365 Test Page - 인증 없이 API 테스트
         </footer>
       </div>

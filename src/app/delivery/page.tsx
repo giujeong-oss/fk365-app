@@ -165,9 +165,9 @@ export default function DeliveryPage() {
             {note.customer.region === 'pattaya' ? t('customers.pattaya') : t('customers.bangkok')}
           </Badge>
           <span className="font-bold text-lg">{note.customer.fullName}</span>
-          <span className="text-sm text-gray-500">({note.customer.code})</span>
+          <span className="text-sm text-gray-600">({note.customer.code})</span>
         </div>
-        <div className="text-sm text-gray-500">
+        <div className="text-sm text-gray-600">
           {note.customer.deliveryTime || '-'}
         </div>
       </div>
@@ -361,7 +361,7 @@ export default function DeliveryPage() {
             {/* 인쇄용 헤더 */}
             <div className="hidden print:block mb-4 text-center">
               <h1 className="text-2xl font-bold">FK365 {viewMode === 'delivery' ? t('delivery.title') : t('delivery.invoice')}</h1>
-              <p className="text-gray-500">{date}</p>
+              <p className="text-gray-600">{date}</p>
             </div>
 
             {/* 파타야 */}

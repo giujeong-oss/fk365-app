@@ -202,7 +202,7 @@ export default function EditProductPage() {
           {/* Header */}
           <div className="flex items-center gap-4 mb-6">
             <Link href="/products">
-              <button className="p-2 text-gray-500 hover:text-gray-600 hover:bg-gray-100 rounded-lg">
+              <button className="p-2 text-gray-600 hover:text-gray-600 hover:bg-gray-100 rounded-lg">
                 <ArrowLeft size={20} />
               </button>
             </Link>
@@ -303,7 +303,7 @@ export default function EditProductPage() {
                   }`}
                 >
                   <p className="font-medium text-gray-900">신선제품</p>
-                  <p className="text-sm text-gray-500">채소/과일/장보기</p>
+                  <p className="text-sm text-gray-600">채소/과일/장보기</p>
                 </button>
 
                 <button
@@ -316,7 +316,7 @@ export default function EditProductPage() {
                   }`}
                 >
                   <p className="font-medium text-gray-900">공산품</p>
-                  <p className="text-sm text-gray-500">소모품/세제/봉투</p>
+                  <p className="text-sm text-gray-600">소모품/세제/봉투</p>
                 </button>
               </div>
 

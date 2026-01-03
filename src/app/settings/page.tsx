@@ -196,7 +196,7 @@ export default function SettingsPage() {
                 </div>
                 <div>
                   <p className="text-2xl font-bold text-gray-900">{users.length}</p>
-                  <p className="text-xs text-gray-500">{t('settings.totalUsers')}</p>
+                  <p className="text-xs text-gray-600">{t('settings.totalUsers')}</p>
                 </div>
               </div>
             </div>
@@ -207,7 +207,7 @@ export default function SettingsPage() {
                 </div>
                 <div>
                   <p className="text-2xl font-bold text-gray-900">{adminCount}</p>
-                  <p className="text-xs text-gray-500">{t('settings.adminUsers')}</p>
+                  <p className="text-xs text-gray-600">{t('settings.adminUsers')}</p>
                 </div>
               </div>
             </div>
@@ -218,7 +218,7 @@ export default function SettingsPage() {
                 </div>
                 <div>
                   <p className="text-2xl font-bold text-gray-900">{activeCount}</p>
-                  <p className="text-xs text-gray-500">{t('settings.activeUsers')}</p>
+                  <p className="text-xs text-gray-600">{t('settings.activeUsers')}</p>
                 </div>
               </div>
             </div>
@@ -229,7 +229,7 @@ export default function SettingsPage() {
                 </div>
                 <div>
                   <p className="text-2xl font-bold text-gray-900">{users.length - activeCount}</p>
-                  <p className="text-xs text-gray-500">{t('products.inactive')}</p>
+                  <p className="text-xs text-gray-600">{t('products.inactive')}</p>
                 </div>
               </div>
             </div>
@@ -247,10 +247,10 @@ export default function SettingsPage() {
                 </div>
                 <div>
                   <h3 className="font-semibold text-gray-900">{t('permissions.title')}</h3>
-                  <p className="text-sm text-gray-500">{t('permissions.settingsDesc')}</p>
+                  <p className="text-sm text-gray-600">{t('permissions.settingsDesc')}</p>
                 </div>
               </div>
-              <ChevronRight size={20} className="text-gray-500" />
+              <ChevronRight size={20} className="text-gray-600" />
             </Link>
           </section>
 
@@ -313,7 +313,7 @@ export default function SettingsPage() {
                 <Spinner size="lg" />
               </div>
             ) : users.length === 0 ? (
-              <div className="p-8 text-center text-gray-500">
+              <div className="p-8 text-center text-gray-600">
                 {t('settings.noUsers')}
               </div>
             ) : (
@@ -323,12 +323,12 @@ export default function SettingsPage() {
                   <table className="w-full">
                     <thead className="bg-gray-50">
                       <tr>
-                        <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase">{t('settings.email')}</th>
-                        <th className="px-6 py-3 text-center text-xs font-medium text-gray-500 uppercase">{t('settings.role')}</th>
-                        <th className="px-6 py-3 text-center text-xs font-medium text-gray-500 uppercase">{t('table.status')}</th>
-                        <th className="px-6 py-3 text-center text-xs font-medium text-gray-500 uppercase">Language</th>
-                        <th className="px-6 py-3 text-center text-xs font-medium text-gray-500 uppercase">{t('settings.lastLogin')}</th>
-                        <th className="px-6 py-3 text-center text-xs font-medium text-gray-500 uppercase">{t('table.action')}</th>
+                        <th className="px-6 py-3 text-left text-xs font-medium text-gray-600 uppercase">{t('settings.email')}</th>
+                        <th className="px-6 py-3 text-center text-xs font-medium text-gray-600 uppercase">{t('settings.role')}</th>
+                        <th className="px-6 py-3 text-center text-xs font-medium text-gray-600 uppercase">{t('table.status')}</th>
+                        <th className="px-6 py-3 text-center text-xs font-medium text-gray-600 uppercase">Language</th>
+                        <th className="px-6 py-3 text-center text-xs font-medium text-gray-600 uppercase">{t('settings.lastLogin')}</th>
+                        <th className="px-6 py-3 text-center text-xs font-medium text-gray-600 uppercase">{t('table.action')}</th>
                       </tr>
                     </thead>
                     <tbody className="divide-y divide-gray-200">
@@ -347,7 +347,7 @@ export default function SettingsPage() {
                               </div>
                               <div>
                                 <p className="font-medium text-gray-900">{u.email}</p>
-                                <p className="text-sm text-gray-500">{u.name || '-'}</p>
+                                <p className="text-sm text-gray-600">{u.name || '-'}</p>
                               </div>
                               {u.id === user?.id && (
                                 <Badge variant="info" size="sm">나</Badge>
@@ -370,7 +370,7 @@ export default function SettingsPage() {
                             </span>
                           </td>
                           <td className="px-6 py-4 text-center">
-                            <span className="text-sm text-gray-500">
+                            <span className="text-sm text-gray-600">
                               {formatDate(u.lastLoginAt)}
                             </span>
                           </td>
@@ -400,7 +400,7 @@ export default function SettingsPage() {
                                 </button>
                               </div>
                             ) : (
-                              <span className="text-xs text-gray-500">-</span>
+                              <span className="text-xs text-gray-600">-</span>
                             )}
                           </td>
                         </tr>
@@ -429,7 +429,7 @@ export default function SettingsPage() {
                               <p className="font-medium text-gray-900">{u.email}</p>
                               {u.id === user?.id && <Badge variant="info" size="sm">나</Badge>}
                             </div>
-                            <p className="text-sm text-gray-500">{u.name || '-'}</p>
+                            <p className="text-sm text-gray-600">{u.name || '-'}</p>
                           </div>
                         </div>
                         <div className="flex flex-col gap-1">
@@ -442,7 +442,7 @@ export default function SettingsPage() {
                         </div>
                       </div>
 
-                      <div className="flex items-center gap-4 text-xs text-gray-500 mb-3">
+                      <div className="flex items-center gap-4 text-xs text-gray-600 mb-3">
                         <span className="flex items-center gap-1">
                           <Globe size={12} />
                           {getLanguageLabel(u.preferredLanguage)}
@@ -575,7 +575,7 @@ export default function SettingsPage() {
                 {t('settings.email')} <span className="text-red-500">*</span>
               </label>
               <div className="relative">
-                <Mail size={18} className="absolute left-3 top-1/2 -translate-y-1/2 text-gray-500" />
+                <Mail size={18} className="absolute left-3 top-1/2 -translate-y-1/2 text-gray-600" />
                 <input
                   type="email"
                   value={newUserEmail}

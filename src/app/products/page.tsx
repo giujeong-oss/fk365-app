@@ -208,7 +208,7 @@ export default function ProductsPage() {
             <div className="relative flex-1">
               <Search
                 size={18}
-                className="absolute left-3 top-1/2 -translate-y-1/2 text-gray-500"
+                className="absolute left-3 top-1/2 -translate-y-1/2 text-gray-600"
               />
               <input
                 type="text"
@@ -268,7 +268,7 @@ export default function ProductsPage() {
             <LoadingState message={t('common.loadingData')} />
           ) : filteredProducts.length === 0 ? (
             <EmptyState
-              icon={<Apple className="w-8 h-8 text-gray-500" />}
+              icon={<Apple className="w-8 h-8 text-gray-600" />}
               title={t('products.noProducts')}
               description={t('products.addFirst')}
               action={
@@ -296,25 +296,25 @@ export default function ProductsPage() {
                             className="rounded border-gray-300 text-green-600 focus:ring-green-500"
                           />
                         </th>
-                        <th className="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase">
+                        <th className="px-4 py-3 text-left text-xs font-medium text-gray-600 uppercase">
                           {t('table.code')}
                         </th>
-                        <th className="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase">
+                        <th className="px-4 py-3 text-left text-xs font-medium text-gray-600 uppercase">
                           {t('table.type')}
                         </th>
-                        <th className="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase">
+                        <th className="px-4 py-3 text-left text-xs font-medium text-gray-600 uppercase">
                           {t('products.name')}
                         </th>
-                        <th className="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase">
+                        <th className="px-4 py-3 text-left text-xs font-medium text-gray-600 uppercase">
                           {t('table.unit')}
                         </th>
-                        <th className="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase">
+                        <th className="px-4 py-3 text-left text-xs font-medium text-gray-600 uppercase">
                           {t('table.vendor')}
                         </th>
-                        <th className="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase">
+                        <th className="px-4 py-3 text-left text-xs font-medium text-gray-600 uppercase">
                           {t('table.status')}
                         </th>
-                        <th className="px-4 py-3 text-right text-xs font-medium text-gray-500 uppercase">
+                        <th className="px-4 py-3 text-right text-xs font-medium text-gray-600 uppercase">
                           {t('table.action')}
                         </th>
                       </tr>
@@ -351,7 +351,7 @@ export default function ProductsPage() {
                             <div className="space-y-0.5">
                               <p className="text-sm font-semibold text-gray-900">{product.name_ko}</p>
                               <p className="text-xs text-gray-600">{product.name_th}</p>
-                              <p className="text-xs text-gray-500">{product.name_mm}</p>
+                              <p className="text-xs text-gray-600">{product.name_mm}</p>
                             </div>
                           </td>
                           <td className="px-4 py-3 whitespace-nowrap text-sm text-gray-700 font-medium">
@@ -369,7 +369,7 @@ export default function ProductsPage() {
                             <div className="flex items-center justify-end gap-2">
                               <Link href={`/products/${product.id}/edit`}>
                                 <button
-                                  className="p-2 text-gray-500 hover:text-green-600 hover:bg-green-50 rounded-lg transition-colors"
+                                  className="p-2 text-gray-600 hover:text-green-600 hover:bg-green-50 rounded-lg transition-colors"
                                   title={t('common.edit')}
                                 >
                                   <Pencil size={16} />
@@ -377,7 +377,7 @@ export default function ProductsPage() {
                               </Link>
                               <button
                                 onClick={() => setDeleteTarget(product)}
-                                className="p-2 text-gray-500 hover:text-red-600 hover:bg-red-50 rounded-lg transition-colors"
+                                className="p-2 text-gray-600 hover:text-red-600 hover:bg-red-50 rounded-lg transition-colors"
                                 title={t('common.delete')}
                               >
                                 <Trash2 size={16} />
@@ -426,13 +426,13 @@ export default function ProductsPage() {
                       </div>
                       <div className="flex items-center gap-1">
                         <Link href={`/products/${product.id}/edit`}>
-                          <button className="p-2 text-gray-500 hover:text-green-600 hover:bg-green-50 rounded-lg">
+                          <button className="p-2 text-gray-600 hover:text-green-600 hover:bg-green-50 rounded-lg">
                             <Pencil size={18} />
                           </button>
                         </Link>
                         <button
                           onClick={() => setDeleteTarget(product)}
-                          className="p-2 text-gray-500 hover:text-red-600 hover:bg-red-50 rounded-lg"
+                          className="p-2 text-gray-600 hover:text-red-600 hover:bg-red-50 rounded-lg"
                         >
                           <Trash2 size={18} />
                         </button>

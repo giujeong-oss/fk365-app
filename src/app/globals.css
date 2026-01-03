@@ -3,6 +3,19 @@
 :root {
   --background: #ffffff;
   --foreground: #171717;
+
+  /* FK365 Brand Colors */
+  --fk365-green: #6CA72C;
+  --fk365-green-light: #8BC34A;
+  --fk365-green-dark: #558B2F;
+  --fk365-orange: #D75C08;
+  --fk365-orange-light: #F57C00;
+  --fk365-orange-dark: #BF4A00;
+
+  /* Category Colors */
+  --meat: #DC2626;
+  --vegetable: #6CA72C;
+  --seafood: #0EA5E9;
 }
 
 @theme inline {
@@ -10,6 +23,19 @@
   --color-foreground: var(--foreground);
   --font-sans: var(--font-geist-sans);
   --font-mono: var(--font-geist-mono);
+
+  /* FK365 Brand Colors */
+  --color-fk365-green: #6CA72C;
+  --color-fk365-green-light: #8BC34A;
+  --color-fk365-green-dark: #558B2F;
+  --color-fk365-orange: #D75C08;
+  --color-fk365-orange-light: #F57C00;
+  --color-fk365-orange-dark: #BF4A00;
+
+  /* Category Colors */
+  --color-meat: #DC2626;
+  --color-vegetable: #6CA72C;
+  --color-seafood: #0EA5E9;
 }
 
 @media (prefers-color-scheme: dark) {

@@ -194,7 +194,7 @@ export default function Dashboard() {
         <div className="mb-4 flex flex-col sm:flex-row items-start sm:items-center justify-between gap-3">
           <div className="flex items-center gap-2 flex-wrap">
             <div className="flex items-center gap-2">
-              <Calendar size={16} className="text-gray-500" />
+              <Calendar size={16} className="text-gray-600" />
               <input
                 type="date"
                 value={selectedDate}
@@ -339,7 +339,7 @@ export default function Dashboard() {
           </h2>
           <div className="bg-white rounded-xl shadow-sm border border-gray-100 p-4 lg:p-6">
             {loading ? (
-              <div className="h-48 flex items-center justify-center text-gray-500">
+              <div className="h-48 flex items-center justify-center text-gray-600">
                 로딩 중...
               </div>
             ) : weeklySales.length > 0 ? (
@@ -393,7 +393,7 @@ export default function Dashboard() {
                           {day.label}
                         </span>
                         <br />
-                        <span className={`text-xs ${isSelected ? 'text-green-600' : 'text-gray-500'}`}>
+                        <span className={`text-xs ${isSelected ? 'text-green-600' : 'text-gray-600'}`}>
                           {day.date.slice(5)}
                         </span>
                       </div>
@@ -402,7 +402,7 @@ export default function Dashboard() {
                 </div>
               </div>
             ) : (
-              <div className="h-48 flex items-center justify-center text-gray-500">
+              <div className="h-48 flex items-center justify-center text-gray-600">
                 데이터가 없습니다
               </div>
             )}
@@ -470,7 +470,7 @@ export default function Dashboard() {
             )}
           </div>
           {/* 추가 설명 */}
-          <p className="mt-2 text-xs text-gray-500">
+          <p className="mt-2 text-xs text-gray-600">
             * 추가/긴급 주문은 시간 제한 없이 관리자 판단에 따라 입력 가능합니다.
           </p>
         </section>

@@ -85,7 +85,7 @@ export default function BottomTabs({ isAdmin = false }: BottomTabsProps) {
               <h3 className="font-semibold text-gray-900">관리자 메뉴</h3>
               <button
                 onClick={() => setShowMore(false)}
-                className="p-2 text-gray-500 hover:text-gray-700 hover:bg-gray-100 rounded-full"
+                className="p-2 text-gray-600 hover:text-gray-700 hover:bg-gray-100 rounded-full"
               >
                 <X size={20} />
               </button>
@@ -126,7 +126,7 @@ export default function BottomTabs({ isAdmin = false }: BottomTabsProps) {
                   className={`flex flex-col items-center justify-center h-full gap-1 ${
                     isActive
                       ? 'text-green-600'
-                      : 'text-gray-500 hover:text-gray-700'
+                      : 'text-gray-600 hover:text-gray-700'
                   }`}
                 >
                   {item.icon}
@@ -144,7 +144,7 @@ export default function BottomTabs({ isAdmin = false }: BottomTabsProps) {
                 className={`w-full flex flex-col items-center justify-center h-full gap-1 ${
                   showMore || isMoreActive
                     ? 'text-green-600'
-                    : 'text-gray-500 hover:text-gray-700'
+                    : 'text-gray-600 hover:text-gray-700'
                 }`}
               >
                 <Menu size={20} />

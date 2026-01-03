@@ -139,7 +139,7 @@ export default function CustomersPage() {
             <div className="relative flex-1">
               <Search
                 size={18}
-                className="absolute left-3 top-1/2 -translate-y-1/2 text-gray-500"
+                className="absolute left-3 top-1/2 -translate-y-1/2 text-gray-600"
               />
               <input
                 type="text"
@@ -199,7 +199,7 @@ export default function CustomersPage() {
             <LoadingState message={t('common.loadingData')} />
           ) : sortedCustomers.length === 0 ? (
             <EmptyState
-              icon={<Users className="w-8 h-8 text-gray-500" />}
+              icon={<Users className="w-8 h-8 text-gray-600" />}
               title={t('customers.noCustomers')}
               description={t('customers.addFirst')}
               action={
@@ -218,28 +218,28 @@ export default function CustomersPage() {
                 <table className="w-full">
                   <thead className="bg-gray-50">
                     <tr>
-                      <th className="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase">
+                      <th className="px-4 py-3 text-left text-xs font-medium text-gray-600 uppercase">
                         {t('table.code')}
                       </th>
-                      <th className="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase">
+                      <th className="px-4 py-3 text-left text-xs font-medium text-gray-600 uppercase">
                         {t('table.name')}
                       </th>
-                      <th className="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase">
+                      <th className="px-4 py-3 text-left text-xs font-medium text-gray-600 uppercase">
                         {t('table.grade')}
                       </th>
-                      <th className="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase">
+                      <th className="px-4 py-3 text-left text-xs font-medium text-gray-600 uppercase">
                         {t('table.region')}
                       </th>
-                      <th className="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase">
+                      <th className="px-4 py-3 text-left text-xs font-medium text-gray-600 uppercase">
                         {t('customers.deliveryTime')}
                       </th>
-                      <th className="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase">
+                      <th className="px-4 py-3 text-left text-xs font-medium text-gray-600 uppercase">
                         {t('customers.productCount')}
                       </th>
-                      <th className="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase">
+                      <th className="px-4 py-3 text-left text-xs font-medium text-gray-600 uppercase">
                         {t('table.status')}
                       </th>
-                      <th className="px-4 py-3 text-right text-xs font-medium text-gray-500 uppercase">
+                      <th className="px-4 py-3 text-right text-xs font-medium text-gray-600 uppercase">
                         {t('table.action')}
                       </th>
                     </tr>
@@ -276,7 +276,7 @@ export default function CustomersPage() {
                           <div className="flex items-center justify-end gap-1">
                             <Link href={`/customers/${customer.id}/products`}>
                               <button
-                                className="p-2 text-gray-500 hover:text-blue-600 hover:bg-blue-50 rounded-lg transition-colors"
+                                className="p-2 text-gray-600 hover:text-blue-600 hover:bg-blue-50 rounded-lg transition-colors"
                                 title={t('customers.productMapping')}
                               >
                                 <Package size={16} />
@@ -284,7 +284,7 @@ export default function CustomersPage() {
                             </Link>
                             <Link href={`/customers/${customer.id}/edit`}>
                               <button
-                                className="p-2 text-gray-500 hover:text-green-600 hover:bg-green-50 rounded-lg transition-colors"
+                                className="p-2 text-gray-600 hover:text-green-600 hover:bg-green-50 rounded-lg transition-colors"
                                 title={t('common.edit')}
                               >
                                 <Pencil size={16} />
@@ -292,7 +292,7 @@ export default function CustomersPage() {
                             </Link>
                             <button
                               onClick={() => setDeleteTarget(customer)}
-                              className="p-2 text-gray-500 hover:text-red-600 hover:bg-red-50 rounded-lg transition-colors"
+                              className="p-2 text-gray-600 hover:text-red-600 hover:bg-red-50 rounded-lg transition-colors"
                               title={t('common.delete')}
                             >
                               <Trash2 size={16} />
@@ -329,18 +329,18 @@ export default function CustomersPage() {
                       </div>
                       <div className="flex items-center gap-1">
                         <Link href={`/customers/${customer.id}/products`}>
-                          <button className="p-2 text-gray-500 hover:text-blue-600 hover:bg-blue-50 rounded-lg">
+                          <button className="p-2 text-gray-600 hover:text-blue-600 hover:bg-blue-50 rounded-lg">
                             <Package size={18} />
                           </button>
                         </Link>
                         <Link href={`/customers/${customer.id}/edit`}>
-                          <button className="p-2 text-gray-500 hover:text-green-600 hover:bg-green-50 rounded-lg">
+                          <button className="p-2 text-gray-600 hover:text-green-600 hover:bg-green-50 rounded-lg">
                             <Pencil size={18} />
                           </button>
                         </Link>
                         <button
                           onClick={() => setDeleteTarget(customer)}
-                          className="p-2 text-gray-500 hover:text-red-600 hover:bg-red-50 rounded-lg"
+                          className="p-2 text-gray-600 hover:text-red-600 hover:bg-red-50 rounded-lg"
                         >
                           <Trash2 size={18} />
                         </button>

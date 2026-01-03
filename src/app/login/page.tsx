@@ -41,7 +41,7 @@ export default function LoginPage() {
       <div className="min-h-screen bg-gray-50 flex items-center justify-center">
         <div className="flex flex-col items-center gap-4">
           <Loader2 className="w-8 h-8 text-green-600 animate-spin" />
-          <p className="text-gray-500">{t('login.loading')}</p>
+          <p className="text-gray-600">{t('login.loading')}</p>
         </div>
       </div>
     );
@@ -62,7 +62,7 @@ export default function LoginPage() {
           </div>
           <h1 className="text-3xl font-bold text-gray-900">{t('login.title')}</h1>
           <p className="text-gray-600 mt-2">Fresh Kitchen 365</p>
-          <p className="text-sm text-gray-500 mt-1">
+          <p className="text-sm text-gray-600 mt-1">
             {t('login.subtitle')}
           </p>
         </div>
@@ -117,13 +117,13 @@ export default function LoginPage() {
           </button>
 
           {/* Domain Notice */}
-          <p className="mt-4 text-xs text-center text-gray-500">
+          <p className="mt-4 text-xs text-center text-gray-600">
             {t('login.emailRestriction')}
           </p>
         </div>
 
         {/* Footer */}
-        <p className="text-center text-xs text-gray-500 mt-6">
+        <p className="text-center text-xs text-gray-600 mt-6">
           FK365 v0.1.0 | Fresh Kitchen 365
         </p>
       </div>

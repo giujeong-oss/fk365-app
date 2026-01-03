@@ -29,7 +29,7 @@ export default function ProtectedRoute({
       <div className="min-h-screen bg-gray-50 flex items-center justify-center">
         <div className="flex flex-col items-center gap-4">
           <Loader2 className="w-8 h-8 text-green-600 animate-spin" />
-          <p className="text-gray-500">로딩 중...</p>
+          <p className="text-gray-600">로딩 중...</p>
         </div>
       </div>
     );

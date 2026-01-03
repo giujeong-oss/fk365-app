@@ -166,7 +166,7 @@ export default function VendorProductsPage() {
           {/* Header */}
           <div className="flex items-center gap-4 mb-6">
             <Link href="/vendors">
-              <button className="p-2 text-gray-500 hover:text-gray-600 hover:bg-gray-100 rounded-lg">
+              <button className="p-2 text-gray-600 hover:text-gray-600 hover:bg-gray-100 rounded-lg">
                 <ArrowLeft size={20} />
               </button>
             </Link>
@@ -219,7 +219,7 @@ export default function VendorProductsPage() {
             <div className="relative flex-1">
               <Search
                 size={18}
-                className="absolute left-3 top-1/2 -translate-y-1/2 text-gray-500"
+                className="absolute left-3 top-1/2 -translate-y-1/2 text-gray-600"
               />
               <input
                 type="text"
@@ -263,7 +263,7 @@ export default function VendorProductsPage() {
                     <span className="text-gray-900">{product.name_ko}</span>
                     <button
                       onClick={() => toggleProduct(product.id)}
-                      className="w-4 h-4 flex items-center justify-center text-gray-500 hover:text-red-500"
+                      className="w-4 h-4 flex items-center justify-center text-gray-600 hover:text-red-500"
                     >
                       <X size={12} />
                     </button>

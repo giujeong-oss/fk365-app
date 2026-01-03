@@ -354,7 +354,7 @@ export default function PricesPage() {
               className={`px-6 py-3 text-sm font-medium border-b-2 transition-colors ${
                 activeTab === 'fresh'
                   ? 'border-green-500 text-green-600'
-                  : 'border-transparent text-gray-500 hover:text-gray-700'
+                  : 'border-transparent text-gray-600 hover:text-gray-700'
               }`}
             >
               {t('prices.freshTab')} ({freshPrices.length})
@@ -364,7 +364,7 @@ export default function PricesPage() {
               className={`px-6 py-3 text-sm font-medium border-b-2 transition-colors ${
                 activeTab === 'industrial'
                   ? 'border-green-500 text-green-600'
-                  : 'border-transparent text-gray-500 hover:text-gray-700'
+                  : 'border-transparent text-gray-600 hover:text-gray-700'
               }`}
             >
               {t('prices.industrialTab')} ({productPrices.length})
@@ -374,7 +374,7 @@ export default function PricesPage() {
           {/* 필터 */}
           <div className="flex flex-col md:flex-row gap-4 mb-6">
             <div className="relative flex-1">
-              <Search size={18} className="absolute left-3 top-1/2 -translate-y-1/2 text-gray-500" />
+              <Search size={18} className="absolute left-3 top-1/2 -translate-y-1/2 text-gray-600" />
               <input
                 type="text"
                 placeholder={t('products.searchPlaceholder')}
@@ -424,7 +424,7 @@ export default function PricesPage() {
                             {selectedProducts.size === filteredIndustrial.length && filteredIndustrial.length > 0 ? (
                               <CheckSquare size={18} className="text-green-600" />
                             ) : (
-                              <Square size={18} className="text-gray-500" />
+                              <Square size={18} className="text-gray-600" />
                             )}
                           </button>
                         </th>
@@ -451,7 +451,7 @@ export default function PricesPage() {
                               {selectedProducts.has(pp.product.code) ? (
                                 <CheckSquare size={18} className="text-green-600" />
                               ) : (
-                                <Square size={18} className="text-gray-500" />
+                                <Square size={18} className="text-gray-600" />
                               )}
                             </button>
                           </td>
@@ -584,7 +584,7 @@ export default function PricesPage() {
                           {t('dashboard.today')} ({today.slice(5)})
                         </th>
                         {recentDates.slice(1, 4).map(date => (
-                          <th key={date} className="px-3 py-3 text-center text-sm font-medium text-gray-500">
+                          <th key={date} className="px-3 py-3 text-center text-sm font-medium text-gray-600">
                             {date.slice(5)}
                           </th>
                         ))}
@@ -656,7 +656,7 @@ export default function PricesPage() {
                           </div>
                         </div>
                         <div className="text-right">
-                          <div className="text-xs text-gray-500">{t('prices.max3Day')}</div>
+                          <div className="text-xs text-gray-600">{t('prices.max3Day')}</div>
                           <div className="text-xl font-bold text-green-600">{fp.max3day || '-'}</div>
                         </div>
                       </div>
@@ -674,7 +674,7 @@ export default function PricesPage() {
                         </div>
                       </div>
 
-                      <div className="flex gap-2 text-xs text-gray-500">
+                      <div className="flex gap-2 text-xs text-gray-600">
                         {recentDates.slice(1, 4).map(date => (
                           <div key={date} className="flex-1 text-center bg-gray-100 rounded py-1">
                             <div>{date.slice(5)}</div>
@@ -792,7 +792,7 @@ export default function PricesPage() {
                   placeholder={bulkEditMode === 'percent' ? t('prices.percentHint') : t('prices.fixedHint')}
                   className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-green-500"
                 />
-                <p className="text-xs text-gray-500 mt-1">
+                <p className="text-xs text-gray-600 mt-1">
                   {t('prices.positiveIncrease')}
                 </p>
               </div>

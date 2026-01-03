@@ -153,7 +153,7 @@ export default function PermissionsPage() {
           {/* Header */}
           <div className="flex items-center gap-4 mb-6">
             <Link href="/settings">
-              <button className="p-2 text-gray-500 hover:text-gray-600 hover:bg-gray-100 rounded-lg">
+              <button className="p-2 text-gray-600 hover:text-gray-600 hover:bg-gray-100 rounded-lg">
                 <ArrowLeft size={20} />
               </button>
             </Link>
@@ -187,7 +187,7 @@ export default function PermissionsPage() {
                     <Spinner />
                   </div>
                 ) : users.length === 0 ? (
-                  <div className="p-4 text-center text-gray-500">
+                  <div className="p-4 text-center text-gray-600">
                     일반 사용자가 없습니다.
                   </div>
                 ) : (
@@ -206,7 +206,7 @@ export default function PermissionsPage() {
                           </div>
                           <div className="flex-1 min-w-0">
                             <p className="font-medium text-gray-900 truncate">{u.email}</p>
-                            <p className="text-sm text-gray-500">{u.name || '이름 없음'}</p>
+                            <p className="text-sm text-gray-600">{u.name || '이름 없음'}</p>
                           </div>
                           {u.isActive === false && (
                             <Badge variant="danger" size="sm">비활성</Badge>
@@ -232,7 +232,7 @@ export default function PermissionsPage() {
                         </div>
                         <div>
                           <h2 className="font-semibold text-gray-900">{selectedUser.email}</h2>
-                          <p className="text-sm text-gray-500">{selectedUser.name || '이름 없음'}</p>
+                          <p className="text-sm text-gray-600">{selectedUser.name || '이름 없음'}</p>
                         </div>
                       </div>
                       <div className="flex items-center gap-2">
@@ -273,14 +273,14 @@ export default function PermissionsPage() {
                               >
                                 <div>
                                   <p className="font-medium text-gray-900">{item.label}</p>
-                                  <p className="text-sm text-gray-500">{item.description}</p>
+                                  <p className="text-sm text-gray-600">{item.description}</p>
                                 </div>
                                 <button
                                   onClick={() => togglePermission(item.key)}
                                   className={`p-1 rounded-lg transition-colors ${
                                     editedPermissions[item.key]
                                       ? 'text-green-600 hover:bg-green-100'
-                                      : 'text-gray-500 hover:bg-gray-200'
+                                      : 'text-gray-600 hover:bg-gray-200'
                                   }`}
                                 >
                                   {editedPermissions[item.key] ? (
@@ -318,8 +318,8 @@ export default function PermissionsPage() {
                 </div>
               ) : (
                 <div className="bg-white rounded-xl shadow-sm border border-gray-200 p-12 text-center">
-                  <Shield size={48} className="mx-auto text-gray-500 mb-4" />
-                  <p className="text-gray-500">
+                  <Shield size={48} className="mx-auto text-gray-600 mb-4" />
+                  <p className="text-gray-600">
                     왼쪽 목록에서 사용자를 선택하세요
                   </p>
                 </div>

@@ -813,7 +813,7 @@ export default function OrderEntryPage() {
                       setSelectedNewProducts(new Set());
                       setAddProductSearch('');
                     }}
-                    className="p-1 text-gray-500 hover:text-gray-600 hover:bg-gray-100 rounded-lg transition-colors"
+                    className="p-1 text-gray-600 hover:text-gray-600 hover:bg-gray-100 rounded-lg transition-colors"
                   >
                     <X size={20} />
                   </button>
@@ -822,7 +822,7 @@ export default function OrderEntryPage() {
                 {/* Search & Filter */}
                 <div className="px-6 py-3 border-b border-gray-100">
                   <div className="relative mb-3">
-                    <Search size={18} className="absolute left-3 top-1/2 -translate-y-1/2 text-gray-500" />
+                    <Search size={18} className="absolute left-3 top-1/2 -translate-y-1/2 text-gray-600" />
                     <input
                       type="text"
                       placeholder={t('orders.searchProductPlaceholder')}
@@ -871,7 +871,7 @@ export default function OrderEntryPage() {
                 {/* Product List */}
                 <div className="flex-1 overflow-y-auto px-6 py-3">
                   {unmappedProducts.length === 0 ? (
-                    <div className="text-center py-8 text-gray-500">
+                    <div className="text-center py-8 text-gray-600">
                       {t('orders.noProductsToAdd')}
                     </div>
                   ) : (

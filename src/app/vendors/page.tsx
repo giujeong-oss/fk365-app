@@ -206,7 +206,7 @@ export default function VendorsPage() {
             <div className="relative flex-1">
               <Search
                 size={18}
-                className="absolute left-3 top-1/2 -translate-y-1/2 text-gray-500"
+                className="absolute left-3 top-1/2 -translate-y-1/2 text-gray-600"
               />
               <input
                 type="text"
@@ -232,7 +232,7 @@ export default function VendorsPage() {
             <LoadingState message={t('common.loadingData')} />
           ) : filteredVendors.length === 0 ? (
             <EmptyState
-              icon={<Store className="w-8 h-8 text-gray-500" />}
+              icon={<Store className="w-8 h-8 text-gray-600" />}
               title={t('vendors.noVendors')}
               description={t('vendors.addFirst')}
               action={
@@ -304,14 +304,14 @@ export default function VendorsPage() {
                           <div className="flex items-center justify-end gap-2">
                             <button
                               onClick={() => openEditModal(vendor)}
-                              className="p-2 text-gray-500 hover:text-green-600 hover:bg-green-50 rounded-lg transition-colors"
+                              className="p-2 text-gray-600 hover:text-green-600 hover:bg-green-50 rounded-lg transition-colors"
                               title={t('common.edit')}
                             >
                               <Pencil size={16} />
                             </button>
                             <button
                               onClick={() => setDeleteTarget(vendor)}
-                              className="p-2 text-gray-500 hover:text-red-600 hover:bg-red-50 rounded-lg transition-colors"
+                              className="p-2 text-gray-600 hover:text-red-600 hover:bg-red-50 rounded-lg transition-colors"
                               title={t('common.delete')}
                             >
                               <Trash2 size={16} />
@@ -364,13 +364,13 @@ export default function VendorsPage() {
                       <div className="flex items-center gap-1">
                         <button
                           onClick={() => openEditModal(vendor)}
-                          className="p-2 text-gray-500 hover:text-green-600 hover:bg-green-50 rounded-lg"
+                          className="p-2 text-gray-600 hover:text-green-600 hover:bg-green-50 rounded-lg"
                         >
                           <Pencil size={18} />
                         </button>
                         <button
                           onClick={() => setDeleteTarget(vendor)}
-                          className="p-2 text-gray-500 hover:text-red-600 hover:bg-red-50 rounded-lg"
+                          className="p-2 text-gray-600 hover:text-red-600 hover:bg-red-50 rounded-lg"
                         >
                           <Trash2 size={18} />
                         </button>
@@ -457,7 +457,7 @@ export default function VendorsPage() {
             <div className="relative">
               <Search
                 size={18}
-                className="absolute left-3 top-1/2 -translate-y-1/2 text-gray-500"
+                className="absolute left-3 top-1/2 -translate-y-1/2 text-gray-600"
               />
               <input
                 type="text"
@@ -500,7 +500,7 @@ export default function VendorsPage() {
                         <td className="px-3 py-2 text-center">
                           <button
                             onClick={() => removeProductFromVendor(product.id)}
-                            className="p-1.5 text-gray-500 hover:text-red-600 hover:bg-red-50 rounded-lg transition-colors"
+                            className="p-1.5 text-gray-600 hover:text-red-600 hover:bg-red-50 rounded-lg transition-colors"
                             title={t('common.remove')}
                           >
                             <X size={16} />

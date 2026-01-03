@@ -29,7 +29,7 @@ export function LoadingState({ message = '로딩 중...' }: LoadingStateProps) {
   return (
     <div className="flex flex-col items-center justify-center py-12">
       <Spinner size="lg" />
-      <p className="mt-4 text-sm text-gray-500">{message}</p>
+      <p className="mt-4 text-sm text-gray-600">{message}</p>
     </div>
   );
 }

@@ -1139,7 +1139,7 @@ export default function PurchaseOrdersPage() {
             {/* 검색 */}
             <div className="p-4 border-b">
               <div className="relative">
-                <Search size={16} className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-500" />
+                <Search size={16} className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-600" />
                 <input
                   type="text"
                   placeholder="고객 코드 또는 이름으로 검색..."

@@ -264,7 +264,7 @@ export default function StockPage() {
             </Link>
             <div>
               <h1 className="text-2xl font-bold">{t('stock.title')}</h1>
-              <p className="text-sm text-gray-500 mt-1">
+              <p className="text-sm text-gray-600 mt-1">
                 {t('stock.totalProducts')} {products.length}{t('common.count')} / {t('stock.totalStock')} {totalStock}{t('common.count')}
               </p>
             </div>

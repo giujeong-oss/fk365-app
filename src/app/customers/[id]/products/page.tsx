@@ -189,13 +189,13 @@ export default function CustomerProductsPage() {
           {/* Header */}
           <div className="flex items-center gap-4 mb-6">
             <Link href="/customers">
-              <button className="p-2 text-gray-500 hover:text-gray-600 hover:bg-gray-100 rounded-lg">
+              <button className="p-2 text-gray-600 hover:text-gray-600 hover:bg-gray-100 rounded-lg">
                 <ArrowLeft size={20} />
               </button>
             </Link>
             <div>
               <h1 className="text-2xl font-bold text-gray-900">제품 매핑</h1>
-              <p className="text-gray-500">
+              <p className="text-gray-600">
                 {customer.code} - {customer.fullName}
                 <Badge variant="info" size="sm" className="ml-2">
                   {customer.grade}등급
@@ -238,7 +238,7 @@ export default function CustomerProductsPage() {
             <div className="relative flex-1">
               <Search
                 size={18}
-                className="absolute left-3 top-1/2 -translate-y-1/2 text-gray-500"
+                className="absolute left-3 top-1/2 -translate-y-1/2 text-gray-600"
               />
               <input
                 type="text"
@@ -272,19 +272,19 @@ export default function CustomerProductsPage() {
               <table className="w-full">
                 <thead className="bg-gray-50">
                   <tr>
-                    <th className="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase w-12">
+                    <th className="px-4 py-3 text-left text-xs font-medium text-gray-600 uppercase w-12">
                       선택
                     </th>
-                    <th className="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase">
+                    <th className="px-4 py-3 text-left text-xs font-medium text-gray-600 uppercase">
                       코드
                     </th>
-                    <th className="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase">
+                    <th className="px-4 py-3 text-left text-xs font-medium text-gray-600 uppercase">
                       제품명
                     </th>
-                    <th className="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase">
+                    <th className="px-4 py-3 text-left text-xs font-medium text-gray-600 uppercase">
                       유형
                     </th>
-                    <th className="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase w-32">
+                    <th className="px-4 py-3 text-left text-xs font-medium text-gray-600 uppercase w-32">
                       adj (฿)
                     </th>
                   </tr>
@@ -318,7 +318,7 @@ export default function CustomerProductsPage() {
                           <div className="space-y-0.5">
                             <p className="text-sm font-semibold text-gray-900">{product.name_ko}</p>
                             <p className="text-xs text-gray-600">{product.name_th}</p>
-                            <p className="text-xs text-gray-500">{product.name_mm}</p>
+                            <p className="text-xs text-gray-600">{product.name_mm}</p>
                           </div>
                         </td>
                         <td className="px-4 py-3">
@@ -387,7 +387,7 @@ export default function CustomerProductsPage() {
                         <div className="bg-gray-100 rounded p-2 mb-2">
                           <p className="text-sm font-semibold text-gray-900">{product.name_ko}</p>
                           <p className="text-xs text-gray-600">{product.name_th}</p>
-                          <p className="text-xs text-gray-500">{product.name_mm}</p>
+                          <p className="text-xs text-gray-600">{product.name_mm}</p>
                         </div>
 
                         {isSelected && (
@@ -402,7 +402,7 @@ export default function CustomerProductsPage() {
                               className="w-20 px-2 py-1 text-sm border border-gray-300 rounded"
                               placeholder="0"
                             />
-                            <span className="text-sm text-gray-500">฿</span>
+                            <span className="text-sm text-gray-600">฿</span>
                           </div>
                         )}
                       </div>

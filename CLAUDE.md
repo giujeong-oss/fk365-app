@@ -238,14 +238,44 @@ const cutoffHour = 4;
 
 ## UI/UX 가이드라인
 
+### FK365 브랜드 컬러 시스템
+
+**CSS 변수** (`globals.css :root`)
+```css
+--fk365-green: #6CA72C;
+--fk365-green-light: #8BC34A;
+--fk365-green-dark: #558B2F;
+--fk365-orange: #D75C08;
+--fk365-orange-light: #F57C00;
+--fk365-orange-dark: #BF4A00;
+--meat: #DC2626;
+--vegetable: #6CA72C;
+--seafood: #0EA5E9;
+```
+
+**Tailwind 클래스** (`@theme inline`)
+| 용도 | 클래스 | 색상 |
+|------|--------|------|
+| 메인 그린 | `bg-fk365-green`, `text-fk365-green` | #6CA72C |
+| 라이트 그린 | `bg-fk365-green-light` | #8BC34A |
+| 다크 그린 | `bg-fk365-green-dark` | #558B2F |
+| 메인 오렌지 | `bg-fk365-orange`, `text-fk365-orange` | #D75C08 |
+| 라이트 오렌지 | `bg-fk365-orange-light` | #F57C00 |
+| 다크 오렌지 | `bg-fk365-orange-dark` | #BF4A00 |
+| 육류 | `bg-meat`, `text-meat` | #DC2626 |
+| 채소 | `bg-vegetable`, `text-vegetable` | #6CA72C |
+| 해산물 | `bg-seafood`, `text-seafood` | #0EA5E9 |
+
 ### 텍스트 색상 (가독성 기준)
 | 용도 | 클래스 |
 |------|--------|
 | 본문 | `text-gray-900` 또는 `text-gray-800` |
 | 보조 텍스트 | `text-gray-700` 또는 `text-gray-600` |
-| 비활성 | `text-gray-500` (최소 기준) |
+| 비활성/힌트 | `text-gray-600` (최소 기준) |
+| 다크 배경 (Sidebar) | `text-gray-400` |
 
-⚠️ `text-gray-400`, `text-gray-300` 사용 금지 (가독성 저하)
+⚠️ `text-gray-500`, `text-gray-400`, `text-gray-300` 사용 금지 (밝은 배경에서 가독성 저하)
+⚠️ 단, 다크 배경(bg-gray-900 등)에서는 `text-gray-400` 사용 가능
 
 ### 반응형 디자인
 - PC: 사이드바 네비게이션 (`lg:w-64`)
@@ -374,6 +404,24 @@ node scripts/seed-data.mjs
 ---
 
 ## 업데이트 이력
+
+### 2026-01-03 (브랜드 컬러 시스템 및 가독성 개선)
+
+**FK365 브랜드 컬러 시스템 적용**
+- `globals.css`에 CSS 변수 추가 (`:root` 섹션)
+- `globals.css`에 Tailwind 커스텀 색상 추가 (`@theme inline` 섹션)
+- 브랜드 컬러: fk365-green (#6CA72C), fk365-orange (#D75C08)
+- 카테고리 컬러: meat (#DC2626), vegetable (#6CA72C), seafood (#0EA5E9)
+- 파일: `src/app/globals.css`
+
+**전체 페이지 텍스트 가독성 개선**
+- `text-gray-500` → `text-gray-600` 일괄 수정 (27개 파일)
+- `bg-gray-400` → `bg-gray-600` 수정 (미주문 마커)
+- 다크 배경(Sidebar)은 `text-gray-400` 유지 (가독성 확보)
+- 수정된 컴포넌트:
+  - UI: EmptyState, Modal, Select, Input, Spinner, ProtectedRoute
+  - Layout: MobileHeader, BottomTabs
+  - Pages: 대시보드, 로그인, 배송, 구매처, 설정, 가격, 재고, 제품, 고객, 발주서, 주문, 진단, 테스트 등
 
 ### 2026-01-03 (전체 페이지 다국어(i18n) 완전 적용)
 

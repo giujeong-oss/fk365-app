@@ -432,7 +432,7 @@ export default function OrdersPage() {
             {unorderedCustomers.length > 0 && (
               <div>
                 <h2 className="text-lg font-semibold text-gray-900 mb-3 flex items-center gap-2">
-                  <span className="w-3 h-3 bg-gray-400 rounded-full"></span>
+                  <span className="w-3 h-3 bg-gray-600 rounded-full"></span>
                   {t('orders.notOrdered')}
                 </h2>
                 <div className="grid gap-3">
