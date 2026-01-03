@@ -22,8 +22,9 @@ import {
   updateVendor,
   increaseStock,
   uploadReceiptImage,
+  getAllPriceHistory,
 } from '@/lib/firebase';
-import type { Product, Vendor, PurchaseOrder, Cutoff } from '@/types';
+import type { Product, Vendor, PurchaseOrder, Cutoff, PriceHistory } from '@/types';
 import { Home, Printer, X, Download, FileDown, Save, Users, Search, Share2, Camera, Image, Upload } from 'lucide-react';
 import Link from 'next/link';
 import { useRef } from 'react';
@@ -78,6 +79,7 @@ export default function PurchaseOrdersPage() {
   const [capturing, setCapturing] = useState(false);
   const [uploadingReceipt, setUploadingReceipt] = useState<string | null>(null); // PO ID being uploaded
   const [receiptPreview, setReceiptPreview] = useState<{ poId: string; url: string } | null>(null);
+  const [priceHistoryMap, setPriceHistoryMap] = useState<Map<string, PriceHistory>>(new Map());
   const captureRef = useRef<HTMLDivElement>(null);
   const receiptInputRef = useRef<HTMLInputElement>(null);
 
@@ -89,17 +91,23 @@ export default function PurchaseOrdersPage() {
     setLoading(true);
     try {
       const selectedDate = new Date(date);
-      const [productsData, vendorsData, customersData, stockMap, existingPOs] = await Promise.all([
+      const [productsData, vendorsData, customersData, stockMap, existingPOs, priceHistories] = await Promise.all([
         getProducts(true),
         getVendors(true),
         getCustomers(true),
         getStockMap(),
         getPurchaseOrdersByDate(selectedDate),
+        getAllPriceHistory(),
       ]);
 
       setProducts(productsData);
       setVendors(vendorsData);
       setPurchaseOrders(existingPOs);
+
+      // 가격 히스토리 맵 생성
+      const phMap = new Map<string, PriceHistory>();
+      priceHistories.forEach((ph) => phMap.set(ph.code, ph));
+      setPriceHistoryMap(phMap);
 
       // 고객 코드 → 이름 매핑
       const customerNameMap = new Map<string, string>();
@@ -268,6 +276,21 @@ export default function PurchaseOrdersPage() {
 
   const getVendorName = (vendorCode: string) => {
     return vendors.find((v) => v.code === vendorCode)?.name || vendorCode;
+  };
+
+  // 이전 매입가 조회 (어제 또는 가장 최근 가격)
+  const getPreviousPrice = (productCode: string): number | null => {
+    const history = priceHistoryMap.get(productCode);
+    if (!history || !history.prices) return null;
+
+    // 선택된 날짜 기준으로 이전 날짜들의 가격 확인
+    const selectedDate = new Date(date);
+    const sortedDates = Object.keys(history.prices)
+      .filter((d) => new Date(d) < selectedDate)
+      .sort((a, b) => new Date(b).getTime() - new Date(a).getTime());
+
+    if (sortedDates.length === 0) return null;
+    return history.prices[sortedDates[0]];
   };
 
   // 제품별 구매처 임시 변경
@@ -881,6 +904,7 @@ export default function PurchaseOrdersPage() {
                     <th className="px-3 py-3 text-center text-sm font-medium text-gray-900">실제 매입량</th>
                     <th className="px-3 py-3 text-center text-sm font-medium text-gray-900">추가</th>
                     <th className="px-3 py-3 text-center text-sm font-medium text-gray-900">{t('purchaseOrders.buyPrice')}</th>
+                    <th className="px-3 py-3 text-center text-sm font-medium text-gray-500 w-[80px]">이전가</th>
                     <th className="px-3 py-3 text-left text-sm font-medium text-gray-900 w-[120px]">{t('vendors.vendor')}</th>
                   </tr>
                 </thead>
@@ -962,6 +986,16 @@ export default function PurchaseOrdersPage() {
                             onChange={(e) => handleBuyPriceChange(summary.product.code, parseFloat(e.target.value) || 0)}
                             className="w-20 px-2 py-1 text-sm text-center border border-gray-300 rounded focus:ring-2 focus:ring-blue-500 focus:border-blue-500 text-gray-900"
                           />
+                        </td>
+                        <td className="px-3 py-3 text-center">
+                          {(() => {
+                            const prevPrice = getPreviousPrice(summary.product.code);
+                            return prevPrice !== null ? (
+                              <span className="text-sm text-gray-500">฿{prevPrice}</span>
+                            ) : (
+                              <span className="text-sm text-gray-300">-</span>
+                            );
+                          })()}
                         </td>
                         <td className="px-3 py-3">
                           {/* 신선 제품은 구매처 변경 가능 */}
