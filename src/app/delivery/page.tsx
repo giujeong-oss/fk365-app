@@ -26,6 +26,8 @@ interface DeliveryNote {
     amount: number;
   }>;
   totalAmount: number;
+  totalDiscount: number;
+  finalAmount: number;
 }
 
 export default function DeliveryPage() {
@@ -102,13 +104,21 @@ export default function DeliveryPage() {
           };
         }).filter((item) => item.product);
 
-        const totalAmount = items.reduce((sum, item) => sum + item.amount, 0);
+        const itemsTotal = items.reduce((sum, item) => sum + item.amount, 0);
+
+        // 주문 단위 할인 합산
+        const totalDiscount = orders.reduce((sum, order) => sum + (order.totalDiscount || 0), 0);
+
+        // 최종 금액: finalAmount 우선 사용, 없으면 할인 적용
+        const finalAmount = orders.reduce((sum, order) => sum + (order.finalAmount ?? order.totalAmount), 0);
 
         notes.push({
           customer,
           orders,
           items,
-          totalAmount,
+          totalAmount: itemsTotal,
+          totalDiscount,
+          finalAmount,
         });
       });
 
@@ -198,10 +208,26 @@ export default function DeliveryPage() {
         </tbody>
         {showPrice && (
           <tfoot className="bg-gray-50 font-bold">
+            {note.totalDiscount > 0 && (
+              <>
+                <tr>
+                  <td colSpan={5} className="px-2 py-1 text-right text-gray-600">{t('orders.amount')}</td>
+                  <td className="px-2 py-1 text-right text-gray-600">
+                    {formatCurrency(note.totalAmount)}
+                  </td>
+                </tr>
+                <tr>
+                  <td colSpan={5} className="px-2 py-1 text-right text-red-600">{t('orders.discount')}</td>
+                  <td className="px-2 py-1 text-right text-red-600">
+                    -{formatCurrency(note.totalDiscount)}
+                  </td>
+                </tr>
+              </>
+            )}
             <tr>
               <td colSpan={5} className="px-2 py-2 text-right">{t('delivery.subtotal')}</td>
               <td className="px-2 py-2 text-right text-blue-600">
-                {formatCurrency(note.totalAmount)}
+                {formatCurrency(note.finalAmount)}
               </td>
             </tr>
           </tfoot>
@@ -316,7 +342,7 @@ export default function DeliveryPage() {
           <div className="bg-gray-50 p-4 rounded-lg">
             <div className="text-sm text-gray-700 font-medium mb-1">{t('dashboard.totalSales')}</div>
             <div className="text-xl font-bold text-blue-600">
-              {formatCurrency(filteredNotes.reduce((sum, n) => sum + n.totalAmount, 0))}
+              {formatCurrency(filteredNotes.reduce((sum, n) => sum + n.finalAmount, 0))}
             </div>
           </div>
         </div>

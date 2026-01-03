@@ -385,6 +385,9 @@ node scripts/seed-data.mjs
 - `prices/page.tsx`: 가격 관리 페이지 다국어 적용
 - `delivery/page.tsx`: 배송장 페이지 다국어 적용
 - `settings/page.tsx`: 설정 페이지 다국어 적용
+- `login/page.tsx`: 로그인 페이지 다국어 적용
+- `orders/page.tsx`: 주문 목록 페이지 추가 다국어 적용 (할인, 확정/취소 상태 등)
+- `orders/entry/[customerCode]/page.tsx`: 주문 입력 페이지 추가 다국어 적용 (할인 사유, 에러 메시지, 제품 추가 모달 등)
 
 **translations.ts 확장**
 - 마진 관련 키 추가: description, freshMargin, industrialMargin, freshFormula, freshFormulaDesc, industrialFormula, industrialFormulaDesc1/2, dateTime, oldValue, newValue
@@ -392,11 +395,31 @@ node scripts/seed-data.mjs
 - 배송 관련 키 추가: totalCustomers, totalItems, noDelivery, noOrderForDate, product, thai, myanmar, subtotal, places
 - 설정 관련 키 추가: totalUsers, adminUsers, activeUsers, email, role, roleAdmin, roleUser, loginInfo, activate, deactivate 등
 - 공통 키 추가: modified, noSearchResults, description, remove
+- 주문 관련 키 추가 (50개 이상):
+  - 상태: discount, unconfirmed, partialConfirmed, cutoff1Full, cutoff2Full, cutoff3Full
+  - 할인 사유: discountQuality, discountLoyal, discountBulk, discountPromotion, discountNegotiation, discountDamage, discountExpiring, discountOther
+  - 에러 메시지: customerNotFound, customerNotFoundDesc, loadFailed, addProductFailed, saveFailed
+  - 모달/UI: confirmQuestion, bulkConfirmQuestion, cancelOrder, cancelQuestion, cancelWarning
+  - Toast 메시지: orderConfirmed, confirmFailed, bulkConfirmed, confirmCanceled, orderCanceled
+  - 제품 추가: addProduct, showingAllProducts, noMappingWarning, noOrderableProducts, noProductsMappedDesc, selectProductsToAdd
+- 로그인 관련 키 추가: title, subtitle, loading, loggingIn, loginWithGoogle, loginFailed, emailRestriction
 
 **지원 언어**
 - 한국어 (ko)
 - 태국어 (th)
 - 영어 (en)
+
+### 2026-01-03 (주문 페이지 합계 금액 추가)
+
+**주문 목록 페이지 - 주문완료 옆에 합계 표시**
+- 주문 완료된 고객 행에 합계 금액 표시 (초록색 볼드)
+- `getOrderTotal()` 함수로 finalAmount 우선 사용
+- 파일: `src/app/orders/page.tsx`
+
+**배송 인보이스 할인 금액 정상 반영**
+- 고객별 총 할인 금액을 개별 주문에서 합산하여 표시
+- 할인이 있을 경우 원가, 할인 금액, 최종 금액 3줄로 표시
+- 파일: `src/app/delivery/page.tsx`
 
 ### 2026-01-03 (주문/발주 페이지 개선)
 

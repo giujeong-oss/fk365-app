@@ -3,10 +3,12 @@
 import { useEffect, useState } from 'react';
 import { useRouter } from 'next/navigation';
 import { useAuth } from '@/lib/context';
+import { useI18n } from '@/lib/i18n/I18nContext';
 import { Apple, Loader2 } from 'lucide-react';
 
 export default function LoginPage() {
   const { user, loading, error, signIn } = useAuth();
+  const { t } = useI18n();
   const router = useRouter();
   const [isSigningIn, setIsSigningIn] = useState(false);
   const [localError, setLocalError] = useState<string | null>(null);
@@ -26,7 +28,7 @@ export default function LoginPage() {
       await signIn();
       router.push('/');
     } catch (err) {
-      const message = err instanceof Error ? err.message : '로그인에 실패했습니다.';
+      const message = err instanceof Error ? err.message : t('login.loginFailed');
       setLocalError(message);
     } finally {
       setIsSigningIn(false);
@@ -39,7 +41,7 @@ export default function LoginPage() {
       <div className="min-h-screen bg-gray-50 flex items-center justify-center">
         <div className="flex flex-col items-center gap-4">
           <Loader2 className="w-8 h-8 text-green-600 animate-spin" />
-          <p className="text-gray-500">로딩 중...</p>
+          <p className="text-gray-500">{t('login.loading')}</p>
         </div>
       </div>
     );
@@ -58,17 +60,17 @@ export default function LoginPage() {
           <div className="inline-flex items-center justify-center w-20 h-20 bg-green-600 rounded-2xl mb-4 shadow-lg">
             <Apple className="w-10 h-10 text-white" />
           </div>
-          <h1 className="text-3xl font-bold text-gray-900">FK365</h1>
+          <h1 className="text-3xl font-bold text-gray-900">{t('login.title')}</h1>
           <p className="text-gray-600 mt-2">Fresh Kitchen 365</p>
           <p className="text-sm text-gray-500 mt-1">
-            채소/과일/식자재 주문-발주-재고-배송 통합 관리
+            {t('login.subtitle')}
           </p>
         </div>
 
         {/* Login Card */}
         <div className="bg-white rounded-2xl shadow-xl p-8">
           <h2 className="text-xl font-semibold text-center text-gray-800 mb-6">
-            로그인
+            {t('auth.login')}
           </h2>
 
           {/* Error Message */}
@@ -87,7 +89,7 @@ export default function LoginPage() {
             {isSigningIn ? (
               <>
                 <Loader2 className="w-5 h-5 animate-spin text-gray-600" />
-                <span className="font-medium text-gray-700">로그인 중...</span>
+                <span className="font-medium text-gray-700">{t('login.loggingIn')}</span>
               </>
             ) : (
               <>
@@ -109,14 +111,14 @@ export default function LoginPage() {
                     d="M12 5.38c1.62 0 3.06.56 4.21 1.64l3.15-3.15C17.45 2.09 14.97 1 12 1 7.7 1 3.99 3.47 2.18 7.07l3.66 2.84c.87-2.6 3.3-4.53 6.16-4.53z"
                   />
                 </svg>
-                <span className="font-medium text-gray-700">Google로 로그인</span>
+                <span className="font-medium text-gray-700">{t('login.loginWithGoogle')}</span>
               </>
             )}
           </button>
 
           {/* Domain Notice */}
           <p className="mt-4 text-xs text-center text-gray-500">
-            @meet365.com 또는 @freshkitchen365.com 이메일로만 로그인 가능합니다
+            {t('login.emailRestriction')}
           </p>
         </div>
 

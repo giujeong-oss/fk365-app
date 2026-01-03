@@ -26,15 +26,15 @@ import Link from 'next/link';
 import { Plus, Search, Check, X } from 'lucide-react';
 
 // 할인 사유 옵션
-const DISCOUNT_REASONS: { value: DiscountReason; label: string }[] = [
-  { value: 'quality', label: '품질 문제' },
-  { value: 'loyal', label: '단골 할인' },
-  { value: 'bulk', label: '대량 구매' },
-  { value: 'promotion', label: '프로모션' },
-  { value: 'negotiation', label: '협상/네고' },
-  { value: 'damage', label: '파손/손상' },
-  { value: 'expiring', label: '유통기한 임박' },
-  { value: 'other', label: '기타' },
+const getDiscountReasons = (t: (key: any) => string): { value: DiscountReason; label: string }[] => [
+  { value: 'quality', label: t('orders.discountQuality') },
+  { value: 'loyal', label: t('orders.discountLoyal') },
+  { value: 'bulk', label: t('orders.discountBulk') },
+  { value: 'promotion', label: t('orders.discountPromotion') },
+  { value: 'negotiation', label: t('orders.discountNegotiation') },
+  { value: 'damage', label: t('orders.discountDamage') },
+  { value: 'expiring', label: t('orders.discountExpiring') },
+  { value: 'other', label: t('orders.discountOther') },
 ];
 
 interface ProductOrderState {
@@ -146,7 +146,7 @@ export default function OrderEntryPage() {
       setMax3DayPriceMap(max3DayMap);
 
       if (!customerData) {
-        setLoadError(`고객 코드 "${normalizedCode}"를 찾을 수 없습니다. 고객이 등록되어 있는지 확인해주세요.`);
+        setLoadError(`${t('orders.customerNotFoundDesc')} (${normalizedCode})`);
         setLoading(false);
         return;
       }
@@ -225,7 +225,7 @@ export default function OrderEntryPage() {
       setProductStates(states);
     } catch (error) {
       console.error('Failed to load data:', error);
-      setLoadError('데이터를 불러오는 중 오류가 발생했습니다. 다시 시도해주세요.');
+      setLoadError(t('orders.loadFailed'));
     } finally {
       setLoading(false);
     }
@@ -376,7 +376,7 @@ export default function OrderEntryPage() {
       setShowingAllProducts(false); // 이제 제품이 매핑되었으므로
     } catch (error) {
       console.error('Failed to add products:', error);
-      alert('제품 추가에 실패했습니다.');
+      alert(t('orders.addProductFailed'));
     } finally {
       setAddingProducts(false);
     }
@@ -465,7 +465,7 @@ export default function OrderEntryPage() {
       router.push('/orders');
     } catch (error) {
       console.error('Failed to save order:', error);
-      alert('주문 저장에 실패했습니다.');
+      alert(t('orders.saveFailed'));
     } finally {
       setSaving(false);
     }
@@ -498,19 +498,19 @@ export default function OrderEntryPage() {
                 <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-3L13.732 4c-.77-1.333-2.694-1.333-3.464 0L3.34 16c-.77 1.333.192 3 1.732 3z" />
               </svg>
             </div>
-            <h2 className="text-xl font-bold text-gray-900 mb-2">고객을 찾을 수 없습니다</h2>
+            <h2 className="text-xl font-bold text-gray-900 mb-2">{t('orders.customerNotFound')}</h2>
             <p className="text-gray-600 mb-6">
-              {loadError || `고객 코드 "${customerCode}"가 존재하지 않습니다.`}
+              {loadError || `${t('orders.customerNotFoundDesc')} (${customerCode})`}
             </p>
             <div className="space-y-3">
               <Link href="/orders" className="block">
                 <Button variant="primary" className="w-full">
-                  주문 목록으로 돌아가기
+                  {t('orders.backToOrders')}
                 </Button>
               </Link>
               <Link href="/customers/new" className="block">
                 <Button variant="secondary" className="w-full">
-                  새 고객 등록하기
+                  {t('orders.registerNewCustomer')}
                 </Button>
               </Link>
             </div>
@@ -536,7 +536,7 @@ export default function OrderEntryPage() {
               <button
                 onClick={() => setShowAddProductModal(true)}
                 className="w-8 h-8 flex items-center justify-center bg-green-600 text-white rounded-full hover:bg-green-700 transition-colors"
-                title="제품 추가"
+                title={t('orders.addProduct')}
               >
                 <Plus size={20} />
               </button>
@@ -567,11 +567,11 @@ export default function OrderEntryPage() {
                 <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-3L13.732 4c-.77-1.333-2.694-1.333-3.464 0L3.34 16c-.77 1.333.192 3 1.732 3z" />
               </svg>
               <div className="flex-1">
-                <p className="text-sm font-medium text-amber-800">전체 제품이 표시되고 있습니다</p>
+                <p className="text-sm font-medium text-amber-800">{t('orders.showingAllProducts')}</p>
                 <p className="text-xs text-amber-700 mt-1">
-                  이 고객에게 제품이 매핑되지 않았거나 매핑된 제품이 없습니다.
+                  {t('orders.noMappingWarning')}
                   <Link href={`/customers/${customer.id}/products`} className="ml-1 underline font-medium">
-                    제품 매핑 설정
+                    {t('orders.productMappingSettings')}
                   </Link>
                 </p>
               </div>
@@ -585,18 +585,18 @@ export default function OrderEntryPage() {
                   <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-3L13.732 4c-.77-1.333-2.694-1.333-3.464 0L3.34 16c-.77 1.333.192 3 1.732 3z" />
                 </svg>
               </div>
-              <p className="text-lg font-medium text-gray-900 mb-2">주문 가능한 제품이 없습니다</p>
+              <p className="text-lg font-medium text-gray-900 mb-2">{t('orders.noOrderableProducts')}</p>
               <p className="text-sm text-gray-600 mb-4">
-                이 고객({customer.code})에게 판매 가능한 제품이 설정되지 않았습니다.<br />
-                관리자에게 제품 매핑을 요청하거나, 아래 버튼을 클릭해 설정해주세요.
+                {t('orders.noProductsMappedDesc')}<br />
+                {t('orders.contactAdminOrSetup')}
               </p>
               {/* 디버깅 정보 */}
               <div className="mb-4 p-3 bg-gray-100 rounded-lg text-xs text-gray-600 text-left max-w-md mx-auto">
-                <p><strong>고객 ID:</strong> {customer.id}</p>
-                <p><strong>고객 코드:</strong> {customer.code}</p>
-                <p><strong>매핑된 제품 수:</strong> {customer.products?.length || 0}개</p>
+                <p><strong>{t('customers.code')}:</strong> {customer.id}</p>
+                <p><strong>{t('customers.code')}:</strong> {customer.code}</p>
+                <p><strong>{t('orders.mappedProductCount')}:</strong> {customer.products?.length || 0}{t('common.count')}</p>
                 {customer.products && customer.products.length > 0 && (
-                  <p><strong>제품 코드:</strong> {customer.products.slice(0, 5).join(', ')}{customer.products.length > 5 ? '...' : ''}</p>
+                  <p><strong>{t('orders.productCode')}:</strong> {customer.products.slice(0, 5).join(', ')}{customer.products.length > 5 ? '...' : ''}</p>
                 )}
               </div>
               <Link
@@ -606,7 +606,7 @@ export default function OrderEntryPage() {
                 <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                   <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 6v6m0 0v6m0-6h6m-6 0H6" />
                 </svg>
-                제품 매핑 설정하기
+                {t('orders.setupProductMapping')}
               </Link>
             </div>
           ) : (
@@ -695,8 +695,8 @@ export default function OrderEntryPage() {
                           onChange={(e) => handleOrderAdjReasonChange(state.product.code, e.target.value as DiscountReason | '')}
                           className="h-8 px-2 border border-orange-300 rounded bg-orange-50 text-sm text-gray-800 focus:outline-none focus:ring-1 focus:ring-orange-500"
                         >
-                          <option value="">사유 선택</option>
-                          {DISCOUNT_REASONS.map((r) => (
+                          <option value="">{t('orders.selectReason')}</option>
+                          {getDiscountReasons(t).map((r) => (
                             <option key={r.value} value={r.value}>{r.label}</option>
                           ))}
                         </select>
@@ -736,7 +736,7 @@ export default function OrderEntryPage() {
             <div className="flex flex-col gap-2 mb-3 pb-2 border-b">
               <div className="flex items-center justify-between">
                 <div className="flex items-center gap-2">
-                  <span className="text-gray-800 text-sm font-medium">합계 할인:</span>
+                  <span className="text-gray-800 text-sm font-medium">{t('orders.totalDiscountLabel')}:</span>
                   <input
                     type="number"
                     value={totalDiscount || ''}
@@ -756,15 +756,15 @@ export default function OrderEntryPage() {
                       onChange={(e) => setDiscountReason(e.target.value as DiscountReason | '')}
                       className="h-8 px-2 border border-red-300 rounded bg-red-50 text-sm text-gray-800 focus:outline-none focus:ring-1 focus:ring-red-500"
                     >
-                      <option value="">할인 사유 선택</option>
-                      {DISCOUNT_REASONS.map((r) => (
+                      <option value="">{t('orders.selectDiscountReason')}</option>
+                      {getDiscountReasons(t).map((r) => (
                         <option key={r.value} value={r.value}>{r.label}</option>
                       ))}
                     </select>
                   )}
                 </div>
                 <div>
-                  <span className="text-gray-800 text-sm">최종 금액: </span>
+                  <span className="text-gray-800 text-sm">{t('orders.finalAmountLabel')}: </span>
                   <span className="text-xl font-bold text-green-600">
                     {formatCurrency(totalAmount - totalDiscount)}
                   </span>
@@ -806,7 +806,7 @@ export default function OrderEntryPage() {
               >
                 {/* Header */}
                 <div className="flex items-center justify-between px-6 py-4 border-b border-gray-200">
-                  <h2 className="text-lg font-semibold text-gray-900">제품 추가</h2>
+                  <h2 className="text-lg font-semibold text-gray-900">{t('orders.addProduct')}</h2>
                   <button
                     onClick={() => {
                       setShowAddProductModal(false);
@@ -825,7 +825,7 @@ export default function OrderEntryPage() {
                     <Search size={18} className="absolute left-3 top-1/2 -translate-y-1/2 text-gray-500" />
                     <input
                       type="text"
-                      placeholder="제품 코드 또는 이름으로 검색..."
+                      placeholder={t('orders.searchProductPlaceholder')}
                       value={addProductSearch}
                       onChange={(e) => setAddProductSearch(e.target.value)}
                       className="w-full pl-10 pr-4 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-green-500"
@@ -840,7 +840,7 @@ export default function OrderEntryPage() {
                           : 'bg-gray-100 text-gray-700 hover:bg-gray-200'
                       }`}
                     >
-                      전체
+                      {t('common.all')}
                     </button>
                     <button
                       onClick={() => setAddProductTab('fresh')}
@@ -863,7 +863,7 @@ export default function OrderEntryPage() {
                       {t('products.industrial')}
                     </button>
                     <span className="ml-auto text-sm text-gray-600">
-                      {unmappedProducts.length}개 제품
+                      {unmappedProducts.length}{t('orders.productsCount')}
                     </span>
                   </div>
                 </div>
@@ -872,7 +872,7 @@ export default function OrderEntryPage() {
                 <div className="flex-1 overflow-y-auto px-6 py-3">
                   {unmappedProducts.length === 0 ? (
                     <div className="text-center py-8 text-gray-500">
-                      추가할 수 있는 제품이 없습니다.
+                      {t('orders.noProductsToAdd')}
                     </div>
                   ) : (
                     <div className="space-y-2">
@@ -930,7 +930,7 @@ export default function OrderEntryPage() {
                 <div className="px-6 py-4 border-t border-gray-200 bg-gray-50">
                   <div className="flex items-center justify-between">
                     <span className="text-sm text-gray-700">
-                      선택된 제품: <strong className="text-green-600">{selectedNewProducts.size}개</strong>
+                      {t('orders.selectedProducts')}: <strong className="text-green-600">{selectedNewProducts.size}{t('common.count')}</strong>
                     </span>
                     <div className="flex gap-2">
                       <Button
@@ -941,14 +941,14 @@ export default function OrderEntryPage() {
                           setAddProductSearch('');
                         }}
                       >
-                        취소
+                        {t('common.cancel')}
                       </Button>
                       <Button
                         onClick={handleAddProducts}
                         disabled={selectedNewProducts.size === 0 || addingProducts}
                         loading={addingProducts}
                       >
-                        {addingProducts ? '추가 중...' : `${selectedNewProducts.size}개 추가`}
+                        {addingProducts ? t('orders.adding') : `${selectedNewProducts.size}${t('orders.addCount')}`}
                       </Button>
                     </div>
                   </div>

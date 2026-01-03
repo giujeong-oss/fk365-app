@@ -12,10 +12,10 @@ import { Home, CheckCircle, Lock, Unlock, AlertCircle, Search, Trash2 } from 'lu
 import Link from 'next/link';
 import { formatCurrency } from '@/lib/constants';
 
-const CUTOFF_OPTIONS = [
-  { value: '1', label: '1차 (정상 - 11시 전)' },
-  { value: '2', label: '2차 (추가 - 장보는 중)' },
-  { value: '3', label: '3차 (긴급 - 장본 후)' },
+const getCutoffOptions = (t: (key: any) => string) => [
+  { value: '1', label: t('orders.cutoff1Full') },
+  { value: '2', label: t('orders.cutoff2Full') },
+  { value: '3', label: t('orders.cutoff3Full') },
 ];
 
 // 태국 시간대 (UTC+7) 기준 오늘 날짜 반환
@@ -87,14 +87,14 @@ export default function OrdersPage() {
     getCustomerOrders(customerCode).forEach(o => {
       if (o.discountReason) {
         const reasonLabels: Record<string, string> = {
-          quality: '품질',
-          loyal: '단골',
-          bulk: '대량',
-          promotion: '프로모션',
-          negotiation: '협상',
-          damage: '파손',
-          expiring: '유통기한',
-          other: '기타',
+          quality: t('orders.discountQuality'),
+          loyal: t('orders.discountLoyal'),
+          bulk: t('orders.discountBulk'),
+          promotion: t('orders.discountPromotion'),
+          negotiation: t('orders.discountNegotiation'),
+          damage: t('orders.discountDamage'),
+          expiring: t('orders.discountExpiring'),
+          other: t('orders.discountOther'),
         };
         reasons.push(reasonLabels[o.discountReason] || o.discountReason);
       }
@@ -118,11 +118,11 @@ export default function OrdersPage() {
     setProcessing(true);
     try {
       await confirmOrder(orderId);
-      showSuccess('주문이 확정되었습니다.');
+      showSuccess(t('orders.orderConfirmed'));
       await loadData();
     } catch (error) {
       console.error('Failed to confirm order:', error);
-      showError('주문 확정에 실패했습니다.');
+      showError(t('orders.confirmFailed'));
     } finally {
       setProcessing(false);
       setConfirmModal({ open: false, type: 'single' });
@@ -135,7 +135,7 @@ export default function OrdersPage() {
     try {
       const targetOrders = orders.filter(o => o.cutoff === cutoff && o.status === 'draft');
       if (targetOrders.length === 0) {
-        showWarning('확정할 주문이 없습니다.');
+        showWarning(t('orders.noOrdersToConfirm'));
         return;
       }
 
@@ -143,11 +143,11 @@ export default function OrdersPage() {
         await confirmOrder(order.id);
       }
 
-      showSuccess(`${targetOrders.length}건의 주문이 확정되었습니다.`);
+      showSuccess(`${targetOrders.length}${t('orders.bulkConfirmed')}`);
       await loadData();
     } catch (error) {
       console.error('Failed to bulk confirm:', error);
-      showError('일괄 확정에 실패했습니다.');
+      showError(t('orders.bulkConfirmFailed'));
     } finally {
       setProcessing(false);
       setConfirmModal({ open: false, type: 'bulk' });
@@ -159,11 +159,11 @@ export default function OrdersPage() {
     setProcessing(true);
     try {
       await updateOrder(orderId, { status: 'draft' });
-      showSuccess('주문 확정이 취소되었습니다.');
+      showSuccess(t('orders.confirmCanceled'));
       await loadData();
     } catch (error) {
       console.error('Failed to cancel confirmation:', error);
-      showError('확정 취소에 실패했습니다.');
+      showError(t('orders.confirmCancelFailed'));
     } finally {
       setProcessing(false);
     }
@@ -174,11 +174,11 @@ export default function OrdersPage() {
     setProcessing(true);
     try {
       await deleteOrder(orderId);
-      showSuccess('주문이 취소되었습니다.');
+      showSuccess(t('orders.orderCanceled'));
       await loadData();
     } catch (error) {
       console.error('Failed to delete order:', error);
-      showError('주문 취소에 실패했습니다.');
+      showError(t('orders.cancelFailed'));
     } finally {
       setProcessing(false);
       setCancelModal({ open: false });
@@ -327,7 +327,7 @@ export default function OrdersPage() {
               className="w-48"
               options={[
                 { value: '', label: `${t('common.all')} ${t('orders.cutoff')}` },
-                ...CUTOFF_OPTIONS.map((opt) => ({ value: opt.value, label: opt.label }))
+                ...getCutoffOptions(t).map((opt) => ({ value: opt.value, label: opt.label }))
               ]}
             />
             <span className="text-sm text-gray-900 font-medium">
@@ -347,7 +347,10 @@ export default function OrdersPage() {
               <div>
                 <h2 className="text-lg font-semibold text-gray-900 mb-3 flex items-center gap-2">
                   <span className="w-3 h-3 bg-green-500 rounded-full"></span>
-                  {t('orders.ordered')}
+                  {t('orders.ordered')} ({orderedCustomers.length})
+                  <span className="ml-auto text-green-600 font-bold">
+                    {formatCurrency(orderedCustomers.reduce((sum, c) => sum + getOrderTotal(c.code), 0))}
+                  </span>
                 </h2>
                 <div className="grid gap-3">
                   {orderedCustomers.map((customer) => (
@@ -366,7 +369,7 @@ export default function OrdersPage() {
                         <div className="flex items-center gap-4">
                           <div className="text-right">
                             <div className="flex items-center gap-2 text-sm text-gray-800">
-                              <span className="text-green-600 font-medium">{getCustomerOrders(customer.code).length}건</span>
+                              <span className="text-green-600 font-medium">{getCustomerOrders(customer.code).length}{t('orders.count')}</span>
                               {getOrderStatus(customer.code) === 'confirmed' ? (
                                 <span className="flex items-center gap-1 text-green-600">
                                   <CheckCircle size={14} />
@@ -375,11 +378,11 @@ export default function OrdersPage() {
                               ) : getOrderStatus(customer.code) === 'draft' ? (
                                 <span className="flex items-center gap-1 text-orange-600">
                                   <AlertCircle size={14} />
-                                  미확정
+                                  {t('orders.unconfirmed')}
                                 </span>
                               ) : (
                                 <span className="flex items-center gap-1 text-yellow-600">
-                                  일부 확정
+                                  {t('orders.partialConfirmed')}
                                 </span>
                               )}
                             </div>
@@ -409,7 +412,7 @@ export default function OrdersPage() {
                                 }
                               }}
                               className="p-2 text-red-500 hover:text-red-700 hover:bg-red-50 rounded-lg transition-colors"
-                              title="주문 취소"
+                              title={t('orders.cancelOrder')}
                             >
                               <Trash2 size={18} />
                             </button>
@@ -462,7 +465,7 @@ export default function OrdersPage() {
             {customers.length === 0 && (
               <EmptyState
                 title={t('common.noData')}
-                description={`${t('customers.new')} 필요`}
+                description={t('orders.needRegistration')}
                 action={
                   <Link href="/customers/new">
                     <Button>{t('customers.new')}</Button>
@@ -478,17 +481,16 @@ export default function OrdersPage() {
       <Modal
         isOpen={confirmModal.open}
         onClose={() => setConfirmModal({ open: false, type: 'single' })}
-        title={confirmModal.type === 'single' ? `${t('common.confirm')}` : `${confirmModal.cutoff}차 일괄 ${t('common.confirm')}`}
+        title={confirmModal.type === 'single' ? `${t('common.confirm')}` : `${confirmModal.cutoff}${t('orders.bulkConfirmTitle')}`}
       >
         <div className="space-y-4">
           {confirmModal.type === 'single' ? (
             <p className="text-gray-800">
-              이 주문을 확정하시겠습니까? 확정된 주문은 수정이 제한됩니다.
+              {t('orders.confirmQuestion')}
             </p>
           ) : (
             <p className="text-gray-800">
-              {confirmModal.cutoff}차 마감의 모든 미확정 주문({getDraftCount(confirmModal.cutoff!)}건)을
-              일괄 확정하시겠습니까?
+              {t('orders.bulkConfirmQuestion')} ({getDraftCount(confirmModal.cutoff!)}{t('orders.count')})
             </p>
           )}
           <div className="flex justify-end gap-2 pt-4">
@@ -519,14 +521,14 @@ export default function OrdersPage() {
       <Modal
         isOpen={cancelModal.open}
         onClose={() => setCancelModal({ open: false })}
-        title="주문 취소"
+        title={t('orders.cancelOrder')}
       >
         <div className="space-y-4">
           <p className="text-gray-800">
-            <span className="font-semibold text-red-600">{cancelModal.customerCode}</span> 고객의 주문을 취소하시겠습니까?
+            <span className="font-semibold text-red-600">{cancelModal.customerCode}</span> {t('orders.cancelQuestion')}
           </p>
           <p className="text-sm text-gray-600">
-            이 작업은 되돌릴 수 없습니다. 해당 고객의 모든 주문 항목이 삭제됩니다.
+            {t('orders.cancelWarning')}
           </p>
           <div className="flex justify-end gap-2 pt-4">
             <Button
@@ -545,7 +547,7 @@ export default function OrdersPage() {
               }}
               disabled={processing}
             >
-              {processing ? <Spinner size="sm" /> : '주문 취소'}
+              {processing ? <Spinner size="sm" /> : t('orders.cancelOrder')}
             </Button>
           </div>
         </div>
