@@ -871,7 +871,7 @@ export default function PurchaseOrdersPage() {
                 <thead className="bg-gray-50">
                   <tr>
                     <th className="px-3 py-3 text-left text-sm font-medium text-gray-900">{t('products.code')}</th>
-                    <th className="px-3 py-3 text-left text-sm font-medium text-gray-900">{t('products.product')}</th>
+                    <th className="px-3 py-3 text-left text-sm font-medium text-gray-900 min-w-[180px]">{t('products.product')}</th>
                     <th className="px-3 py-3 text-center text-sm font-medium text-gray-900">{t('products.type')}</th>
                     <th className="px-3 py-3 text-center text-sm font-medium text-gray-900">주문 상세</th>
                     {activeTab === 'buy1' && (
@@ -881,7 +881,7 @@ export default function PurchaseOrdersPage() {
                     <th className="px-3 py-3 text-center text-sm font-medium text-gray-900">실제 매입량</th>
                     <th className="px-3 py-3 text-center text-sm font-medium text-gray-900">추가</th>
                     <th className="px-3 py-3 text-center text-sm font-medium text-gray-900">{t('purchaseOrders.buyPrice')}</th>
-                    <th className="px-3 py-3 text-left text-sm font-medium text-gray-900">{t('vendors.vendor')}</th>
+                    <th className="px-3 py-3 text-left text-sm font-medium text-gray-900 w-[120px]">{t('vendors.vendor')}</th>
                   </tr>
                 </thead>
                 <tbody className="divide-y">

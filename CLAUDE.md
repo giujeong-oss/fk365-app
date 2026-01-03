@@ -34,7 +34,8 @@
 - **Firebase** (Backend)
 
 ### 다국어 (i18n)
-- **URL 기반 라우팅**: `/ko/...`, `/th/...`, `/en/...`
+- **URL 기반 라우팅**: `/ko/...`, `/th/...`, `/en/...`, `/my/...`
+- **지원 언어**: 한국어(ko), 태국어(th), 영어(en), 미얀마어(my)
 - **Middleware**: 언어 자동 감지 및 리다이렉트
 - localStorage + Cookie 저장
 
@@ -197,7 +198,7 @@ type Region = 'pattaya' | 'bangkok';
 type PriceType = 'fresh' | 'industrial';
 type Cutoff = 1 | 2 | 3;
 type UserRole = 'admin' | 'user';
-type UILanguage = 'ko' | 'th' | 'en';
+type UILanguage = 'ko' | 'th' | 'en' | 'my';
 ```
 
 ---
@@ -456,6 +457,21 @@ node scripts/seed-data.mjs
 ---
 
 ## 업데이트 이력
+
+### 2026-01-03 (미얀마어 추가 및 발주서 UI 개선)
+
+**미얀마어(my) 언어 지원 추가**
+- `UILanguage` 타입에 'my' 추가
+- `translations.ts`에 미얀마어 번역 580+ 키 추가
+- `middleware.ts` locales에 'my' 추가
+- `I18nContext.tsx` availableLanguages에 미얀마어 추가
+- `Sidebar.tsx`, `BottomTabs.tsx` 언어 버튼 및 경로 처리 업데이트
+- URL 형식: `/my/...` (예: `/my/purchase-orders`)
+
+**발주서 페이지 테이블 컬럼 폭 조절**
+- 제품 컬럼: `min-w-[180px]` 적용 (텍스트에 맞게 폭 확장)
+- 구매처 컬럼: `w-[120px]` 적용 (기존 대비 절반 축소)
+- 파일: `src/app/[lang]/purchase-orders/page.tsx`
 
 ### 2026-01-03 (URL 기반 다국어 라우팅 구현)
 
