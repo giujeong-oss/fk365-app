@@ -17,11 +17,13 @@ import {
   getFreshMarginMap,
   getIndustrialMarginMap,
   getAllPriceHistory,
+  updateCustomerProducts,
 } from '@/lib/firebase';
 import { CUTOFF_OPTIONS, formatCurrency } from '@/lib/constants';
 import { calculateSellPrice as calcPrice } from '@/lib/utils';
-import type { Customer, Product, Order, OrderItem, Cutoff, Grade, IndustrialMargin, DiscountReason } from '@/types';
+import type { Customer, Product, Order, OrderItem, Cutoff, Grade, IndustrialMargin, DiscountReason, PriceType } from '@/types';
 import Link from 'next/link';
+import { Plus, Search, Check, X } from 'lucide-react';
 
 // 할인 사유 옵션
 const DISCOUNT_REASONS: { value: DiscountReason; label: string }[] = [
@@ -68,6 +70,14 @@ export default function OrderEntryPage() {
   const [loadError, setLoadError] = useState<string | null>(null);
   const [totalDiscount, setTotalDiscount] = useState(0); // 합계 할인
   const [discountReason, setDiscountReason] = useState<DiscountReason | ''>(''); // 합계 할인 사유
+
+  // 제품 추가 모달 상태
+  const [showAddProductModal, setShowAddProductModal] = useState(false);
+  const [allProducts, setAllProducts] = useState<Product[]>([]); // 전체 제품 목록
+  const [addProductSearch, setAddProductSearch] = useState('');
+  const [addProductTab, setAddProductTab] = useState<PriceType | 'all'>('all');
+  const [selectedNewProducts, setSelectedNewProducts] = useState<Set<string>>(new Set());
+  const [addingProducts, setAddingProducts] = useState(false);
 
   // Tab 키 네비게이션을 위한 refs
   const qtyInputRefs = useRef<Map<string, HTMLInputElement>>(new Map());
@@ -144,6 +154,7 @@ export default function OrderEntryPage() {
       setCustomer(customerData);
       setFreshMarginMap(freshMap);
       setIndustrialMarginMap(industrialMap);
+      setAllProducts(allProducts); // 전체 제품 저장 (제품 추가 모달용)
 
       // 고객이 주문 가능한 제품 필터
       let customerProducts: Product[] = [];
@@ -290,6 +301,100 @@ export default function OrderEntryPage() {
     );
   };
 
+  // 매핑되지 않은 제품 필터링
+  const unmappedProducts = allProducts.filter((p) => {
+    // 이미 매핑된 제품은 제외
+    const isMapped = customer?.products?.includes(p.code) || productStates.some(s => s.product.code === p.code);
+    if (isMapped) return false;
+
+    // 검색어 필터
+    const matchesSearch = addProductSearch === '' ||
+      p.code.toLowerCase().includes(addProductSearch.toLowerCase()) ||
+      p.name_ko.toLowerCase().includes(addProductSearch.toLowerCase()) ||
+      p.name_th.toLowerCase().includes(addProductSearch.toLowerCase());
+
+    // 유형 필터
+    const matchesTab = addProductTab === 'all' || p.priceType === addProductTab;
+
+    return matchesSearch && matchesTab;
+  });
+
+  // 새 제품 추가 처리
+  const handleAddProducts = async () => {
+    if (!customer || selectedNewProducts.size === 0) return;
+
+    setAddingProducts(true);
+    try {
+      // 기존 매핑된 제품 코드 + 새로 선택된 제품 코드
+      const existingCodes = customer.products || [];
+      const newCodes = Array.from(selectedNewProducts);
+      const updatedCodes = [...existingCodes, ...newCodes];
+
+      // Firebase에 고객 제품 매핑 업데이트
+      await updateCustomerProducts(customer.id, updatedCodes);
+
+      // 새로 추가된 제품들의 상태 생성
+      const newProductStates: ProductOrderState[] = [];
+      for (const code of newCodes) {
+        const product = allProducts.find(p => p.code === code);
+        if (!product) continue;
+
+        // 신선제품은 3일 최고가 사용, 공산품은 pur 사용
+        const buyPrice = product.priceType === 'fresh'
+          ? (max3DayPriceMap.get(product.code) || product.pur || 0)
+          : (product.pur || 0);
+
+        const sellPrice = calculateSellPriceWithMargin(
+          product,
+          customer.grade,
+          freshMarginMap,
+          industrialMarginMap,
+          buyPrice,
+          0 // 초기 adj는 0
+        );
+
+        newProductStates.push({
+          product,
+          qty: 0,
+          baseAdj: 0,
+          orderAdj: 0,
+          sellPrice,
+        });
+      }
+
+      // 상태 업데이트
+      setProductStates(prev => [...prev, ...newProductStates]);
+      setProducts(prev => [...prev, ...newProductStates.map(s => s.product)]);
+
+      // 고객 정보도 업데이트
+      setCustomer(prev => prev ? { ...prev, products: updatedCodes } : prev);
+
+      // 모달 초기화 및 닫기
+      setSelectedNewProducts(new Set());
+      setAddProductSearch('');
+      setShowAddProductModal(false);
+      setShowingAllProducts(false); // 이제 제품이 매핑되었으므로
+    } catch (error) {
+      console.error('Failed to add products:', error);
+      alert('제품 추가에 실패했습니다.');
+    } finally {
+      setAddingProducts(false);
+    }
+  };
+
+  // 새 제품 선택 토글
+  const toggleNewProduct = (code: string) => {
+    setSelectedNewProducts(prev => {
+      const newSet = new Set(prev);
+      if (newSet.has(code)) {
+        newSet.delete(code);
+      } else {
+        newSet.add(code);
+      }
+      return newSet;
+    });
+  };
+
   const saveOrder = async () => {
     if (!customer || !user) return;
 
@@ -428,7 +533,13 @@ export default function OrderEntryPage() {
                 </svg>
               </Link>
               <h1 className="text-lg font-bold">{customer.fullName}</h1>
-              <div className="w-6"></div>
+              <button
+                onClick={() => setShowAddProductModal(true)}
+                className="w-8 h-8 flex items-center justify-center bg-green-600 text-white rounded-full hover:bg-green-700 transition-colors"
+                title="제품 추가"
+              >
+                <Plus size={20} />
+              </button>
             </div>
             <div className="flex items-center justify-between">
               <div className="flex items-center gap-2">
@@ -673,6 +784,179 @@ export default function OrderEntryPage() {
             </Button>
           </div>
         </div>
+
+        {/* 제품 추가 모달 */}
+        {showAddProductModal && (
+          <div className="fixed inset-0 z-50 overflow-y-auto">
+            {/* Backdrop */}
+            <div
+              className="fixed inset-0 bg-black/50 transition-opacity"
+              onClick={() => {
+                setShowAddProductModal(false);
+                setSelectedNewProducts(new Set());
+                setAddProductSearch('');
+              }}
+            />
+
+            {/* Modal Container */}
+            <div className="flex min-h-full items-center justify-center p-4">
+              <div
+                className="relative w-full max-w-2xl bg-white rounded-xl shadow-xl transform transition-all max-h-[85vh] flex flex-col"
+                onClick={(e) => e.stopPropagation()}
+              >
+                {/* Header */}
+                <div className="flex items-center justify-between px-6 py-4 border-b border-gray-200">
+                  <h2 className="text-lg font-semibold text-gray-900">제품 추가</h2>
+                  <button
+                    onClick={() => {
+                      setShowAddProductModal(false);
+                      setSelectedNewProducts(new Set());
+                      setAddProductSearch('');
+                    }}
+                    className="p-1 text-gray-500 hover:text-gray-600 hover:bg-gray-100 rounded-lg transition-colors"
+                  >
+                    <X size={20} />
+                  </button>
+                </div>
+
+                {/* Search & Filter */}
+                <div className="px-6 py-3 border-b border-gray-100">
+                  <div className="relative mb-3">
+                    <Search size={18} className="absolute left-3 top-1/2 -translate-y-1/2 text-gray-500" />
+                    <input
+                      type="text"
+                      placeholder="제품 코드 또는 이름으로 검색..."
+                      value={addProductSearch}
+                      onChange={(e) => setAddProductSearch(e.target.value)}
+                      className="w-full pl-10 pr-4 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-green-500"
+                    />
+                  </div>
+                  <div className="flex gap-2">
+                    <button
+                      onClick={() => setAddProductTab('all')}
+                      className={`px-3 py-1.5 text-sm font-medium rounded-lg transition-colors ${
+                        addProductTab === 'all'
+                          ? 'bg-green-600 text-white'
+                          : 'bg-gray-100 text-gray-700 hover:bg-gray-200'
+                      }`}
+                    >
+                      전체
+                    </button>
+                    <button
+                      onClick={() => setAddProductTab('fresh')}
+                      className={`px-3 py-1.5 text-sm font-medium rounded-lg transition-colors ${
+                        addProductTab === 'fresh'
+                          ? 'bg-emerald-600 text-white'
+                          : 'bg-gray-100 text-gray-700 hover:bg-gray-200'
+                      }`}
+                    >
+                      {t('products.fresh')}
+                    </button>
+                    <button
+                      onClick={() => setAddProductTab('industrial')}
+                      className={`px-3 py-1.5 text-sm font-medium rounded-lg transition-colors ${
+                        addProductTab === 'industrial'
+                          ? 'bg-blue-600 text-white'
+                          : 'bg-gray-100 text-gray-700 hover:bg-gray-200'
+                      }`}
+                    >
+                      {t('products.industrial')}
+                    </button>
+                    <span className="ml-auto text-sm text-gray-600">
+                      {unmappedProducts.length}개 제품
+                    </span>
+                  </div>
+                </div>
+
+                {/* Product List */}
+                <div className="flex-1 overflow-y-auto px-6 py-3">
+                  {unmappedProducts.length === 0 ? (
+                    <div className="text-center py-8 text-gray-500">
+                      추가할 수 있는 제품이 없습니다.
+                    </div>
+                  ) : (
+                    <div className="space-y-2">
+                      {unmappedProducts.map((product) => {
+                        const isSelected = selectedNewProducts.has(product.code);
+                        return (
+                          <div
+                            key={product.code}
+                            onClick={() => toggleNewProduct(product.code)}
+                            className={`p-3 rounded-lg border cursor-pointer transition-colors ${
+                              isSelected
+                                ? 'border-green-500 bg-green-50'
+                                : 'border-gray-200 hover:border-gray-300 hover:bg-gray-50'
+                            }`}
+                          >
+                            <div className="flex items-center gap-3">
+                              <div
+                                className={`w-5 h-5 rounded border-2 flex items-center justify-center flex-shrink-0 transition-colors ${
+                                  isSelected
+                                    ? 'bg-green-600 border-green-600 text-white'
+                                    : 'border-gray-300'
+                                }`}
+                              >
+                                {isSelected && <Check size={14} />}
+                              </div>
+                              <div className="flex-1 min-w-0">
+                                <div className="flex items-center gap-2">
+                                  <span className="font-mono text-sm font-medium text-green-700">
+                                    {product.code}
+                                  </span>
+                                  <Badge
+                                    variant={product.priceType === 'fresh' ? 'success' : 'info'}
+                                    size="sm"
+                                  >
+                                    {product.priceType === 'fresh' ? t('products.fresh') : t('products.industrial')}
+                                  </Badge>
+                                </div>
+                                <p className="font-medium text-gray-900">{product.name_ko}</p>
+                                <p className="text-xs text-gray-600">
+                                  {product.name_th} / {product.name_mm}
+                                </p>
+                              </div>
+                              <div className="text-right text-sm text-gray-700">
+                                {formatCurrency(product.pur || 0)}
+                              </div>
+                            </div>
+                          </div>
+                        );
+                      })}
+                    </div>
+                  )}
+                </div>
+
+                {/* Footer */}
+                <div className="px-6 py-4 border-t border-gray-200 bg-gray-50">
+                  <div className="flex items-center justify-between">
+                    <span className="text-sm text-gray-700">
+                      선택된 제품: <strong className="text-green-600">{selectedNewProducts.size}개</strong>
+                    </span>
+                    <div className="flex gap-2">
+                      <Button
+                        variant="secondary"
+                        onClick={() => {
+                          setShowAddProductModal(false);
+                          setSelectedNewProducts(new Set());
+                          setAddProductSearch('');
+                        }}
+                      >
+                        취소
+                      </Button>
+                      <Button
+                        onClick={handleAddProducts}
+                        disabled={selectedNewProducts.size === 0 || addingProducts}
+                        loading={addingProducts}
+                      >
+                        {addingProducts ? '추가 중...' : `${selectedNewProducts.size}개 추가`}
+                      </Button>
+                    </div>
+                  </div>
+                </div>
+              </div>
+            </div>
+          </div>
+        )}
       </div>
     </ProtectedRoute>
   );
