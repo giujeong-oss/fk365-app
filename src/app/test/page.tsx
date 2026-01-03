@@ -166,14 +166,14 @@ export default function TestPage() {
                     <div className="text-sm text-gray-700">{result.message}</div>
                   </div>
                 </div>
-                {result.data && (
+                {result.data ? (
                   <details className="mt-2">
                     <summary className="text-sm text-blue-600 cursor-pointer">데이터 보기</summary>
                     <pre className="mt-2 p-2 bg-gray-100 rounded text-xs overflow-auto max-h-40">
                       {JSON.stringify(result.data, null, 2)}
                     </pre>
                   </details>
-                )}
+                ) : null}
               </div>
             ))}
           </div>
