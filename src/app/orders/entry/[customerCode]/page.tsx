@@ -304,17 +304,21 @@ export default function OrderEntryPage() {
         }
       } else {
         // 새 주문 생성
-        await createOrder({
+        const orderData: Parameters<typeof createOrder>[0] = {
           date: new Date(dateParam),
           customerCode,
           cutoff: Number(cutoff) as Cutoff,
           items,
           totalAmount,
-          totalDiscount: totalDiscount > 0 ? totalDiscount : undefined,
-          finalAmount: totalDiscount > 0 ? finalAmount : undefined,
           status: 'draft',
           createdBy: user.uid,
-        });
+        };
+        // 할인이 있을 때만 필드 추가 (Firebase는 undefined를 허용하지 않음)
+        if (totalDiscount > 0) {
+          orderData.totalDiscount = totalDiscount;
+          orderData.finalAmount = finalAmount;
+        }
+        await createOrder(orderData);
       }
 
       router.push('/orders');
