@@ -200,7 +200,7 @@ export default function VendorsPage() {
             <div className="relative flex-1">
               <Search
                 size={18}
-                className="absolute left-3 top-1/2 -translate-y-1/2 text-gray-400"
+                className="absolute left-3 top-1/2 -translate-y-1/2 text-gray-500"
               />
               <input
                 type="text"
@@ -226,7 +226,7 @@ export default function VendorsPage() {
             <LoadingState message="구매처 목록을 불러오는 중..." />
           ) : filteredVendors.length === 0 ? (
             <EmptyState
-              icon={<Store className="w-8 h-8 text-gray-400" />}
+              icon={<Store className="w-8 h-8 text-gray-500" />}
               title="등록된 구매처가 없습니다"
               description="새 구매처를 추가하여 시작하세요."
               action={
@@ -451,7 +451,7 @@ export default function VendorsPage() {
             <div className="relative">
               <Search
                 size={18}
-                className="absolute left-3 top-1/2 -translate-y-1/2 text-gray-400"
+                className="absolute left-3 top-1/2 -translate-y-1/2 text-gray-500"
               />
               <input
                 type="text"
@@ -494,7 +494,7 @@ export default function VendorsPage() {
                         <td className="px-3 py-2 text-center">
                           <button
                             onClick={() => removeProductFromVendor(product.id)}
-                            className="p-1.5 text-gray-400 hover:text-red-600 hover:bg-red-50 rounded-lg transition-colors"
+                            className="p-1.5 text-gray-500 hover:text-red-600 hover:bg-red-50 rounded-lg transition-colors"
                             title="이 구매처에서 제거"
                           >
                             <X size={16} />

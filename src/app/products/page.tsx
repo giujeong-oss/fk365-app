@@ -206,7 +206,7 @@ export default function ProductsPage() {
             <div className="relative flex-1">
               <Search
                 size={18}
-                className="absolute left-3 top-1/2 -translate-y-1/2 text-gray-400"
+                className="absolute left-3 top-1/2 -translate-y-1/2 text-gray-500"
               />
               <input
                 type="text"
@@ -266,7 +266,7 @@ export default function ProductsPage() {
             <LoadingState message="제품 목록을 불러오는 중..." />
           ) : filteredProducts.length === 0 ? (
             <EmptyState
-              icon={<Apple className="w-8 h-8 text-gray-400" />}
+              icon={<Apple className="w-8 h-8 text-gray-500" />}
               title="등록된 제품이 없습니다"
               description="새 제품을 추가하여 시작하세요."
               action={
@@ -367,7 +367,7 @@ export default function ProductsPage() {
                             <div className="flex items-center justify-end gap-2">
                               <Link href={`/products/${product.id}/edit`}>
                                 <button
-                                  className="p-2 text-gray-400 hover:text-green-600 hover:bg-green-50 rounded-lg transition-colors"
+                                  className="p-2 text-gray-500 hover:text-green-600 hover:bg-green-50 rounded-lg transition-colors"
                                   title="수정"
                                 >
                                   <Pencil size={16} />
@@ -375,7 +375,7 @@ export default function ProductsPage() {
                               </Link>
                               <button
                                 onClick={() => setDeleteTarget(product)}
-                                className="p-2 text-gray-400 hover:text-red-600 hover:bg-red-50 rounded-lg transition-colors"
+                                className="p-2 text-gray-500 hover:text-red-600 hover:bg-red-50 rounded-lg transition-colors"
                                 title="삭제"
                               >
                                 <Trash2 size={16} />
@@ -424,13 +424,13 @@ export default function ProductsPage() {
                       </div>
                       <div className="flex items-center gap-1">
                         <Link href={`/products/${product.id}/edit`}>
-                          <button className="p-2 text-gray-400 hover:text-green-600 hover:bg-green-50 rounded-lg">
+                          <button className="p-2 text-gray-500 hover:text-green-600 hover:bg-green-50 rounded-lg">
                             <Pencil size={18} />
                           </button>
                         </Link>
                         <button
                           onClick={() => setDeleteTarget(product)}
-                          className="p-2 text-gray-400 hover:text-red-600 hover:bg-red-50 rounded-lg"
+                          className="p-2 text-gray-500 hover:text-red-600 hover:bg-red-50 rounded-lg"
                         >
                           <Trash2 size={18} />
                         </button>

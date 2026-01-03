@@ -179,7 +179,7 @@ export default function EditCustomerPage() {
           {/* Header */}
           <div className="flex items-center gap-4 mb-6">
             <Link href="/customers">
-              <button className="p-2 text-gray-400 hover:text-gray-600 hover:bg-gray-100 rounded-lg">
+              <button className="p-2 text-gray-500 hover:text-gray-600 hover:bg-gray-100 rounded-lg">
                 <ArrowLeft size={20} />
               </button>
             </Link>

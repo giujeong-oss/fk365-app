@@ -449,7 +449,7 @@ export default function PricesPage() {
                               {selectedProducts.has(pp.product.code) ? (
                                 <CheckSquare size={18} className="text-green-600" />
                               ) : (
-                                <Square size={18} className="text-gray-400" />
+                                <Square size={18} className="text-gray-500" />
                               )}
                             </button>
                           </td>

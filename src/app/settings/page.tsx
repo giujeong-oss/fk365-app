@@ -248,7 +248,7 @@ export default function SettingsPage() {
                   <p className="text-sm text-gray-500">일반 사용자의 개별 메뉴 접근 권한 설정</p>
                 </div>
               </div>
-              <ChevronRight size={20} className="text-gray-400" />
+              <ChevronRight size={20} className="text-gray-500" />
             </Link>
           </section>
 
@@ -580,7 +580,7 @@ export default function SettingsPage() {
                 이메일 주소 <span className="text-red-500">*</span>
               </label>
               <div className="relative">
-                <Mail size={18} className="absolute left-3 top-1/2 -translate-y-1/2 text-gray-400" />
+                <Mail size={18} className="absolute left-3 top-1/2 -translate-y-1/2 text-gray-500" />
                 <input
                   type="email"
                   value={newUserEmail}

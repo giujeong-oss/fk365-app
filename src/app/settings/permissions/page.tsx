@@ -153,7 +153,7 @@ export default function PermissionsPage() {
           {/* Header */}
           <div className="flex items-center gap-4 mb-6">
             <Link href="/settings">
-              <button className="p-2 text-gray-400 hover:text-gray-600 hover:bg-gray-100 rounded-lg">
+              <button className="p-2 text-gray-500 hover:text-gray-600 hover:bg-gray-100 rounded-lg">
                 <ArrowLeft size={20} />
               </button>
             </Link>
@@ -280,7 +280,7 @@ export default function PermissionsPage() {
                                   className={`p-1 rounded-lg transition-colors ${
                                     editedPermissions[item.key]
                                       ? 'text-green-600 hover:bg-green-100'
-                                      : 'text-gray-400 hover:bg-gray-200'
+                                      : 'text-gray-500 hover:bg-gray-200'
                                   }`}
                                 >
                                   {editedPermissions[item.key] ? (
@@ -318,7 +318,7 @@ export default function PermissionsPage() {
                 </div>
               ) : (
                 <div className="bg-white rounded-xl shadow-sm border border-gray-200 p-12 text-center">
-                  <Shield size={48} className="mx-auto text-gray-300 mb-4" />
+                  <Shield size={48} className="mx-auto text-gray-500 mb-4" />
                   <p className="text-gray-500">
                     왼쪽 목록에서 사용자를 선택하세요
                   </p>
