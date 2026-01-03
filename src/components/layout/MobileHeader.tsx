@@ -4,6 +4,7 @@ import { Menu, Globe, LogOut, ChevronLeft, Home } from 'lucide-react';
 import { useState } from 'react';
 import { useRouter } from 'next/navigation';
 import type { UILanguage } from '@/types';
+import { useI18n } from '@/lib/i18n';
 
 interface MobileHeaderProps {
   title?: string;
@@ -26,6 +27,7 @@ export default function MobileHeader({
 }: MobileHeaderProps) {
   const [showMenu, setShowMenu] = useState(false);
   const router = useRouter();
+  const { t } = useI18n();
 
   const languages: { code: UILanguage; label: string }[] = [
     { code: 'ko', label: '한국어' },
@@ -91,14 +93,14 @@ export default function MobileHeader({
                   className="w-full flex items-center gap-2 px-4 py-3 text-sm text-gray-700 hover:bg-gray-50 border-b border-gray-100"
                 >
                   <Home size={16} />
-                  <span>홈으로</span>
+                  <span>{t('common.home')}</span>
                 </button>
 
                 {/* Language Selection */}
                 <div className="px-4 py-3 border-b border-gray-100">
                   <div className="flex items-center gap-2 mb-2">
                     <Globe size={14} className="text-gray-600" />
-                    <span className="text-xs text-gray-600">언어 / Language</span>
+                    <span className="text-xs text-gray-600">{t('common.language')}</span>
                   </div>
                   <div className="flex gap-1">
                     {languages.map((lang) => (
@@ -129,7 +131,7 @@ export default function MobileHeader({
                   className="w-full flex items-center gap-2 px-4 py-3 text-sm text-red-600 hover:bg-red-50"
                 >
                   <LogOut size={16} />
-                  <span>로그아웃</span>
+                  <span>{t('auth.logout')}</span>
                 </button>
               </div>
             </>

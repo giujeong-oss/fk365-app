@@ -88,7 +88,7 @@ export default function BottomTabs({ isAdmin = false }: BottomTabsProps) {
         <div className="lg:hidden fixed bottom-16 left-0 right-0 bg-white border-t border-gray-200 z-50 shadow-lg rounded-t-2xl max-h-[60vh] overflow-y-auto">
           <div className="p-4">
             <div className="flex items-center justify-between mb-4">
-              <h3 className="font-semibold text-gray-900">관리자 메뉴</h3>
+              <h3 className="font-semibold text-gray-900">{t('common.adminMenu')}</h3>
               <button
                 onClick={() => setShowMore(false)}
                 className="p-2 text-gray-600 hover:text-gray-700 hover:bg-gray-100 rounded-full"
@@ -158,7 +158,7 @@ export default function BottomTabs({ isAdmin = false }: BottomTabsProps) {
                 }`}
               >
                 <Menu size={20} />
-                <span className="text-xs">더보기</span>
+                <span className="text-xs">{t('common.more')}</span>
               </button>
             </li>
           )}

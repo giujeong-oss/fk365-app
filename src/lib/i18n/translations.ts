@@ -268,6 +268,9 @@ export const translations = {
 
     // Common Extended
     'common.home': '홈',
+    'common.language': '언어',
+    'common.more': '더보기',
+    'common.adminMenu': '관리자 메뉴',
     'common.selectNone': '선택 안함',
     'common.status': '상태',
     'common.action': '작업',
@@ -850,6 +853,9 @@ export const translations = {
 
     // Common Extended
     'common.home': 'หน้าแรก',
+    'common.language': 'ภาษา',
+    'common.more': 'เพิ่มเติม',
+    'common.adminMenu': 'เมนูผู้ดูแล',
     'common.selectNone': 'ไม่เลือก',
     'common.status': 'สถานะ',
     'common.action': 'การดำเนินการ',
@@ -1432,6 +1438,9 @@ export const translations = {
 
     // Common Extended
     'common.home': 'Home',
+    'common.language': 'Language',
+    'common.more': 'More',
+    'common.adminMenu': 'Admin Menu',
     'common.selectNone': 'None',
     'common.status': 'Status',
     'common.action': 'Action',
