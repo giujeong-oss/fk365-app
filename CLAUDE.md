@@ -405,6 +405,40 @@ node scripts/seed-data.mjs
 
 ## 업데이트 이력
 
+### 2026-01-03 (설정/권한 페이지 다국어 완전 적용)
+
+**설정 페이지 다국어 완전 적용**
+- 시스템 정보 섹션: 앱 도메인, 버전, Firebase 프로젝트, 배포
+- 권한 안내 섹션: 관리자/일반 사용자/비활성 사용자 설명
+- 주의사항 섹션: 권한 변경 경고 메시지
+- 사용자 추가 모달: 설명 텍스트
+- alert 메시지: 권한/상태 변경 불가, 변경 실패, 이메일 입력 오류
+- "나" 배지 다국어 적용
+
+**권한 관리 페이지 다국어 적용**
+- PERMISSION_ITEMS: 하드코딩 → 번역 키 기반 (labelKey, descKey)
+- 페이지 타이틀: 세부 권한 관리
+- Info 배너: 관리자 권한 설명
+- 일반 사용자 목록: 섹션 타이틀, 빈 목록 메시지
+- 사용자 정보: "이름 없음", "비활성" 배지
+- 버튼: 전체 해제, 전체 허용
+- 저장 영역: 변경사항 있음 메시지, 저장 버튼
+- 빈 상태: 사용자 선택 안내
+
+**추가된 번역 키 (settings.*)**
+- systemInfo, appDomain, version, firebaseProject, deployment, me
+- permissionGuide, adminDesc, userDesc, inactiveDesc
+- warning, warningText, addUserDesc
+- cannotChangeOwnRole, cannotChangeOwnStatus, changeFailed
+- enterEmail, addUserFailed
+
+**추가된 번역 키 (permissions.*)**
+- detailedTitle, detailedDesc
+- adminHasAll, onlyRegularUsers
+- regularUserList, noRegularUsers, noName, inactive
+- unselectAll, selectAll, hasChanges
+- selectUserFromList, saveFailed
+
 ### 2026-01-03 (페이지 전환 슬라이드 애니메이션)
 
 **페이지 전환 애니메이션 구현**

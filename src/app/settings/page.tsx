@@ -67,7 +67,7 @@ export default function SettingsPage() {
 
   const handleRoleChange = async (userId: string, newRole: UserRole) => {
     if (userId === user?.id) {
-      alert('자신의 권한은 변경할 수 없습니다.');
+      alert(t('settings.cannotChangeOwnRole'));
       return;
     }
 
@@ -83,7 +83,7 @@ export default function SettingsPage() {
 
   const handleStatusChange = async (userId: string, newStatus: boolean) => {
     if (userId === user?.id) {
-      alert('자신의 상태는 변경할 수 없습니다.');
+      alert(t('settings.cannotChangeOwnStatus'));
       return;
     }
 
@@ -110,7 +110,7 @@ export default function SettingsPage() {
       await loadUsers();
     } catch (error) {
       console.error('Failed to update:', error);
-      alert('변경에 실패했습니다.');
+      alert(t('settings.changeFailed'));
     } finally {
       setUpdating(null);
       setConfirmModal(null);
@@ -120,7 +120,7 @@ export default function SettingsPage() {
   // 사용자 추가
   const handleAddUser = async () => {
     if (!newUserEmail.trim()) {
-      setAddUserError('이메일을 입력해주세요.');
+      setAddUserError(t('settings.enterEmail'));
       return;
     }
 
@@ -135,7 +135,7 @@ export default function SettingsPage() {
       setNewUserName('');
       setNewUserRole('user');
     } catch (error) {
-      setAddUserError(error instanceof Error ? error.message : '사용자 추가에 실패했습니다.');
+      setAddUserError(error instanceof Error ? error.message : t('settings.addUserFailed'));
     } finally {
       setAddingUser(false);
     }
@@ -259,25 +259,25 @@ export default function SettingsPage() {
             <div className="px-6 py-4 border-b border-gray-200 bg-gray-50">
               <h2 className="text-lg font-semibold text-gray-800 flex items-center gap-2">
                 <Server size={20} className="text-blue-600" />
-                시스템 정보
+                {t('settings.systemInfo')}
               </h2>
             </div>
             <div className="p-6">
               <div className="grid md:grid-cols-2 gap-4">
                 <div className="flex items-center justify-between p-3 bg-gray-50 rounded-lg">
-                  <span className="text-sm text-gray-600">앱 도메인</span>
+                  <span className="text-sm text-gray-600">{t('settings.appDomain')}</span>
                   <span className="text-sm font-medium text-gray-900">app.freshkitchen365.com</span>
                 </div>
                 <div className="flex items-center justify-between p-3 bg-gray-50 rounded-lg">
-                  <span className="text-sm text-gray-600">버전</span>
+                  <span className="text-sm text-gray-600">{t('settings.version')}</span>
                   <span className="text-sm font-medium text-gray-900">v1.0.0</span>
                 </div>
                 <div className="flex items-center justify-between p-3 bg-gray-50 rounded-lg">
-                  <span className="text-sm text-gray-600">Firebase 프로젝트</span>
+                  <span className="text-sm text-gray-600">{t('settings.firebaseProject')}</span>
                   <span className="text-sm font-medium text-gray-900">fk365-e8f90</span>
                 </div>
                 <div className="flex items-center justify-between p-3 bg-gray-50 rounded-lg">
-                  <span className="text-sm text-gray-600">배포</span>
+                  <span className="text-sm text-gray-600">{t('settings.deployment')}</span>
                   <span className="text-sm font-medium text-green-600">Vercel</span>
                 </div>
               </div>
@@ -350,7 +350,7 @@ export default function SettingsPage() {
                                 <p className="text-sm text-gray-600">{u.name || '-'}</p>
                               </div>
                               {u.id === user?.id && (
-                                <Badge variant="info" size="sm">나</Badge>
+                                <Badge variant="info" size="sm">{t('settings.me')}</Badge>
                               )}
                             </div>
                           </td>
@@ -427,7 +427,7 @@ export default function SettingsPage() {
                           <div>
                             <div className="flex items-center gap-2">
                               <p className="font-medium text-gray-900">{u.email}</p>
-                              {u.id === user?.id && <Badge variant="info" size="sm">나</Badge>}
+                              {u.id === user?.id && <Badge variant="info" size="sm">{t('settings.me')}</Badge>}
                             </div>
                             <p className="text-sm text-gray-600">{u.name || '-'}</p>
                           </div>
@@ -489,11 +489,11 @@ export default function SettingsPage() {
             <div className="flex items-start gap-3">
               <Info size={20} className="text-blue-600 flex-shrink-0 mt-0.5" />
               <div>
-                <h3 className="font-medium text-blue-800 mb-2">권한 안내</h3>
+                <h3 className="font-medium text-blue-800 mb-2">{t('settings.permissionGuide')}</h3>
                 <ul className="text-sm text-blue-700 space-y-1">
-                  <li><strong>관리자</strong>: 모든 메뉴 접근 가능 (제품, 고객, 구매처, 마진, 설정 등)</li>
-                  <li><strong>일반 사용자</strong>: 대시보드, 주문, 배송장만 접근 가능</li>
-                  <li><strong>비활성 사용자</strong>: 로그인 불가</li>
+                  <li>{t('settings.adminDesc')}</li>
+                  <li>{t('settings.userDesc')}</li>
+                  <li>{t('settings.inactiveDesc')}</li>
                 </ul>
               </div>
             </div>
@@ -504,10 +504,9 @@ export default function SettingsPage() {
             <div className="flex items-start gap-3">
               <AlertTriangle size={20} className="text-amber-600 flex-shrink-0 mt-0.5" />
               <div>
-                <h3 className="font-medium text-amber-800 mb-1">주의사항</h3>
+                <h3 className="font-medium text-amber-800 mb-1">{t('settings.warning')}</h3>
                 <p className="text-sm text-amber-700">
-                  관리자 권한 변경 및 사용자 비활성화는 즉시 적용됩니다.
-                  최소 1명의 관리자가 항상 유지되어야 합니다.
+                  {t('settings.warningText')}
                 </p>
               </div>
             </div>
@@ -565,8 +564,7 @@ export default function SettingsPage() {
       >
         <div className="p-4">
           <p className="text-sm text-gray-600 mb-4">
-            이메일 주소를 입력하여 새 사용자를 사전 등록합니다.<br />
-            등록된 사용자는 해당 이메일로 로그인 시 접근 권한을 받습니다.
+            {t('settings.addUserDesc')}
           </p>
 
           <div className="space-y-4">
