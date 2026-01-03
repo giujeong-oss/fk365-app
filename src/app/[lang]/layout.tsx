@@ -5,7 +5,7 @@ import { useParams } from 'next/navigation';
 import { useI18n } from '@/lib/i18n';
 import type { UILanguage } from '@/types';
 
-const validLocales = ['ko', 'th', 'en'];
+const validLocales = ['ko', 'th', 'en', 'my'];
 
 export default function LangLayout({
   children,

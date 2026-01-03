@@ -1,7 +1,7 @@
 import { NextResponse } from 'next/server';
 import type { NextRequest } from 'next/server';
 
-const locales = ['ko', 'th', 'en'];
+const locales = ['ko', 'th', 'en', 'my'];
 const defaultLocale = 'ko';
 
 // 언어 접두사가 없는 경로인지 확인

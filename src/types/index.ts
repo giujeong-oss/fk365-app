@@ -9,7 +9,7 @@ export type Region = 'pattaya' | 'bangkok';
 export type PriceType = 'fresh' | 'industrial';
 export type Cutoff = 1 | 2 | 3;
 export type UserRole = 'admin' | 'user';
-export type UILanguage = 'ko' | 'th' | 'en';
+export type UILanguage = 'ko' | 'th' | 'en' | 'my';
 
 // ============================================
 // 제품 (Products)

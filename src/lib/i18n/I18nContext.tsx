@@ -29,9 +29,10 @@ const availableLanguages: { code: UILanguage; label: string }[] = [
   { code: 'ko', label: '한국어' },
   { code: 'th', label: 'ไทย' },
   { code: 'en', label: 'English' },
+  { code: 'my', label: 'မြန်မာ' },
 ];
 
-const locales = ['ko', 'th', 'en'];
+const locales = ['ko', 'th', 'en', 'my'];
 
 export function I18nProvider({ children }: { children: ReactNode }) {
   const [language, setLanguageState] = useState<UILanguage>('ko');

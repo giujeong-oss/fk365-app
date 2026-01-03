@@ -60,7 +60,7 @@ export default function BottomTabs({ isAdmin = false }: BottomTabsProps) {
   // 현재 경로에서 언어 접두사 제거
   const getPathWithoutLang = (path: string) => {
     const segments = path.split('/');
-    if (['ko', 'th', 'en'].includes(segments[1])) {
+    if (['ko', 'th', 'en', 'my'].includes(segments[1])) {
       return '/' + segments.slice(2).join('/') || '/';
     }
     return path;
