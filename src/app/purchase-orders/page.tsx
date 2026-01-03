@@ -909,7 +909,7 @@ export default function PurchaseOrdersPage() {
                           </Badge>
                         </td>
                         <td className="px-3 py-3 text-center">
-                          {/* 주문 상세: 첫줄 합계+버튼, 둘째줄 개별 값 */}
+                          {/* 주문 상세: 첫줄 합계+버튼, 둘째줄 고객별 수량 */}
                           <div className="space-y-0.5">
                             <div className="flex items-center justify-center gap-1">
                               <span className="font-bold text-gray-900">
@@ -925,13 +925,11 @@ export default function PurchaseOrdersPage() {
                                 </button>
                               )}
                             </div>
-                            <div className="text-xs text-gray-600 flex items-center justify-center gap-1">
-                              <span className="text-blue-600">{summary.cut1}</span>
-                              <span>+</span>
-                              <span className="text-yellow-600">{summary.cut2}</span>
-                              <span>+</span>
-                              <span className="text-red-600">{summary.cut3}</span>
-                            </div>
+                            {summary.customers.length > 0 && (
+                              <div className="text-xs text-gray-700">
+                                ({summary.customers.map(c => c.qty).join('+')})
+                              </div>
+                            )}
                           </div>
                         </td>
                         {activeTab === 'buy1' && (
