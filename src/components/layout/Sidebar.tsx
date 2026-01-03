@@ -58,11 +58,23 @@ export default function Sidebar({
   userName = 'User',
 }: SidebarProps) {
   const pathname = usePathname();
-  const { t } = useI18n();
+  const { t, getLocalizedPath, changeLanguage } = useI18n();
   const { setNavigationDirection } = useNavigation();
 
+  // 현재 경로에서 언어 접두사 제거
+  const getPathWithoutLang = (path: string) => {
+    const segments = path.split('/');
+    if (['ko', 'th', 'en'].includes(segments[1])) {
+      return '/' + segments.slice(2).join('/') || '/';
+    }
+    return path;
+  };
+
+  const currentPathWithoutLang = getPathWithoutLang(pathname);
+
   const handleNavClick = (href: string) => {
-    setNavigationDirection(pathname, href);
+    const localizedHref = getLocalizedPath(href);
+    setNavigationDirection(pathname, localizedHref);
   };
 
   const filteredNavItems = navItems.filter(item => !item.adminOnly || isAdmin);
@@ -76,7 +88,7 @@ export default function Sidebar({
   return (
     <aside className="hidden lg:flex lg:flex-col lg:w-64 lg:fixed lg:inset-y-0 bg-gray-900 text-white">
       {/* Logo */}
-      <Link href="/" className="flex items-center justify-center h-16 px-4 bg-gray-800 hover:bg-gray-700 transition-colors">
+      <Link href={getLocalizedPath('/')} className="flex items-center justify-center h-16 px-4 bg-gray-800 hover:bg-gray-700 transition-colors">
         <h1 className="text-xl font-bold text-green-400">FK365</h1>
       </Link>
 
@@ -84,11 +96,11 @@ export default function Sidebar({
       <nav className="flex-1 overflow-y-auto py-4">
         <ul className="space-y-1 px-3">
           {filteredNavItems.map((item) => {
-            const isActive = pathname === item.href;
+            const isActive = currentPathWithoutLang === item.href || currentPathWithoutLang === item.href + '/';
             return (
               <li key={item.href}>
                 <Link
-                  href={item.href}
+                  href={getLocalizedPath(item.href)}
                   onClick={() => handleNavClick(item.href)}
                   className={`flex items-center gap-3 px-3 py-2 rounded-lg transition-colors ${
                     isActive
@@ -114,7 +126,7 @@ export default function Sidebar({
             {languages.map((lang) => (
               <button
                 key={lang.code}
-                onClick={() => onLanguageChange?.(lang.code)}
+                onClick={() => changeLanguage(lang.code)}
                 className={`px-2 py-1 text-xs rounded ${
                   currentLanguage === lang.code
                     ? 'bg-green-600 text-white'

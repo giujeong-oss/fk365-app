@@ -53,12 +53,24 @@ interface BottomTabsProps {
 
 export default function BottomTabs({ isAdmin = false }: BottomTabsProps) {
   const pathname = usePathname();
-  const { t } = useI18n();
+  const { t, getLocalizedPath } = useI18n();
   const { setNavigationDirection } = useNavigation();
   const [showMore, setShowMore] = useState(false);
 
+  // 현재 경로에서 언어 접두사 제거
+  const getPathWithoutLang = (path: string) => {
+    const segments = path.split('/');
+    if (['ko', 'th', 'en'].includes(segments[1])) {
+      return '/' + segments.slice(2).join('/') || '/';
+    }
+    return path;
+  };
+
+  const currentPathWithoutLang = getPathWithoutLang(pathname);
+
   const handleNavClick = (href: string) => {
-    setNavigationDirection(pathname, href);
+    const localizedHref = getLocalizedPath(href);
+    setNavigationDirection(pathname, localizedHref);
   };
 
   // 관리자가 아니면 기본 탭만 표시
@@ -71,7 +83,7 @@ export default function BottomTabs({ isAdmin = false }: BottomTabsProps) {
     ? adminTabItems
     : [];
 
-  const isMoreActive = moreMenuItems.some(item => pathname === item.href || pathname.startsWith(item.href + '/'));
+  const isMoreActive = moreMenuItems.some(item => currentPathWithoutLang === item.href || currentPathWithoutLang.startsWith(item.href + '/'));
 
   return (
     <>
@@ -98,11 +110,11 @@ export default function BottomTabs({ isAdmin = false }: BottomTabsProps) {
             </div>
             <div className="grid grid-cols-4 gap-3">
               {moreMenuItems.map((item) => {
-                const isActive = pathname === item.href || pathname.startsWith(item.href + '/');
+                const isActive = currentPathWithoutLang === item.href || currentPathWithoutLang.startsWith(item.href + '/');
                 return (
                   <Link
                     key={item.href}
-                    href={item.href}
+                    href={getLocalizedPath(item.href)}
                     onClick={() => {
                       handleNavClick(item.href);
                       setShowMore(false);
@@ -127,11 +139,11 @@ export default function BottomTabs({ isAdmin = false }: BottomTabsProps) {
       <nav className="lg:hidden fixed bottom-0 left-0 right-0 bg-white border-t border-gray-200 z-50">
         <ul className="flex justify-around items-center h-16">
           {visibleTabs.map((item) => {
-            const isActive = pathname === item.href;
+            const isActive = currentPathWithoutLang === item.href || currentPathWithoutLang === item.href + '/';
             return (
               <li key={item.href} className="flex-1">
                 <Link
-                  href={item.href}
+                  href={getLocalizedPath(item.href)}
                   onClick={() => handleNavClick(item.href)}
                   className={`flex flex-col items-center justify-center h-full gap-1 ${
                     isActive

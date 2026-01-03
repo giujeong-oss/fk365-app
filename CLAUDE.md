@@ -33,9 +33,10 @@
 - **Vercel** (Frontend)
 - **Firebase** (Backend)
 
-### 다국어
-- 커스텀 i18n (ko/th/en)
-- localStorage 저장
+### 다국어 (i18n)
+- **URL 기반 라우팅**: `/ko/...`, `/th/...`, `/en/...`
+- **Middleware**: 언어 자동 감지 및 리다이렉트
+- localStorage + Cookie 저장
 
 ---
 
@@ -46,21 +47,24 @@ src/
 ├── app/                          # Next.js App Router (페이지)
 │   ├── layout.tsx               # 루트 레이아웃
 │   ├── providers.tsx            # Context Providers
-│   ├── page.tsx                 # 대시보드
-│   ├── login/                   # 로그인
-│   ├── orders/                  # 주문 관리
-│   │   └── entry/[customerCode]/ # 주문 입력
-│   ├── products/                # 제품 관리
-│   ├── customers/               # 고객 관리
-│   │   └── [id]/products/       # 고객별 제품 매핑
-│   ├── vendors/                 # 구매처 관리
-│   ├── purchase-orders/         # 발주서
-│   ├── stock/                   # 재고
-│   ├── prices/                  # 가격 관리
-│   ├── margins/                 # 마진 설정
-│   ├── delivery/                # 배송장
-│   ├── settings/                # 설정
-│   └── diagnostics/             # 진단 (관리자)
+│   └── [lang]/                  # 언어별 동적 라우팅 (ko/th/en)
+│       ├── layout.tsx           # 언어 동기화 레이아웃
+│       ├── page.tsx             # 대시보드
+│       ├── login/               # 로그인
+│       ├── orders/              # 주문 관리
+│       │   └── entry/[customerCode]/ # 주문 입력
+│       ├── products/            # 제품 관리
+│       ├── customers/           # 고객 관리
+│       │   └── [id]/products/   # 고객별 제품 매핑
+│       ├── vendors/             # 구매처 관리
+│       ├── purchase-orders/     # 발주서
+│       ├── stock/               # 재고
+│       ├── prices/              # 가격 관리
+│       ├── margins/             # 마진 설정
+│       ├── delivery/            # 배송장
+│       ├── settings/            # 설정
+│       └── diagnostics/         # 진단 (관리자)
+├── middleware.ts                # 언어 감지 및 리다이렉트
 │
 ├── components/
 │   ├── layout/                  # 레이아웃 컴포넌트
@@ -297,27 +301,35 @@ showError('저장에 실패했습니다.');
 
 ⚠️ **모든 UI 텍스트는 반드시 다국어 처리해야 합니다.**
 
+**URL 기반 라우팅:**
+- 모든 페이지 경로에 언어 접두사 포함: `/ko/...`, `/th/...`, `/en/...`
+- 접두사 없이 접근 시 자동 리다이렉트 (middleware)
+- 예시: `/purchase-orders` → `/ko/purchase-orders`
+
 **규칙:**
 1. 하드코딩된 한국어 텍스트 사용 금지
 2. 모든 사용자 표시 텍스트는 `t()` 함수 사용
 3. 새 텍스트 추가 시 `translations.ts`에 ko/th/en 3개 언어 모두 추가
+4. 링크 생성 시 `getLocalizedPath()` 사용
 
 **사용법:**
 ```typescript
 import { useI18n } from '@/lib/i18n';
 
 export default function MyPage() {
-  const { t } = useI18n();
+  const { t, getLocalizedPath, changeLanguage } = useI18n();
 
   return (
     <div>
       {/* ✅ 올바른 사용 */}
       <h1>{t('page.title')}</h1>
       <button>{t('common.save')}</button>
+      <Link href={getLocalizedPath('/orders')}>주문</Link>
+      <button onClick={() => changeLanguage('en')}>English</button>
 
-      {/* ❌ 잘못된 사용 - 하드코딩 금지 */}
+      {/* ❌ 잘못된 사용 */}
       <h1>페이지 제목</h1>
-      <button>저장</button>
+      <Link href="/orders">주문</Link>
     </div>
   );
 }
@@ -444,6 +456,28 @@ node scripts/seed-data.mjs
 ---
 
 ## 업데이트 이력
+
+### 2026-01-03 (URL 기반 다국어 라우팅 구현)
+
+**Next.js [lang] 동적 라우팅 적용**
+- 모든 페이지를 `src/app/[lang]/` 하위로 이동
+- URL 형식: `/ko/...`, `/th/...`, `/en/...`
+- 예시: `/ko/purchase-orders`, `/en/settings`
+
+**middleware.ts 추가**
+- 언어 접두사 없이 접근 시 자동 리다이렉트
+- 쿠키 → Accept-Language 헤더 순서로 언어 감지
+- 기본 언어: 한국어 (ko)
+
+**I18nContext 확장**
+- `changeLanguage(lang)`: URL 변경으로 언어 전환
+- `getLocalizedPath(path)`: 현재 언어 접두사 포함 경로 반환
+- URL과 Context 상태 자동 동기화
+
+**네비게이션 컴포넌트 업데이트**
+- `Sidebar.tsx`: 모든 Link에 getLocalizedPath 적용
+- `BottomTabs.tsx`: 모든 Link에 getLocalizedPath 적용
+- isActive 체크 로직: 언어 접두사 제외 후 비교
 
 ### 2026-01-03 (설정/권한 페이지 다국어 완전 적용)
 
